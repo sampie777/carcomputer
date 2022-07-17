@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "data.h"
+#include "display.h"
 
-int global = 0;
+State state;
 
 void gui(void* args) {
-    printf("initizizing GUI...\n");
     while (1) {
-        global++;
-        printf("[ ] Hello world by GUI! Global: %d\n", global);
+        state.car.speed++;
+        display_update(&state);
         vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
     vTaskDelete(NULL);
@@ -17,6 +18,8 @@ void gui(void* args) {
 // Running on main core
 void app_main(void)
 {
+
+    display_init();
 
     portBASE_TYPE result = xTaskCreatePinnedToCore(&gui, "gui",
                             3584 + 512, NULL,
@@ -28,8 +31,8 @@ void app_main(void)
 
     int i = 0;
     while (1) {
-        global++;
-        printf("[%d] Hello world! Global: %d\n", i, global);
+        state.car.speed++;
+        display_update(&state);
         i++;
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
