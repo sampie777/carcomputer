@@ -22,3 +22,12 @@ Commands to use:
 - `idf.py build`
 - `idf.py [-p /dev/ttyUSB0] flash` (build included)
 - `idf.py [-p /dev/ttyUSB0] monitor`
+
+
+# Project setup
+
+1. Copy and rename the `secrets.h.template` file to `secrets.h` and edit the values to your need.
+
+#### New files
+
+Remember to add newly created files to the `CMakeLists.txt` in `main/`.

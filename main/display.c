@@ -6,9 +6,11 @@
 #include "display.h"
 
 void display_init() {
-    printf("initizizing GUI...\n");
+    printf("Initializing display...\n");
 }
 
 void display_update(State *state) {
-    printf("Speed: %d\n", state->car.speed);
+    printf("Speed: %d\tWiFi: %s\n",
+           state->car.speed,
+           state->wifi.connected ? "connected" : "not connected");
 }

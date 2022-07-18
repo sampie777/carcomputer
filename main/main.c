@@ -3,10 +3,14 @@
 #include "freertos/task.h"
 #include "data.h"
 #include "display.h"
+#include "connectivity/wifi.h"
+#include "utils.h"
 
-State state;
+static State state;
 
-void gui(void* args) {
+void process_gui(void *args) {
+    display_init();
+
     while (1) {
         state.car.speed++;
         display_update(&state);
@@ -15,25 +19,34 @@ void gui(void* args) {
     vTaskDelete(NULL);
 }
 
-// Running on main core
-void app_main(void)
-{
+void process_main() {
+    wifi_connect(&state);
 
-    display_init();
-
-    portBASE_TYPE result = xTaskCreatePinnedToCore(&gui, "gui",
-                            3584 + 512, NULL,
-                                                   0, NULL, 1);
-
-    if (result != pdTRUE) {
-        printf("Failed to create GUI task");
-    }
-
-    int i = 0;
     while (1) {
         state.car.speed++;
         display_update(&state);
-        i++;
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
+}
+
+void init() {
+    state.car.speed = 0;
+    state.wifi.connected = false;
+
+    nvs_init();
+}
+
+// Running on main core
+void app_main(void) {
+    init();
+
+    // Init second core
+    portBASE_TYPE result = xTaskCreatePinnedToCore(&process_gui, "process_gui",
+                                                   3584 + 512, NULL,
+                                                   0, NULL, 1);
+    if (result != pdTRUE) {
+        printf("Failed to create task for second core");
+    }
+
+    process_main();
 }
