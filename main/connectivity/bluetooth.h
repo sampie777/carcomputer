@@ -5,7 +5,7 @@
 #ifndef APP_TEMPLATE_BLUETOOTH_H
 #define APP_TEMPLATE_BLUETOOTH_H
 
-#include "../data.h"
+#include "../state.h"
 
 void bluetooth_init(State *state);
 

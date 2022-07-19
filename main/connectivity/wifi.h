@@ -5,7 +5,7 @@
 #ifndef APP_TEMPLATE_WIFI_H
 #define APP_TEMPLATE_WIFI_H
 
-#include "../data.h"
+#include "../state.h"
 
 void wifi_connect(State *state);
 
