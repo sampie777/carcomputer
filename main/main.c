@@ -5,14 +5,16 @@
 #include "display.h"
 #include "connectivity/wifi.h"
 #include "utils.h"
+#include "connectivity/bluetooth.h"
 
-static State state;
+static State state = {0};
 
 void process_gui(void *args) {
     display_init();
 
     while (1) {
         state.car.speed++;
+        printf("Core 2: ");
         display_update(&state);
         vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
@@ -20,19 +22,18 @@ void process_gui(void *args) {
 }
 
 void process_main() {
+    bluetooth_init(&state);
     wifi_connect(&state);
 
     while (1) {
         state.car.speed++;
+        printf("Core 1: ");
         display_update(&state);
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
 
 void init() {
-    state.car.speed = 0;
-    state.wifi.connected = false;
-
     nvs_init();
 }
 

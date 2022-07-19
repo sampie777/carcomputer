@@ -46,7 +46,7 @@ static void event_handler(void *args, esp_event_base_t event_base,
 }
 
 void fast_scan(State *state) {
-    printf("Setting up WiFi connection with AP: %s...\n", DEFAULT_SSID);
+    printf("[WiFi] Setting up WiFi connection with AP: %s...\n", DEFAULT_SSID);
     // See: https://github.com/espressif/esp-idf/blob/v4.4.1/examples/wifi/fast_scan/main/fast_scan.c
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -77,10 +77,14 @@ void fast_scan(State *state) {
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
 
-    printf("Starting WiFi scan...\n");
+    printf("[WiFi] Starting WiFi scan...\n");
     ESP_ERROR_CHECK(esp_wifi_start());
 }
 
 void wifi_connect(State *state) {
+    printf("[WiFi] Initializing...\n");
+
     fast_scan(state);
+
+    printf("[WiFi] Init done");
 }

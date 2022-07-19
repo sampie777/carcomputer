@@ -17,8 +17,13 @@ typedef struct {
 } WiFiState;
 
 typedef struct {
+    int connected;
+} BluetoothState;
+
+typedef struct {
     CarState car;
     WiFiState wifi;
+    BluetoothState bluetooth;
 } State;
 
 #endif //APP_TEMPLATE_DATA_H

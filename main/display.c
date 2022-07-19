@@ -10,7 +10,8 @@ void display_init() {
 }
 
 void display_update(State *state) {
-    printf("Speed: %d\tWiFi: %s\n",
+    printf("Speed: %d\tWiFi: %s\tBluetooth: %s\n",
            state->car.speed,
-           state->wifi.connected ? "connected" : "not connected");
+           state->wifi.connected ? "connected" : "not connected",
+           state->bluetooth.connected ? "connected" : "not connected");
 }
