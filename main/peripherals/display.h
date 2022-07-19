@@ -5,7 +5,7 @@
 #ifndef APP_TEMPLATE_DISPLAY_H
 #define APP_TEMPLATE_DISPLAY_H
 
-#include "data.h"
+#include "../data.h"
 
 void display_init();
 
