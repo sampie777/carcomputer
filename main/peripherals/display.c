@@ -3,6 +3,7 @@
 //
 
 #include <stdio.h>
+#include <freertos/portmacro.h>
 #include "display.h"
 
 void display_init() {
@@ -10,7 +11,8 @@ void display_init() {
 }
 
 void display_update(State *state) {
-    printf("Speed: %d\tWiFi: %s\tBluetooth: %s\n",
+    printf("Core: %d\tSpeed: %3.1f\tWiFi: %s\tBluetooth: %s\n",
+           xPortGetCoreID(),
            state->car.speed,
            state->wifi.connected ? "connected" : "not connected",
            state->bluetooth.connected ? "connected" : "not connected");

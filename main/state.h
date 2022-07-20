@@ -8,7 +8,11 @@
 #include <esp_netif_ip_addr.h>
 
 typedef struct {
-    int speed;
+    int connected;
+    double speed;
+    double rpm;
+    int isBraking;
+    unsigned long lastCanMessage;
 } CarState;
 
 typedef struct {

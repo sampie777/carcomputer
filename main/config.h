@@ -7,6 +7,9 @@
 
 #include "secrets.h"
 
+#define CANBUS_INTERRUPT_PIN GPIO_NUM_4
+#define CANBUS_CHIP_SELECT_PIN GPIO_NUM_5
+
 #ifndef DEFAULT_SSID
 #define DEFAULT_SSID "abc"
 #endif
