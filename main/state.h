@@ -12,6 +12,8 @@ typedef struct {
     double speed;
     double rpm;
     int isBraking;
+    double gas_pedal;
+    double virtual_gas_pedal;
     unsigned long lastCanMessage;
 } CarState;
 

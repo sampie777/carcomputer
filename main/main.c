@@ -1,3 +1,4 @@
+#include <sys/cdefs.h>
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -9,7 +10,7 @@
 #include "peripherals/canbus.h"
 #include "control.h"
 
-void process_gui(void *args) {
+_Noreturn void process_gui(void *args) {
     State *state = args;
     display_init();
 
@@ -21,14 +22,18 @@ void process_gui(void *args) {
     vTaskDelete(NULL);
 }
 
-void process_main(State *state) {
+_Noreturn void process_main(State *state) {
     bluetooth_init(state);
     canbus_init();
 
     wifi_connect(state);
 
     while (1) {
+        // Collect data
         control_read_can_bus(state);
+        control_read_analog_sensors(state);
+
+        // Process data
         control_door_lock(state);
         control_cruise_control(state);
 
