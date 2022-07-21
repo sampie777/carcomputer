@@ -55,11 +55,11 @@ void read_message(CanMessage *message) {
 void handle_message(State *state, CanMessage *message) {
     switch (message->id) {
         case 385:
-            state->car.lastCanMessage = esp_timer_get_time();
+            state->car.last_can_message_time = esp_timer_get_time();
             handleRpmMessage(state, message);
             break;
         case 852:
-            state->car.lastCanMessage = esp_timer_get_time();
+            state->car.last_can_message_time = esp_timer_get_time();
             handleSpeedMessage(state, message);
             handleBrakeMessage(state, message);
             break;

@@ -15,7 +15,6 @@ _Noreturn void process_gui(void *args) {
     display_init();
 
     while (1) {
-        state->car.speed++;
         display_update(state);
         vTaskDelay(3000 / portTICK_PERIOD_MS);
     }
