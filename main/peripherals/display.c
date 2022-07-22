@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <freertos/portmacro.h>
 #include <string.h>
-#include "display.h"
 #include "../config.h"
+#include "display.h"
 
 void show_error_message(State *state){
     printf("Core: %d\tError message: %s\n", xPortGetCoreID(), state->display.error_message);

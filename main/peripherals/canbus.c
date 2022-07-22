@@ -2,17 +2,13 @@
 // Created by samuel on 19-7-22.
 //
 
-#include "canbus.h"
 #include "../config.h"
+#include "canbus.h"
+#include "mcp2515_wrapper.h"
+#include "../return_codes.h"
 #include <stdint.h>
 #include <driver/gpio.h>
 #include <esp_timer.h>
-
-typedef struct {
-    unsigned long id;
-    uint8_t length;
-    uint8_t data[8];
-} CanMessage;
 
 void handleSpeedMessage(State *state, CanMessage *message) {
     if (message->length != 8) {
@@ -48,8 +44,8 @@ int message_available() {
     return !gpio_get_level(CANBUS_INTERRUPT_PIN);
 }
 
-void read_message(CanMessage *message) {
-//    can_controller.readMsgBuf(&message->id, &message->length, &message->data);
+int read_message(CanMessage *message) {
+    return mcp2515_read_message(message);
 }
 
 void handle_message(State *state, CanMessage *message) {
@@ -70,14 +66,20 @@ void handle_message(State *state, CanMessage *message) {
 
 void canbus_check_messages(State *state) {
     for (int i = 0; i < 10 && message_available(); i++) {
-        CanMessage message;
-        read_message(&message);
+        CanMessage message = {};
+        if (read_message(&message) != RESULT_OK) {
+            break;
+        }
         handle_message(state, &message);
     }
 }
 
-void canbus_init() {
+void canbus_init(State *state) {
     printf("[CAN] Initializing CAN bus...");
 
+    gpio_set_direction(CANBUS_INTERRUPT_PIN, GPIO_MODE_INPUT);
+    mcp2515_init();
+
+    state->car.connected = true;
     printf("[CAN] Init done");
 }

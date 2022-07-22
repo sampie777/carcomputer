@@ -7,8 +7,22 @@
 
 #include "../state.h"
 
-void canbus_init();
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct {
+    unsigned long id;
+    uint8_t length;
+    uint8_t data[8];
+} CanMessage;
+
+void canbus_init(State *state);
 
 void canbus_check_messages(State *state);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //APP_TEMPLATE_CANBUS_H

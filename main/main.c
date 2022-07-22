@@ -9,6 +9,7 @@
 #include "connectivity/bluetooth.h"
 #include "peripherals/canbus.h"
 #include "control.h"
+#include "connectivity/spi.h"
 
 _Noreturn void process_gui(void *args) {
     State *state = args;
@@ -22,8 +23,9 @@ _Noreturn void process_gui(void *args) {
 }
 
 _Noreturn void process_main(State *state) {
+    spi_init(state);
     bluetooth_init(state);
-    canbus_init();
+    canbus_init(state);
 
     wifi_connect(state);
 
