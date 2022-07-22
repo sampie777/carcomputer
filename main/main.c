@@ -3,13 +3,14 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "state.h"
-#include "peripherals/display.h"
-#include "connectivity/wifi.h"
 #include "utils.h"
-#include "connectivity/bluetooth.h"
-#include "peripherals/canbus.h"
 #include "control.h"
+#include "connectivity/i2c.h"
 #include "connectivity/spi.h"
+#include "connectivity/wifi.h"
+#include "connectivity/bluetooth.h"
+#include "peripherals/display.h"
+#include "peripherals/canbus.h"
 
 _Noreturn void process_gui(void *args) {
     State *state = args;
@@ -23,9 +24,10 @@ _Noreturn void process_gui(void *args) {
 }
 
 _Noreturn void process_main(State *state) {
+    i2c_init();
     spi_init(state);
-    bluetooth_init(state);
     canbus_init(state);
+    bluetooth_init(state);
 
     wifi_connect(state);
 
