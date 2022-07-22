@@ -17,7 +17,7 @@ _Noreturn void process_gui(void *args) {
 
     while (1) {
         display_update(state);
-        vTaskDelay(3000 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
     vTaskDelete(NULL);
 }
@@ -38,8 +38,7 @@ _Noreturn void process_main(State *state) {
         control_door_lock(state);
         control_cruise_control(state);
 
-        display_update(state);
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
@@ -58,7 +57,7 @@ void app_main(void) {
                                                    3584 + 512, &state,
                                                    0, NULL, 1);
     if (result != pdTRUE) {
-        printf("Failed to create task for second core");
+        printf("Failed to create task for second core\n");
     }
 
     process_main(&state);

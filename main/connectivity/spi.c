@@ -20,7 +20,7 @@ int spi_init(State *state) {
     int error = spi_bus_initialize(HSPI_HOST, &config, SPI_DMA_CH_AUTO);
 
     if (error != ESP_OK) {
-        printf("Return code for spi_bus_initialize: %d", error);
+        printf("Return code for spi_bus_initialize: %d\n", error);
         display_set_error_message(state, "SPI failed");
         return RESULT_FAILED;
     }
@@ -37,7 +37,7 @@ int spi_register_device(spi_device_handle_t *handle, int cs_pin) {
     int error = spi_bus_add_device(HSPI_HOST, &device_config, handle);
 
     if (error != ESP_OK) {
-        printf("Return code for spi_bus_add_device: %d", error);
+        printf("Return code for spi_bus_add_device: %d\n", error);
         return RESULT_FAILED;
     }
     return RESULT_OK;

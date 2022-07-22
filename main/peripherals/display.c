@@ -21,11 +21,11 @@ void display_update(State *state) {
         return show_error_message(state);
     }
 
-    printf("Core: %d\tSpeed: %3.1f\tWiFi: %s\tBluetooth: %s\n",
-           xPortGetCoreID(),
+    printf("Speed: %3.1f\tWiFi: [%s] Bluetooth: [%s] CAN: [%s]\n",
            state->car.speed,
-           state->wifi.connected ? "connected" : "not connected",
-           state->bluetooth.connected ? "connected" : "not connected");
+           state->wifi.connected ? "x" : " ",
+           state->bluetooth.connected ? "x" : " ",
+           state->car.connected ? "x" : " ");
 }
 
 void display_set_error_message(State *state, char *message) {

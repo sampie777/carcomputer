@@ -75,11 +75,11 @@ void canbus_check_messages(State *state) {
 }
 
 void canbus_init(State *state) {
-    printf("[CAN] Initializing CAN bus...");
+    printf("[CAN] Initializing CAN bus...\n");
 
     gpio_set_direction(CANBUS_INTERRUPT_PIN, GPIO_MODE_INPUT);
     mcp2515_init();
 
     state->car.connected = true;
-    printf("[CAN] Init done");
+    printf("[CAN] Init done\n");
 }

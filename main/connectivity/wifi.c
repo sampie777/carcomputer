@@ -86,5 +86,5 @@ void wifi_connect(State *state) {
 
     fast_scan(state);
 
-    printf("[WiFi] Init done");
+    printf("[WiFi] Init done\n");
 }
