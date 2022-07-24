@@ -6,6 +6,7 @@
 #include "canbus.h"
 #include "mcp2515_wrapper.h"
 #include "../return_codes.h"
+#include "../utils.h"
 #include <stdint.h>
 #include <driver/gpio.h>
 #include <esp_timer.h>
@@ -51,11 +52,11 @@ int read_message(CanMessage *message) {
 void handle_message(State *state, CanMessage *message) {
     switch (message->id) {
         case 385:
-            state->car.last_can_message_time = esp_timer_get_time();
+            state->car.last_can_message_time = esp_timer_get_time_ms();
             handleRpmMessage(state, message);
             break;
         case 852:
-            state->car.last_can_message_time = esp_timer_get_time();
+            state->car.last_can_message_time = esp_timer_get_time_ms();
             handleSpeedMessage(state, message);
             handleBrakeMessage(state, message);
             break;

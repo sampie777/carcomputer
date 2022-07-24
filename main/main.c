@@ -31,6 +31,9 @@ _Noreturn void process_main(State *state) {
 
     wifi_connect(state);
 
+    state->is_booting = false;
+    state->display.is_dirty = true;
+
     while (1) {
         // Collect data
         control_read_can_bus(state);
@@ -50,7 +53,10 @@ void init() {
 
 // Running on main core
 void app_main(void) {
-    State state = {0};
+    State state = {
+            .is_booting = true,
+            .display.is_dirty = true,
+    };
 
     init();
 

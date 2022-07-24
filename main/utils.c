@@ -2,6 +2,7 @@
 // Created by samuel on 17-7-22.
 //
 
+#include <esp_timer.h>
 #include "utils.h"
 #include "nvs_flash.h"
 
@@ -12,4 +13,8 @@ void nvs_init() {
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK( ret );
+}
+
+unsigned long esp_timer_get_time_ms() {
+    return esp_timer_get_time() / 1000;
 }

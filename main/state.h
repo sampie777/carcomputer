@@ -28,8 +28,9 @@ typedef struct {
 } BluetoothState;
 
 typedef struct {
-    char error_message[DISPLAY_ERROR_MESSAGE_MAX_LENGTH];
+    char error_message[DISPLAY_ERROR_MESSAGE_MAX_LENGTH + 1];
     unsigned long last_error_message_time;
+    int is_dirty;
 } DisplayState;
 
 typedef struct {
@@ -37,6 +38,7 @@ typedef struct {
     WiFiState wifi;
     BluetoothState bluetooth;
     DisplayState display;
+    int is_booting;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

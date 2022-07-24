@@ -12,10 +12,6 @@ extern "C" {
 #include <driver/spi_master.h>
 #include "../state.h"
 
-#define SPI_MOSI_PIN 13
-#define SPI_MISO_PIN 12
-#define SPI_CLK_PIN 14
-
 int spi_init(State *state);
 
 int spi_register_device(spi_device_handle_t *handle, int cs_pin);
