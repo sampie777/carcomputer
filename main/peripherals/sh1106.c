@@ -4,8 +4,8 @@
 
 #include <stdio.h>
 #include <driver/i2c.h>
+#include <string.h>
 #include "sh1106.h"
-#include "../config.h"
 
 #define CONTROL_BYTE_CONFIG_SINGLE_DATA 0x80
 #define CONTROL_BYTE_CONFIG_MULTI_DATA 0x00
@@ -37,6 +37,20 @@
 #define SH1106_COL_OFFSET 0x02
 
 
+void sh1106_clear(SH1106Config *config) {
+    memset(config->buffer, 0, sizeof(config->buffer));
+}
+
+void sh1106_zigzag(SH1106Config *config) {
+    for (int row = 0; row < (DISPLAY_HEIGHT >> 3); row++) {
+        for (int col = 0; col < DISPLAY_WIDTH; col++) {
+            int t = col % 16;
+            int d = t < 8 ? t : 15 - t;
+            config->buffer[row][col] = 0x01 << d;
+        }
+    }
+}
+
 void sh1106_send_byte(SH1106Config *config, uint8_t data) {
     i2c_cmd_handle_t command = i2c_cmd_link_create();
     i2c_master_start(command);
@@ -50,7 +64,6 @@ void sh1106_send_byte(SH1106Config *config, uint8_t data) {
     }
     i2c_cmd_link_delete(command);
 }
-
 
 void sh1106_display(SH1106Config *config) {
     sh1106_send_byte(config, SH1106_CONFIG_SET_START_LINE | 0x00);
@@ -67,38 +80,7 @@ void sh1106_display(SH1106Config *config) {
         i2c_master_write_byte(command, SH1106_CONFIG_SET_COLUMN_HIGH | (SH1106_COL_OFFSET >> 4), true);
 
         i2c_master_write_byte(command, CONTROL_BYTE_RAM_MULTI_DATA, true);
-
-        for (int col = 0; col < DISPLAY_WIDTH; col++) {
-            int t = col % 16;
-            int d = t < 8 ? t : 15 - t;
-            i2c_master_write_byte(command, (0x01 << d), true);
-        }
-
-        i2c_master_stop(command);
-        if (i2c_master_cmd_begin(I2C_PORT, command, DISPLAY_I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
-            printf("[sh1106] I2C graphics transmission failed\n");
-        }
-        i2c_cmd_link_delete(command);
-    }
-}
-
-void sh1106_clear(SH1106Config *config) {
-    for (int row = 0; row < (DISPLAY_HEIGHT >> 3); row++) {
-        i2c_cmd_handle_t command = i2c_cmd_link_create();
-        i2c_master_start(command);
-        i2c_master_write_byte(command, (config->address << 1) | I2C_MASTER_WRITE, true);
-        i2c_master_write_byte(command, CONTROL_BYTE_CONFIG_SINGLE_DATA, true);
-        i2c_master_write_byte(command, SH1106_CONFIG_SET_PAGE | row, true);
-        i2c_master_write_byte(command, CONTROL_BYTE_CONFIG_SINGLE_DATA, true);
-        i2c_master_write_byte(command, SH1106_CONFIG_SET_COLUMN_LOW | SH1106_COL_OFFSET, true);
-        i2c_master_write_byte(command, CONTROL_BYTE_CONFIG_SINGLE_DATA, true);
-        i2c_master_write_byte(command, SH1106_CONFIG_SET_COLUMN_HIGH | (SH1106_COL_OFFSET >> 4), true);
-
-        i2c_master_write_byte(command, CONTROL_BYTE_RAM_MULTI_DATA, true);
-
-        for (int col = 0; col < DISPLAY_WIDTH; col++) {
-            i2c_master_write_byte(command, 0x00, true);
-        }
+        i2c_master_write(command, config->buffer[row], DISPLAY_WIDTH, true);
 
         i2c_master_stop(command);
         if (i2c_master_cmd_begin(I2C_PORT, command, DISPLAY_I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {

@@ -18,6 +18,7 @@ SH1106Config sh1106 = {
 void display_init() {
     printf("[Display] Initializing display...\n");
     sh1106_init(&sh1106);
+    sh1106_clear(&sh1106);
     printf("[Display] Init done\n");
 }
 
@@ -31,7 +32,8 @@ void show_error_message(State *state) {
 void display_update(State *state) {
     if ((esp_timer_get_time_ms() / 1000) % 4 == 0) {
         sh1106_clear(&sh1106);
-        return;
+    } else {
+        sh1106_zigzag(&sh1106);
     }
 
     sh1106_display(&sh1106);
