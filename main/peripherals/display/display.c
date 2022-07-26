@@ -5,20 +5,27 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-#include "../config.h"
+#include "../../config.h"
 #include "display.h"
-#include "../utils.h"
+#include "../../utils.h"
 #include "sh1106.h"
 
 SH1106Config sh1106 = {
         .address = DISPLAY_I2C_ADDRESS,
         .flip = DISPLAY_UPSIDE_DOWN,
+        .width = DISPLAY_WIDTH,
+        .height = DISPLAY_HEIGHT,
 };
 
 void display_init() {
     printf("[Display] Initializing display...\n");
     sh1106_init(&sh1106);
     sh1106_clear(&sh1106);
+    sh1106_draw_string(&sh1106, 0, 0, FONT_SMALL, "Hello World", 11);
+    sh1106_draw_string(&sh1106, 0, 14, FONT_SMALL, "Hello World", 11);
+    sh1106_draw_string(&sh1106, 110, -3, FONT_SMALL, "Hello World", 11);
+    sh1106_draw_string(&sh1106, -2, 60, FONT_SMALL, "Hello World", 11);
+    sh1106_display(&sh1106);
     printf("[Display] Init done\n");
 }
 
@@ -30,14 +37,6 @@ void show_error_message(State *state) {
 }
 
 void display_update(State *state) {
-    if ((esp_timer_get_time_ms() / 1000) % 4 == 0) {
-        sh1106_clear(&sh1106);
-    } else {
-        sh1106_zigzag(&sh1106);
-    }
-
-    sh1106_display(&sh1106);
-    return;
     printf("[Display] dirty [%s] isBooting [%s] esp_timer_get_time_ms(): %lu last_error_message_time: %lu\n",
            state->display.is_dirty ? "x" : " ",
            state->is_booting ? "x" : " ",
@@ -52,22 +51,20 @@ void display_update(State *state) {
 //    ssd1306_clear_screen(&sh1106, false);
 
     if (esp_timer_get_time_ms() < state->display.last_error_message_time + DISPLAY_ERROR_MESSAGE_TIME_MS) {
-        return show_error_message(state);
-    }
-
-    if (state->is_booting) {
+        show_error_message(state);
+    } else if (state->is_booting) {
 //        ssd1306_display_text(&sh1106, 0, "Booting...", 10, false);
-        return;
-    }
-
+    } else {
 //    ssd1306_display_text(&sh1106, 0, "Nissan Micra", 12, true);
 //    ssd1306_display_text(&sh1106, 1, "Ready.", 5, false);
 
-    printf("[Display] Speed: %3.1f\tWiFi: [%s] Bluetooth: [%s] CAN: [%s]\n",
-           state->car.speed,
-           state->wifi.connected ? "x" : " ",
-           state->bluetooth.connected ? "x" : " ",
-           state->car.connected ? "x" : " ");
+        printf("[Display] Speed: %3.1f\tWiFi: [%s] Bluetooth: [%s] CAN: [%s]\n",
+               state->car.speed,
+               state->wifi.connected ? "x" : " ",
+               state->bluetooth.connected ? "x" : " ",
+               state->car.connected ? "x" : " ");
+    }
+    sh1106_display(&sh1106);
 }
 
 void display_set_error_message(State *state, char *message) {

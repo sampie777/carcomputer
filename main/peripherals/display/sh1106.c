@@ -6,6 +6,7 @@
 #include <driver/i2c.h>
 #include <string.h>
 #include "sh1106.h"
+#include "font.h"
 
 #define CONTROL_BYTE_CONFIG_SINGLE_DATA 0x80
 #define CONTROL_BYTE_CONFIG_MULTI_DATA 0x00
@@ -47,6 +48,44 @@ void sh1106_zigzag(SH1106Config *config) {
             int t = col % 16;
             int d = t < 8 ? t : 15 - t;
             config->buffer[row][col] = 0x01 << d;
+        }
+    }
+}
+
+void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c) {
+    int font_char_index = c * font_width;
+    int top_row = y >> 3;
+    int bottom_row = top_row + 1;
+    int char_y = y >= 0 ? y % 8 : 8 + (y % 8);
+
+    for (int col = 0; col < font_width; col++) {
+        // Allow overflow horizontal edges
+        if (x + col < 0 || x + col >= config->width) {
+            continue;
+        }
+
+        if (top_row >= 0 && top_row < config->height / 8) {
+            config->buffer[top_row][x + col] = font[font_char_index + col] << char_y;
+        }
+        if (bottom_row >= 0 && bottom_row < config->height / 8) {
+            config->buffer[bottom_row][x + col] = font[font_char_index + col] >> (8 - char_y);
+        }
+    }
+}
+
+void sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, char *c, size_t length) {
+    int letter_spacing = 0;
+    for (int i = 0; i < length; i++) {
+        // If current char starts with empty space, move it a bit to the left
+        if (font[c[i] * font_width] == 0x00) {
+            letter_spacing--;
+        }
+
+        sh1106_draw_char(config, x + i * font_width + letter_spacing, y, size, c[i]);
+
+        // If current char ends with empty space, move the next char a bit to the right
+        if (font[c[i] * font_width + font_width - 1] != 0x00) {
+            letter_spacing++;
         }
     }
 }

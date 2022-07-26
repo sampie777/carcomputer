@@ -5,7 +5,7 @@
 #include <driver/spi_common.h>
 #include "spi.h"
 #include "../return_codes.h"
-#include "../peripherals/display.h"
+#include "../peripherals/display/display.h"
 
 
 int spi_init(State *state) {

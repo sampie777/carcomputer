@@ -6,7 +6,7 @@
 #include "peripherals/canbus.h"
 #include "peripherals/gas_pedal.h"
 #include "return_codes.h"
-#include "peripherals/display.h"
+#include "peripherals/display/display.h"
 
 void control_read_can_bus(State *state) {
     canbus_check_messages(state);

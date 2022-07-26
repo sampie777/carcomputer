@@ -9,7 +9,7 @@
 #include "connectivity/spi.h"
 #include "connectivity/wifi.h"
 #include "connectivity/bluetooth.h"
-#include "peripherals/display.h"
+#include "peripherals/display/display.h"
 #include "peripherals/canbus.h"
 
 _Noreturn void process_gui(void *args) {
