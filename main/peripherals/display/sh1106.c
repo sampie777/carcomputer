@@ -73,7 +73,17 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c)
     }
 }
 
-void sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, char *c, size_t length) {
+/**
+ *
+ * @param config
+ * @param x
+ * @param y
+ * @param size
+ * @param c
+ * @param length
+ * @return the total horizontal pixel length used to draw the string
+ */
+int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, char *c, size_t length) {
     int letter_spacing = 0;
     for (int i = 0; i < length; i++) {
         // If current char starts with empty space, move it a bit to the left
@@ -88,6 +98,8 @@ void sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, char 
             letter_spacing++;
         }
     }
+
+    return (int) length * font_width + letter_spacing - 1;
 }
 
 void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length) {
