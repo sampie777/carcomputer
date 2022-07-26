@@ -2,7 +2,7 @@
 set(COMPONENT_REQUIRES )
 set(COMPONENT_PRIV_REQUIRES )
 
-set(COMPONENT_SRCS "main.c utils.c control.c connectivity/wifi.c connectivity/bluetooth.c connectivity/spi.c connectivity/i2c.c lib/esp32-mcp2515/mcp2515.cpp lib/esp-idf-ssd1306/components/ssd1306/ssd1306.c lib/esp-idf-ssd1306/components/ssd1306/ssd1306_i2c.c lib/esp-idf-ssd1306/components/ssd1306/ssd1306_spi.c peripherals/display.c peripherals/canbus.c peripherals/gas_pedal.c peripherals/mcp2515_wrapper.cpp ")
+set(COMPONENT_SRCS "main.c utils.c control.c connectivity/wifi.c connectivity/bluetooth.c connectivity/spi.c connectivity/i2c.c lib/esp32-mcp2515/mcp2515.cpp peripherals/display.c peripherals/canbus.c peripherals/gas_pedal.c peripherals/mcp2515_wrapper.cpp peripherals/sh1106.c ")
 set(COMPONENT_ADD_INCLUDEDIRS "")
 
 register_component()

@@ -18,7 +18,7 @@ _Noreturn void process_gui(void *args) {
 
     while (1) {
         display_update(state);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(200 / portTICK_PERIOD_MS);
     }
     vTaskDelete(NULL);
 }
