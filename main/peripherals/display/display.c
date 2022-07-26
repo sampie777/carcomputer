@@ -21,11 +21,7 @@ void display_init() {
     printf("[Display] Initializing display...\n");
     sh1106_init(&sh1106);
     sh1106_clear(&sh1106);
-    sh1106_draw_string(&sh1106, 0, 0, FONT_SMALL, "Hello World", 11);
-    sh1106_draw_string(&sh1106, 0, 14, FONT_SMALL, "Hello World", 11);
-    sh1106_draw_string(&sh1106, 110, -3, FONT_SMALL, "Hello World", 11);
-    sh1106_draw_string(&sh1106, -2, 60, FONT_SMALL, "Hello World", 11);
-    sh1106_display(&sh1106);
+//    sh1106_draw_string(&sh1106, 0, 0, FONT_SMALL, "Hello World", 11);
     printf("[Display] Init done\n");
 }
 
@@ -37,6 +33,47 @@ void show_error_message(State *state) {
 }
 
 void display_update(State *state) {
+    if (esp_timer_get_time_ms() / 1000 == (3 - 2)) {
+        sh1106_draw_horizontal_line(&sh1106, 30, 30, 30);
+        sh1106_draw_horizontal_line(&sh1106, 31, 31, 2);
+        sh1106_draw_horizontal_line(&sh1106, 31, 39, 2);
+        sh1106_draw_horizontal_line(&sh1106, 31, 47, 2);
+        sh1106_draw_horizontal_line(&sh1106, 31, 55, 2);
+
+        sh1106_draw_vertical_line(&sh1106, 1, 29, 0);
+        sh1106_draw_vertical_line(&sh1106, 2, 29, 1);
+        sh1106_draw_vertical_line(&sh1106, 3, 29, 2);
+        sh1106_draw_vertical_line(&sh1106, 4, 29, 3);
+        sh1106_draw_vertical_line(&sh1106, 5, 29, 4);
+        sh1106_draw_vertical_line(&sh1106, 6, 29, 5);
+        sh1106_draw_vertical_line(&sh1106, 7, 29, 6);
+        sh1106_draw_vertical_line(&sh1106, 8, 29, 7);
+        sh1106_draw_vertical_line(&sh1106, 9, 29, 8);
+        sh1106_draw_vertical_line(&sh1106, 10, 29, 9);
+
+        sh1106_draw_horizontal_line(&sh1106, 12, 1, 0);
+        sh1106_draw_horizontal_line(&sh1106, 12, 2, 1);
+        sh1106_draw_horizontal_line(&sh1106, 12, 3, 2);
+        sh1106_draw_horizontal_line(&sh1106, 12, 4, 3);
+        sh1106_draw_horizontal_line(&sh1106, 12, 5, 4);
+        sh1106_draw_horizontal_line(&sh1106, 12, 6, 5);
+        sh1106_draw_horizontal_line(&sh1106, 12, 7, 6);
+        sh1106_draw_horizontal_line(&sh1106, 12, 8, 7);
+        sh1106_draw_horizontal_line(&sh1106, 12, 9, 8);
+        sh1106_draw_horizontal_line(&sh1106, 12, 10, 9);
+    } else if (esp_timer_get_time_ms() / 1000 == (4 - 2)) {
+        sh1106_draw_vertical_line(&sh1106, 29, 31, 30);
+    } else if (esp_timer_get_time_ms() / 1000 == (5 - 2)) {
+        sh1106_draw_horizontal_line(&sh1106, 30, 31 + 30 + 1, 30);
+    } else if (esp_timer_get_time_ms() / 1000 == (6 - 2)) {
+        sh1106_draw_vertical_line(&sh1106, 30 + 30 + 1, 31, 30);
+    }
+    sh1106_display(&sh1106);
+    return;
+
+
+
+
     printf("[Display] dirty [%s] isBooting [%s] esp_timer_get_time_ms(): %lu last_error_message_time: %lu\n",
            state->display.is_dirty ? "x" : " ",
            state->is_booting ? "x" : " ",

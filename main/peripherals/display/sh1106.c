@@ -65,10 +65,10 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c)
         }
 
         if (top_row >= 0 && top_row < config->height / 8) {
-            config->buffer[top_row][x + col] = font[font_char_index + col] << char_y;
+            config->buffer[top_row][x + col] |= font[font_char_index + col] << char_y;
         }
         if (bottom_row >= 0 && bottom_row < config->height / 8) {
-            config->buffer[bottom_row][x + col] = font[font_char_index + col] >> (8 - char_y);
+            config->buffer[bottom_row][x + col] |= font[font_char_index + col] >> (8 - char_y);
         }
     }
 }
@@ -89,6 +89,62 @@ void sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, char 
         }
     }
 }
+
+void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length) {
+    if (length <= 0 || y < 0 || y >= config->height) {
+        return;
+    }
+
+    int row = y >> 3;
+    int char_y = y % 8;
+
+    for (int col = 0; col < length; col++) {
+        // Allow overflow horizontal edges
+        if (x + col < 0 || x + col >= config->width) {
+            continue;
+        }
+
+        config->buffer[row][x + col] |= 0x01 << char_y;
+    }
+}
+
+void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length) {
+    if (length <= 0 || x < 0 || x >= config->width) {
+        return;
+    }
+
+    int top_row = y >> 3;
+    int bottom_row = (y + length) >> 3;
+
+    if (top_row == bottom_row) {
+        if (top_row < 0 || top_row >= config->height / 8) {
+            return;
+        }
+
+        int value = 0xff << y % 8;
+        value &= 0xff >> (8 - (y + length) % 8);
+        config->buffer[top_row][x] |= value;
+        return;
+    }
+
+    for (int row = top_row; row <= bottom_row; row++) {
+        if (row < 0 || row >= config->height / 8) {
+            continue;
+        }
+
+        if (row == top_row) {
+            config->buffer[row][x] |= 0xff << y % 8;
+        } else if (row == bottom_row) {
+            config->buffer[row][x] |= 0xff >> (8 - (y + length) % 8);
+        } else {
+            config->buffer[row][x] = 0xff;
+        }
+    }
+}
+
+//
+// I2C INTERACTION
+//
 
 void sh1106_send_byte(SH1106Config *config, uint8_t data) {
     i2c_cmd_handle_t command = i2c_cmd_link_create();
