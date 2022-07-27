@@ -52,32 +52,32 @@ void sh1106_zigzag(SH1106Config *config) {
     }
 }
 
-void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c, int inverted) {
-    int font_char_index = c * font_width;
+void sh1106_draw_byte(SH1106Config *config, int x, int y, unsigned char data, int inverted) {
+    if (x < 0 || x >= config->width) return;
+    if (y < -7 || y >= config->height) return;
+
     int top_row = y >> 3;
     int bottom_row = top_row + 1;
     int char_y = y >= 0 ? y % 8 : 8 + (y % 8);
 
-    for (int col = 0; col < font_width; col++) {
-        // Allow overflow horizontal edges
-        if (x + col < 0 || x + col >= config->width) {
-            continue;
-        }
+    if (inverted) {
+        config->buffer[top_row][x] &= ~(data << char_y);
+    } else {
+        config->buffer[top_row][x] |= data << char_y;
+    }
+    if (inverted) {
+        config->buffer[bottom_row][x] &= ~(data >> (8 - char_y));
+    } else {
+        config->buffer[bottom_row][x] |= data >> (8 - char_y);
+    }
 
-        if (top_row >= 0 && top_row < config->height / 8) {
-            if (inverted) {
-                config->buffer[top_row][x + col] &= ~(font[font_char_index + col] << char_y);
-            } else {
-                config->buffer[top_row][x + col] |= font[font_char_index + col] << char_y;
-            }
-        }
-        if (bottom_row >= 0 && bottom_row < config->height / 8) {
-            if (inverted) {
-                config->buffer[bottom_row][x + col] &= ~(font[font_char_index + col] >> (8 - char_y));
-            } else {
-                config->buffer[bottom_row][x + col] |= font[font_char_index + col] >> (8 - char_y);
-            }
-        }
+}
+
+void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c, int inverted) {
+    int font_char_index = c * font_width;
+
+    for (int col = 0; col < font_width; col++) {
+        sh1106_draw_byte(config, x + col, y, font[font_char_index + col], inverted);
     }
 }
 
@@ -165,6 +165,14 @@ void sh1106_draw_filled_rectangle(SH1106Config *config, int x, int y, int width,
     if (width <= 0 || height <= 0) return;
     for (int i = 0; i < width; i++) {
         sh1106_draw_vertical_line(config, x + i, y, height);
+    }
+}
+
+void sh1106_draw_icon(SH1106Config *config, int x, int y, const unsigned char *icon, size_t icon_size, int icon_width, int inverted) {
+    for (int i = 0; i < icon_size; i++) {
+        int col = x + (i % icon_width);
+        int row = y + 8 * (i / icon_width);
+        sh1106_draw_byte(config, col, row, icon[i], inverted);
     }
 }
 

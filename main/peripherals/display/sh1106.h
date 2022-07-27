@@ -31,5 +31,6 @@ void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length)
 void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length);
 void sh1106_draw_rectangle(SH1106Config *config, int x, int y, int width, int height);
 void sh1106_draw_filled_rectangle(SH1106Config *config, int x, int y, int width, int height);
+void sh1106_draw_icon(SH1106Config *config, int x, int y, const unsigned char *icon, size_t icon_size, int icon_width, int inverted);
 
 #endif //APP_TEMPLATE_SH1106_H

@@ -9,6 +9,7 @@
 #include "display.h"
 #include "../../utils.h"
 #include "sh1106.h"
+#include "icons.h"
 
 SH1106Config sh1106 = {
         .address = DISPLAY_I2C_ADDRESS,
@@ -27,14 +28,16 @@ void display_init() {
 void show_error_message(State *state) {
     printf("[Display] Error message: %s\n", state->display.error_message);
     sh1106_draw_filled_rectangle(&sh1106, 5, 5, sh1106.width - 10, sh1106.height - 10);
-    sh1106_draw_string(&sh1106, sh1106.width / 2 - 5*2, 7, FONT_SMALL, "ERROR", 5, true);
+    sh1106_draw_string(&sh1106, sh1106.width / 2 - 5 * 2, 7, FONT_SMALL, "ERROR", 5, true);
     sh1106_draw_string(&sh1106, 10, 18, FONT_SMALL, state->display.error_message, (int) strlen(state->display.error_message), true);
     state->display.is_dirty = true;
 }
 
 void show_statusbar(State *state) {
-    sh1106_draw_string(&sh1106, sh1106.width / 2 - 11*2, 1, FONT_SMALL, "Hello World", 11, false);
+    sh1106_draw_string(&sh1106, sh1106.width / 2 - 11 * 2, 2, FONT_SMALL, "Hello World", 11, false);
     sh1106_draw_horizontal_line(&sh1106, 0, 13, sh1106.width);
+    sh1106_draw_icon(&sh1106, sh1106.width - icon_wifi_width - 4 - icon_bluetooth_width, 1, icon_bluetooth, sizeof(icon_bluetooth), icon_bluetooth_width, false);
+    sh1106_draw_icon(&sh1106, sh1106.width - icon_wifi_width - 2, 1, icon_wifi, sizeof(icon_wifi), icon_wifi_width, false);
 }
 
 void show_content(State *state) {
@@ -45,13 +48,12 @@ void show_content(State *state) {
 
 void display_update(State *state) {
     sh1106_clear(&sh1106);
+
     show_statusbar(state);
     show_content(state);
 
     sh1106_display(&sh1106);
     return;
-
-
 
 
     printf("[Display] dirty [%s] isBooting [%s] esp_timer_get_time_ms(): %lu last_error_message_time: %lu\n",
