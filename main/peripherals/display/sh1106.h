@@ -21,16 +21,21 @@ typedef enum {
 //    FONT_LARGE = 3,
 } FontSize;
 
+typedef enum {
+    FONT_WHITE,
+    FONT_BLACK,
+} FontColor;
+
 void sh1106_init(SH1106Config *config);
 void sh1106_display(SH1106Config *config);
 void sh1106_clear(SH1106Config *config);
 void sh1106_zigzag(SH1106Config *config);
-void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c, int inverted);
-int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, char *c, size_t length, int inverted);
+void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c, FontColor color);
+int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, char *c, size_t length, FontColor color);
 void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length);
 void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length);
 void sh1106_draw_rectangle(SH1106Config *config, int x, int y, int width, int height);
 void sh1106_draw_filled_rectangle(SH1106Config *config, int x, int y, int width, int height);
-void sh1106_draw_icon(SH1106Config *config, int x, int y, const unsigned char *icon, size_t icon_size, int icon_width, int inverted);
+void sh1106_draw_icon(SH1106Config *config, int x, int y, const unsigned char *icon, size_t icon_size, int icon_width, FontColor color);
 
 #endif //APP_TEMPLATE_SH1106_H

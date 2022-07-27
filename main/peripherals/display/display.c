@@ -28,16 +28,32 @@ void display_init() {
 void show_error_message(State *state) {
     printf("[Display] Error message: %s\n", state->display.error_message);
     sh1106_draw_filled_rectangle(&sh1106, 5, 5, sh1106.width - 10, sh1106.height - 10);
-    sh1106_draw_string(&sh1106, sh1106.width / 2 - 5 * 2, 7, FONT_SMALL, "ERROR", 5, true);
-    sh1106_draw_string(&sh1106, 10, 18, FONT_SMALL, state->display.error_message, (int) strlen(state->display.error_message), true);
+    sh1106_draw_string(&sh1106, sh1106.width / 2 - 5 * 2, 7, FONT_SMALL, "ERROR", 5, FONT_BLACK);
+    sh1106_draw_string(&sh1106, 10, 18, FONT_SMALL, state->display.error_message, (int) strlen(state->display.error_message), FONT_BLACK);
     state->display.is_dirty = true;
 }
 
 void show_statusbar(State *state) {
-    sh1106_draw_string(&sh1106, sh1106.width / 2 - 11 * 2, 2, FONT_SMALL, "Hello World", 11, false);
-    sh1106_draw_horizontal_line(&sh1106, 0, 13, sh1106.width);
-    sh1106_draw_icon(&sh1106, sh1106.width - icon_wifi_width - 4 - icon_bluetooth_width, 1, icon_bluetooth, sizeof(icon_bluetooth), icon_bluetooth_width, false);
-    sh1106_draw_icon(&sh1106, sh1106.width - icon_wifi_width - 2, 1, icon_wifi, sizeof(icon_wifi), icon_wifi_width, false);
+    sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, "Hello World", 11, FONT_WHITE);
+    sh1106_draw_horizontal_line(&sh1106, 0, 9, sh1106.width);
+
+    int offset_right = sh1106.width - 2 - icon_wifi_width;
+    if (state->wifi.connected) {
+        sh1106_draw_icon(&sh1106, offset_right, 1,
+                         icon_wifi, sizeof(icon_wifi), icon_wifi_width, FONT_WHITE);
+    }
+
+    offset_right -= 3 + icon_bluetooth_width;
+    if (state->bluetooth.connected) {
+        sh1106_draw_icon(&sh1106, offset_right, 0,
+                         icon_bluetooth, sizeof(icon_bluetooth), icon_bluetooth_width, FONT_WHITE);
+    }
+
+    offset_right -= 3 + icon_car_width;
+    if (state->car.connected) {
+        sh1106_draw_icon(&sh1106, offset_right, 1,
+                         icon_car, sizeof(icon_car), icon_car_width, FONT_WHITE);
+    }
 }
 
 void show_content(State *state) {
