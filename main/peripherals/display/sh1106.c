@@ -128,29 +128,20 @@ void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length) {
     int top_row = y >> 3;
     int bottom_row = (y + length) >> 3;
 
-    if (top_row == bottom_row) {
-        if (top_row < 0 || top_row >= config->height / 8) {
-            return;
-        }
-
-        int value = 0xff << y % 8;
-        value &= 0xff >> (8 - (y + length) % 8);
-        config->buffer[top_row][x] |= value;
-        return;
-    }
-
     for (int row = top_row; row <= bottom_row; row++) {
         if (row < 0 || row >= config->height / 8) {
             continue;
         }
 
+        int mask = 0xff;
+
         if (row == top_row) {
-            config->buffer[row][x] |= 0xff << y % 8;
-        } else if (row == bottom_row) {
-            config->buffer[row][x] |= 0xff >> (8 - (y + length) % 8);
-        } else {
-            config->buffer[row][x] = 0xff;
+            mask &= 0xff << y % 8;
         }
+        if (row == bottom_row) {
+            mask &= 0xff >> (8 - (y + length) % 8);
+        }
+        config->buffer[row][x] |= mask;
     }
 }
 

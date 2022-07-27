@@ -33,11 +33,6 @@ void show_error_message(State *state) {
 
 void display_update(State *state) {
     static int offset = DISPLAY_WIDTH;
-    static unsigned long last_update = 0;
-
-    if (esp_timer_get_time_ms() < last_update + 100) {
-        return;
-    }
 
     sh1106_clear(&sh1106);
     int length = sh1106_draw_string(&sh1106, offset, 0, FONT_SMALL, "Hello World", 11);
