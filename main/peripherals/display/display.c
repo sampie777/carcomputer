@@ -38,7 +38,7 @@ void show_statusbar(State *state) {
 }
 
 void show_content(State *state) {
-    if (esp_timer_get_time_ms() < state->display.last_error_message_time + DISPLAY_ERROR_MESSAGE_TIME_MS) {
+    if (state->display.last_error_message_time != 0 && esp_timer_get_time_ms() < state->display.last_error_message_time + DISPLAY_ERROR_MESSAGE_TIME_MS) {
         show_error_message(state);
     }
 }
