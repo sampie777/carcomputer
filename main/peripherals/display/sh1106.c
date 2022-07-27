@@ -52,7 +52,7 @@ void sh1106_zigzag(SH1106Config *config) {
     }
 }
 
-void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c) {
+void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c, int inverted) {
     int font_char_index = c * font_width;
     int top_row = y >> 3;
     int bottom_row = top_row + 1;
@@ -65,10 +65,18 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c)
         }
 
         if (top_row >= 0 && top_row < config->height / 8) {
-            config->buffer[top_row][x + col] |= font[font_char_index + col] << char_y;
+            if (inverted) {
+                config->buffer[top_row][x + col] &= ~(font[font_char_index + col] << char_y);
+            } else {
+                config->buffer[top_row][x + col] |= font[font_char_index + col] << char_y;
+            }
         }
         if (bottom_row >= 0 && bottom_row < config->height / 8) {
-            config->buffer[bottom_row][x + col] |= font[font_char_index + col] >> (8 - char_y);
+            if (inverted) {
+                config->buffer[bottom_row][x + col] &= ~(font[font_char_index + col] >> (8 - char_y));
+            } else {
+                config->buffer[bottom_row][x + col] |= font[font_char_index + col] >> (8 - char_y);
+            }
         }
     }
 }
@@ -83,7 +91,7 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c)
  * @param length
  * @return the total horizontal pixel length used to draw the string
  */
-int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, char *c, size_t length) {
+int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, char *c, size_t length, int inverted) {
     int letter_spacing = 0;
     for (int i = 0; i < length; i++) {
         // If current char starts with empty space, move it a bit to the left
@@ -91,7 +99,7 @@ int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, char *
             letter_spacing--;
         }
 
-        sh1106_draw_char(config, x + i * font_width + letter_spacing, y, size, c[i]);
+        sh1106_draw_char(config, x + i * font_width + letter_spacing, y, size, c[i], inverted);
 
         // If current char ends with empty space, move the next char a bit to the right
         if (font[c[i] * font_width + font_width - 1] != 0x00) {
@@ -142,6 +150,21 @@ void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length) {
             mask &= 0xff >> (8 - (y + length) % 8);
         }
         config->buffer[row][x] |= mask;
+    }
+}
+
+void sh1106_draw_rectangle(SH1106Config *config, int x, int y, int width, int height) {
+    if (width <= 0 || height <= 0) return;
+    sh1106_draw_vertical_line(config, x, y, height);
+    sh1106_draw_vertical_line(config, x + width - 1, y, height);
+    sh1106_draw_horizontal_line(config, x, y, width);
+    sh1106_draw_horizontal_line(config, x, y + height - 1, width);
+}
+
+void sh1106_draw_filled_rectangle(SH1106Config *config, int x, int y, int width, int height) {
+    if (width <= 0 || height <= 0) return;
+    for (int i = 0; i < width; i++) {
+        sh1106_draw_vertical_line(config, x + i, y, height);
     }
 }
 

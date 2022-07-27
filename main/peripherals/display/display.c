@@ -26,22 +26,27 @@ void display_init() {
 
 void show_error_message(State *state) {
     printf("[Display] Error message: %s\n", state->display.error_message);
-//    ssd1306_display_text(&sh1106, 0, "ERROR", 5, true);
-//    ssd1306_display_text(&sh1106, 1, state->display.error_message, (int) strlen(state->display.error_message), false);
+    sh1106_draw_filled_rectangle(&sh1106, 5, 5, sh1106.width - 10, sh1106.height - 10);
+    sh1106_draw_string(&sh1106, sh1106.width / 2 - 5*2, 7, FONT_SMALL, "ERROR", 5, true);
+    sh1106_draw_string(&sh1106, 10, 18, FONT_SMALL, state->display.error_message, (int) strlen(state->display.error_message), true);
     state->display.is_dirty = true;
 }
 
-void display_update(State *state) {
-    static int offset = DISPLAY_WIDTH;
+void show_statusbar(State *state) {
+    sh1106_draw_string(&sh1106, sh1106.width / 2 - 11*2, 1, FONT_SMALL, "Hello World", 11, false);
+    sh1106_draw_horizontal_line(&sh1106, 0, 13, sh1106.width);
+}
 
-    sh1106_clear(&sh1106);
-    int length = sh1106_draw_string(&sh1106, offset, 0, FONT_SMALL, "Hello World", 11);
-    sh1106_draw_horizontal_line(&sh1106, offset, 9, length);
-    offset--;
-
-    if (offset < -1 * length) {
-        offset = DISPLAY_WIDTH;
+void show_content(State *state) {
+    if (esp_timer_get_time_ms() < state->display.last_error_message_time + DISPLAY_ERROR_MESSAGE_TIME_MS) {
+        show_error_message(state);
     }
+}
+
+void display_update(State *state) {
+    sh1106_clear(&sh1106);
+    show_statusbar(state);
+    show_content(state);
 
     sh1106_display(&sh1106);
     return;
