@@ -43,6 +43,7 @@ _Noreturn void process_main(State *state) {
         // Collect data
         control_read_can_bus(state);
         control_read_analog_sensors(state);
+        control_read_user_input(state);
 
         // Process data
         control_door_lock(state);

@@ -61,8 +61,19 @@ void show_statusbar(State *state) {
 }
 
 void show_content(State *state) {
+    if (state->is_rebooting) {
+        sh1106_draw_string(&sh1106, (sh1106.width - 5 * 12) / 2, 15 + (sh1106.height - 15 - 8) / 2,
+                           FONT_SMALL, FONT_WHITE, 12, "Rebooting...");
+        return;
+    }
+    if (state->is_booting) {
+        sh1106_draw_string(&sh1106, (sh1106.width - 5 * 10) / 2, 15 + (sh1106.height - 15 - 8) / 2,
+                           FONT_SMALL, FONT_WHITE, 10, "Booting...");
+        return;
+    }
+
     if (state->display.last_error_message_time != 0 && esp_timer_get_time_ms() < state->display.last_error_message_time + DISPLAY_ERROR_MESSAGE_TIME_MS) {
-//        show_error_message(state);
+        show_error_message(state);
         return;
     }
 

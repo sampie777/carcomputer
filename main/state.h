@@ -48,6 +48,7 @@ typedef struct {
     BluetoothState bluetooth;
     DisplayState display;
     uint8_t is_booting;
+    uint8_t is_rebooting;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

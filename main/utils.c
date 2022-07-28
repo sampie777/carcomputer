@@ -3,6 +3,9 @@
 //
 
 #include <esp_timer.h>
+#include <esp_system.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include "utils.h"
 #include "nvs_flash.h"
 
@@ -17,4 +20,10 @@ void nvs_init() {
 
 unsigned long esp_timer_get_time_ms() {
     return esp_timer_get_time() / 1000;
+}
+
+void utils_reboot(State *state) {
+    state->is_rebooting = true;
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
+    esp_restart();
 }
