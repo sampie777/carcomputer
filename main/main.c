@@ -4,13 +4,16 @@
 #include "freertos/task.h"
 #include "state.h"
 #include "utils.h"
-#include "control.h"
+#include "control/control.h"
 #include "connectivity/i2c.h"
 #include "connectivity/spi.h"
+#if WIFI_ENABLE
 #include "connectivity/wifi.h"
+#endif
+#if BLUETOOTH_ENABLE
 #include "connectivity/bluetooth.h"
+#endif
 #include "peripherals/display/display.h"
-#include "peripherals/canbus.h"
 
 _Noreturn void process_gui(void *args) {
     State *state = args;
@@ -25,10 +28,14 @@ _Noreturn void process_gui(void *args) {
 _Noreturn void process_main(State *state) {
     i2c_init();
     spi_init(state);
-    canbus_init(state);
+    control_init(state);
+#if BLUETOOTH_ENABLE
     bluetooth_init(state);
+#endif
 
+#if WIFI_ENABLE
     wifi_connect(state);
+#endif
 
     state->is_booting = false;
     state->display.is_dirty = true;

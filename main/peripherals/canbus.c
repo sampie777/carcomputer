@@ -11,7 +11,7 @@
 #include <driver/gpio.h>
 #include <esp_timer.h>
 
-void handleSpeedMessage(State *state, CanMessage *message) {
+void handle_speed_message(State *state, CanMessage *message) {
     if (message->length != 8) {
         return;
     }
@@ -20,7 +20,7 @@ void handleSpeedMessage(State *state, CanMessage *message) {
     state->car.speed = value / 96.0;
 }
 
-void handleRpmMessage(State *state, CanMessage *message) {
+void handle_rpm_message(State *state, CanMessage *message) {
     if (message->length != 8) {
         return;
     }
@@ -32,12 +32,12 @@ void handleRpmMessage(State *state, CanMessage *message) {
     }
 }
 
-void handleBrakeMessage(State *state, CanMessage *message) {
+void handle_brake_message(State *state, CanMessage *message) {
     if (message->length != 8) {
         return;
     }
 
-    state->car.isBraking = message->data[6] & 16;
+    state->car.is_braking = message->data[6] & 16;
 }
 
 int message_available() {
@@ -53,12 +53,12 @@ void handle_message(State *state, CanMessage *message) {
     switch (message->id) {
         case 385:
             state->car.last_can_message_time = esp_timer_get_time_ms();
-            handleRpmMessage(state, message);
+            handle_rpm_message(state, message);
             break;
         case 852:
             state->car.last_can_message_time = esp_timer_get_time_ms();
-            handleSpeedMessage(state, message);
-            handleBrakeMessage(state, message);
+            handle_speed_message(state, message);
+            handle_brake_message(state, message);
             break;
         default:
             break;

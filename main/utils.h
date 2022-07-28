@@ -5,6 +5,9 @@
 #ifndef APP_TEMPLATE_UTILS_H
 #define APP_TEMPLATE_UTILS_H
 
+#define max(x, y) (((x) > (y)) ? (x) : (y))
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+
 void nvs_init();
 
 unsigned long esp_timer_get_time_ms();

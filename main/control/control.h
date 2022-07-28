@@ -5,7 +5,9 @@
 #ifndef APP_TEMPLATE_CONTROL_H
 #define APP_TEMPLATE_CONTROL_H
 
-#include "state.h"
+#include "../state.h"
+
+void control_init(State *state);
 
 void control_read_can_bus(State *state);
 
