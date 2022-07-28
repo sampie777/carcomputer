@@ -11,6 +11,8 @@ extern "C" {
 
 #include "secrets.h"
 
+#define DEVICE_NAME "Nissan Micra"
+
 #define SPI_MOSI_PIN 13
 #define SPI_MISO_PIN 12
 #define SPI_CLK_PIN 14

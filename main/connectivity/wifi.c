@@ -47,6 +47,7 @@ static void event_handler(void *args, esp_event_base_t event_base,
 
 void fast_scan(State *state) {
     printf("[WiFi] Setting up WiFi connection with AP: %s...\n", DEFAULT_SSID);
+
     // See: https://github.com/espressif/esp-idf/blob/v4.4.1/examples/wifi/fast_scan/main/fast_scan.c
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
@@ -61,6 +62,7 @@ void fast_scan(State *state) {
 
     // Initialize default station as network interface instance (esp-netif)
     esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
+    esp_netif_set_hostname(sta_netif, DEVICE_NAME);
     assert(sta_netif);
 
     // Initialize and start WiFi

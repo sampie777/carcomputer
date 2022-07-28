@@ -40,7 +40,6 @@ typedef struct {
 typedef struct {
     char error_message[DISPLAY_ERROR_MESSAGE_MAX_LENGTH + 1];
     unsigned long last_error_message_time;
-    uint8_t is_dirty;
 } DisplayState;
 
 typedef struct {

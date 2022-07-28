@@ -38,7 +38,6 @@ _Noreturn void process_main(State *state) {
 #endif
 
     state->is_booting = false;
-    state->display.is_dirty = true;
 
     while (1) {
         // Collect data
@@ -61,7 +60,6 @@ void init() {
 void app_main(void) {
     State state = {
             .is_booting = true,
-            .display.is_dirty = true,
     };
 
     init();
