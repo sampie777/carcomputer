@@ -31,24 +31,24 @@ void control_read_user_input(State *state) {
 
     Button button = buttons_get_pressed();
     switch (button) {
-        case NONE:
+        case BUTTON_NONE:
             break;
-        case UP:
+        case BUTTON_UP:
             state->car.cruise_control_enabled = true;
             break;
-        case VOLUME_UP:
+        case BUTTON_VOLUME_UP:
             state->car.target_speed++;
             break;
-        case VOLUME_DOWN:
+        case BUTTON_VOLUME_DOWN:
             state->car.target_speed--;
             if (state->car.target_speed < 0) {
                 state->car.target_speed = 0;
             }
             break;
-        case SOURCE:
+        case BUTTON_SOURCE:
             state->car.cruise_control_enabled = false;
             break;
-        case SOURCE_LONG_PRESS:
+        case BUTTON_SOURCE_LONG_PRESS:
             utils_reboot(state);
         default:
             break;
@@ -77,4 +77,5 @@ void control_cruise_control(State *state) {
 void control_init(State *state) {
     canbus_init(state);
     gas_pedal_init(state);
+    buttons_init();
 }

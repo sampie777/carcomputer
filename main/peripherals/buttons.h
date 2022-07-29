@@ -6,21 +6,23 @@
 #define APP_TEMPLATE_BUTTONS_H
 
 typedef enum {
-    NONE,
-    VOLUME_UP,      // 510
-    VOLUME_DOWN,    // 510
-    INFO,
-    SOURCE,         // 985
-    UP,             // 798
-    DOWN,           // 798
-    VOLUME_UP_LONG_PRESS,
-    VOLUME_DOWN_LONG_PRESS,
-    INFO_LONG_PRESS,
-    SOURCE_LONG_PRESS,
-    UP_LONG_PRESS,
-    DOWN_LONG_PRESS,
+    BUTTON_NONE,
+    BUTTON_VOLUME_UP,      // 510
+    BUTTON_VOLUME_DOWN,    // 510
+    BUTTON_INFO,
+    BUTTON_SOURCE,         // 985
+    BUTTON_UP,             // 798
+    BUTTON_DOWN,           // 798
+    BUTTON_VOLUME_UP_LONG_PRESS,
+    BUTTON_VOLUME_DOWN_LONG_PRESS,
+    BUTTON_INFO_LONG_PRESS,
+    BUTTON_SOURCE_LONG_PRESS,
+    BUTTON_UP_LONG_PRESS,
+    BUTTON_DOWN_LONG_PRESS,
 } Button;
 
 Button buttons_get_pressed();
+
+void buttons_init();
 
 #endif //APP_TEMPLATE_BUTTONS_H

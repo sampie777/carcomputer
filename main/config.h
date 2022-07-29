@@ -22,6 +22,8 @@ extern "C" {
 #define I2C_FREQUENCY_HZ 400000
 #define I2C_PORT 0
 
+#define ADC_RESOLUTION 10
+
 #define CANBUS_INTERRUPT_PIN GPIO_NUM_4
 #define CANBUS_CHIP_SELECT_PIN 15
 
@@ -42,7 +44,7 @@ extern "C" {
 #define CRUISE_CONTROL_PID_Ki 0.000010
 #define CRUISE_CONTROL_PID_Kd 0.0
 
-#define CAR_GAS_PEDAL_RESOLUTION 10
+#define CAR_GAS_PEDAL_RESOLUTION ADC_RESOLUTION
 #define CAR_GAS_PEDAL_ADC_CHANNEL_0 ADC1_CHANNEL_0    // Mapped to PIN 36
 #define CAR_GAS_PEDAL_ADC_CHANNEL_1 ADC1_CHANNEL_1    // Mapped to PIN 37
 #define CAR_GAS_PEDAL_ADC_SAMPLE_COUNT 100
@@ -55,7 +57,16 @@ extern "C" {
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_0 LEDC_CHANNEL_0
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_1 LEDC_CHANNEL_0
 
-#define BUTTONS_READ_INTERVAL_LOOPS 40
+#define BUTTONS_ADC_CHANNEL_0 ADC1_CHANNEL_2    // Mapped to PIN 38
+#define BUTTONS_ADC_CHANNEL_1 ADC1_CHANNEL_3    // Mapped to PIN 39
+#define BUTTON_UPPER_LIMIT ((int) (798 + (985 - 798) / 2))
+#define BUTTON_MIDDLE_LIMIT ((int) (510 + (798 - 510) / 2))
+#define BUTTON_LOWER_LIMIT ((int) (510 / 2))
+#define BUTTONS_READ_INTERVAL_LOOPS 40          // Only read the buttons once very X loops, to decrease the total time this takes
+#define BUTTON_AVERAGE_READ_SAMPLES 1
+#define BUTTON_MIN_PRESS_TIME_MS 80             // Minimum time the button must be pressed for it to register a valid press (ms)
+#define BUTTON_LONG_PRESS_MS 2000
+#define BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS 80   // Don't check the button after is has been pressed for this amount of time (ms)
 
 #ifndef DEFAULT_SSID
 #define DEFAULT_SSID "abc"

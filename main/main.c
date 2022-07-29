@@ -1,5 +1,6 @@
 #include <sys/cdefs.h>
 #include <stdio.h>
+#include <driver/adc.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "state.h"
@@ -26,6 +27,7 @@ _Noreturn void process_gui(void *args) {
 }
 
 _Noreturn void process_main(State *state) {
+    adc1_config_width(ADC_RESOLUTION - 9);
     i2c_init();
     spi_init(state);
     control_init(state);
@@ -49,7 +51,7 @@ _Noreturn void process_main(State *state) {
         control_door_lock(state);
         control_cruise_control(state);
 
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        delay_ms(1000);
     }
 }
 

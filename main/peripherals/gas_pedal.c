@@ -9,26 +9,16 @@
 #include "../config.h"
 #include "gas_pedal.h"
 #include "../return_codes.h"
+#include "../utils.h"
 
 int is_pedal_connected(double reading_0, double reading_1) {
     return reading_0 >= CAR_GAS_PEDAL_MIN_VALUE && reading_1 >= CAR_GAS_PEDAL_MIN_VALUE;
 }
 
-double average_read_channel(adc1_channel_t channel, int sample_count) {
-    double total = 0;
-    unsigned long reading_start = esp_timer_get_time();
-    for (int i = 0; i < sample_count; i++) {
-        total += adc1_get_raw(channel);
-    }
-    unsigned long reading_stop = esp_timer_get_time();
-    printf("[GasPedal] Read time for channel %d with %d samples: %lu us\n", channel, sample_count, reading_stop - reading_start);
-    return total / sample_count;
-}
-
 int gas_pedal_init_minimums(State *state) {
     printf("[GasPedal] Calibrating minimums\n");
-    double reading_0 = (int) average_read_channel(CAR_GAS_PEDAL_ADC_CHANNEL_0, CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
-    double reading_1 = (int) average_read_channel(CAR_GAS_PEDAL_ADC_CHANNEL_1, CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
+    double reading_0 = average_read_channel(CAR_GAS_PEDAL_ADC_CHANNEL_0, CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
+    double reading_1 = average_read_channel(CAR_GAS_PEDAL_ADC_CHANNEL_1, CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
 
     if (!is_pedal_connected(reading_0, reading_1)) {
         state->car.gas_pedal_connected = false;
@@ -97,7 +87,6 @@ void gas_pedal_write(State *state) {
 
 void gas_pedal_init(State *state) {
     // Init input
-    adc1_config_width(CAR_GAS_PEDAL_RESOLUTION - 9);
     adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_0, ADC_ATTEN_DB_11);
     adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_1, ADC_ATTEN_DB_11);
 
