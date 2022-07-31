@@ -35,7 +35,7 @@ void show_error_message(State *state) {
 }
 
 void show_statusbar(State *state) {
-    if (state->car.cruise_control_enabled) {
+    if (state->cruise_control.enabled) {
         sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, FONT_WHITE, 14, "Cruise control");
     } else {
         sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, FONT_WHITE, sizeof(DEVICE_NAME), DEVICE_NAME);
@@ -68,13 +68,13 @@ void content_cruise_control(State *state) {
     int length = sprintf(buffer, "%3.0f / ", state->car.speed);
     offset_x += sh1106_draw_string(&sh1106, offset_x, STATUS_BAR_HEIGHT + 6, FONT_SMALL, FONT_WHITE, length, buffer);
 
-    length = sprintf(buffer, "%.0f km/h", state->car.target_speed);
+    length = sprintf(buffer, "%.0f km/h", state->cruise_control.target_speed);
     sh1106_draw_string(&sh1106, offset_x, STATUS_BAR_HEIGHT + 6, FONT_SMALL, FONT_WHITE, length, buffer);
 
     // Animate virtual pedal position
     int virtual_pedal_container_y = STATUS_BAR_HEIGHT + 6;
     int virtual_pedal_container_height = sh1106.height - virtual_pedal_container_y - 10;
-    int virtual_pedal_value_height = (int) (state->car.virtual_gas_pedal * virtual_pedal_container_height);
+    int virtual_pedal_value_height = (int) (state->cruise_control.virtual_gas_pedal * virtual_pedal_container_height);
     int virtual_pedal_value_y = virtual_pedal_container_height - virtual_pedal_value_height;
     sh1106_draw_vertical_line(&sh1106, sh1106.width - 10, virtual_pedal_container_y, virtual_pedal_container_height);
     sh1106_draw_vertical_line(&sh1106, sh1106.width - 6, virtual_pedal_container_y, virtual_pedal_container_height);
@@ -98,7 +98,7 @@ void show_content(State *state) {
         return;
     }
 
-    if (state->car.cruise_control_enabled) {
+    if (state->cruise_control.enabled) {
         content_cruise_control(state);
     }
 }

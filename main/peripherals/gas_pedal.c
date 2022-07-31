@@ -68,12 +68,12 @@ void gas_pedal_write(State *state) {
     if (state->car.gas_pedal_0_min_value > state->car.gas_pedal_1_min_value) {
         int difference = CAR_GAS_PEDAL_MAX_VALUE - state->car.gas_pedal_0_min_value;
         double factor = (double) state->car.gas_pedal_1_min_value / state->car.gas_pedal_0_min_value;
-        duty_cycle_0 = (int) (state->car.gas_pedal_0_min_value + difference * state->car.virtual_gas_pedal);
+        duty_cycle_0 = (int) (state->car.gas_pedal_0_min_value + difference * state->cruise_control.virtual_gas_pedal);
         duty_cycle_1 = (int) (factor * duty_cycle_0);
     } else {
         int difference = CAR_GAS_PEDAL_MAX_VALUE - state->car.gas_pedal_1_min_value;
         double factor = (double) state->car.gas_pedal_0_min_value / state->car.gas_pedal_1_min_value;
-        duty_cycle_1 = (int) (state->car.gas_pedal_1_min_value + difference * state->car.virtual_gas_pedal);
+        duty_cycle_1 = (int) (state->car.gas_pedal_1_min_value + difference * state->cruise_control.virtual_gas_pedal);
         duty_cycle_0 = (int) (factor * duty_cycle_1);
     }
 

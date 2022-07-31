@@ -34,19 +34,19 @@ void control_read_user_input(State *state) {
         case BUTTON_NONE:
             break;
         case BUTTON_UP:
-            state->car.cruise_control_enabled = true;
+            state->cruise_control.enabled = true;
             break;
         case BUTTON_VOLUME_UP:
-            state->car.target_speed++;
+            state->cruise_control.target_speed++;
             break;
         case BUTTON_VOLUME_DOWN:
-            state->car.target_speed--;
-            if (state->car.target_speed < 0) {
-                state->car.target_speed = 0;
+            state->cruise_control.target_speed--;
+            if (state->cruise_control.target_speed < 0) {
+                state->cruise_control.target_speed = 0;
             }
             break;
         case BUTTON_SOURCE:
-            state->car.cruise_control_enabled = false;
+            state->cruise_control.enabled = false;
             break;
         case BUTTON_SOURCE_LONG_PRESS:
             utils_reboot(state);
