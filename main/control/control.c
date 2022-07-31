@@ -10,6 +10,7 @@
 #include "cruise_control.h"
 #include "../peripherals/buttons.h"
 #include "../utils.h"
+#include "../peripherals/mpu9250.h"
 
 void control_read_can_bus(State *state) {
     canbus_check_messages(state);
@@ -19,6 +20,8 @@ void control_read_analog_sensors(State *state) {
     if (gas_pedal_read(state) == RESULT_DISCONNECTED) {
         display_set_error_message(state, "Pedal disconnected");
     }
+
+    mpu9250_read(state);
 }
 
 void control_read_user_input(State *state) {
@@ -78,4 +81,5 @@ void control_init(State *state) {
     canbus_init(state);
     gas_pedal_init(state);
     buttons_init();
+    mpu9250_init(state);
 }

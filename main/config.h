@@ -68,6 +68,12 @@ extern "C" {
 #define BUTTON_LONG_PRESS_MS 2000
 #define BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS 80   // Don't check the button after is has been pressed for this amount of time (ms)
 
+#define MOTION_SENSOR_I2C_ADDRESS 0x68
+#define COMPASS_SENSOR_I2C_ADDRESS 0x0C
+#define MOTION_SENSOR_ROOM_TEMPERATURE_OFFSET 0
+#define MOTION_SENSOR_TEMPERATURE_SENSITIVITY 333.87
+#define MOTION_SENSOR_READ_INTERVAL_MS 20
+
 #ifndef DEFAULT_SSID
 #define DEFAULT_SSID "abc"
 #endif

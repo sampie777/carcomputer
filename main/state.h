@@ -45,11 +45,25 @@ typedef struct {
 } DisplayState;
 
 typedef struct {
+    double accel_x;
+    double accel_y;
+    double accel_z;
+    double gyro_x;
+    double gyro_y;
+    double gyro_z;
+    double compass_x;
+    double compass_y;
+    double compass_z;
+    double temperature;
+} MotionState;
+
+typedef struct {
     CarState car;
     WiFiState wifi;
     BluetoothState bluetooth;
     DisplayState display;
     CruiseControlState cruise_control;
+    MotionState motion;
     uint8_t is_booting;
     uint8_t is_rebooting;
 } State;
