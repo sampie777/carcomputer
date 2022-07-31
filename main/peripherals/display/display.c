@@ -11,6 +11,8 @@
 #include "sh1106.h"
 #include "icons.h"
 
+#define STATUS_BAR_HEIGHT 9
+
 SH1106Config sh1106 = {
         .address = DISPLAY_I2C_ADDRESS,
         .flip = DISPLAY_UPSIDE_DOWN,
@@ -39,7 +41,7 @@ void show_statusbar(State *state) {
         sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, FONT_WHITE, sizeof(DEVICE_NAME), DEVICE_NAME);
     }
 
-    sh1106_draw_horizontal_line(&sh1106, 0, 9, sh1106.width);
+    sh1106_draw_horizontal_line(&sh1106, 0, STATUS_BAR_HEIGHT, sh1106.width);
 
     int offset_right = sh1106.width - 2 - icon_wifi_width;
     if (state->wifi.connected) {
@@ -60,14 +62,33 @@ void show_statusbar(State *state) {
     }
 }
 
+void content_cruise_control(State *state) {
+    int offset_x = 15;
+    char buffer[20];
+    int length = sprintf(buffer, "%3.0f / ", state->car.speed);
+    offset_x += sh1106_draw_string(&sh1106, offset_x, STATUS_BAR_HEIGHT + 6, FONT_SMALL, FONT_WHITE, length, buffer);
+
+    length = sprintf(buffer, "%.0f km/h", state->car.target_speed);
+    sh1106_draw_string(&sh1106, offset_x, STATUS_BAR_HEIGHT + 6, FONT_SMALL, FONT_WHITE, length, buffer);
+
+    // Animate virtual pedal position
+    int virtual_pedal_container_y = STATUS_BAR_HEIGHT + 6;
+    int virtual_pedal_container_height = sh1106.height - virtual_pedal_container_y - 10;
+    int virtual_pedal_value_height = (int) (state->car.virtual_gas_pedal * virtual_pedal_container_height);
+    int virtual_pedal_value_y = virtual_pedal_container_height - virtual_pedal_value_height;
+    sh1106_draw_vertical_line(&sh1106, sh1106.width - 10, virtual_pedal_container_y, virtual_pedal_container_height);
+    sh1106_draw_vertical_line(&sh1106, sh1106.width - 6, virtual_pedal_container_y, virtual_pedal_container_height);
+    sh1106_draw_filled_rectangle(&sh1106, sh1106.width - 9, virtual_pedal_value_y, 3, virtual_pedal_value_height);
+}
+
 void show_content(State *state) {
     if (state->is_rebooting) {
-        sh1106_draw_string(&sh1106, (sh1106.width - 5 * 12) / 2, 15 + (sh1106.height - 15 - 8) / 2,
+        sh1106_draw_string(&sh1106, (sh1106.width - 5 * 12) / 2, STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2,
                            FONT_SMALL, FONT_WHITE, 12, "Rebooting...");
         return;
     }
     if (state->is_booting) {
-        sh1106_draw_string(&sh1106, (sh1106.width - 5 * 10) / 2, 15 + (sh1106.height - 15 - 8) / 2,
+        sh1106_draw_string(&sh1106, (sh1106.width - 5 * 10) / 2, STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2,
                            FONT_SMALL, FONT_WHITE, 10, "Booting...");
         return;
     }
@@ -78,13 +99,7 @@ void show_content(State *state) {
     }
 
     if (state->car.cruise_control_enabled) {
-        int offset_x = 15;
-        char buffer[20];
-        int length = sprintf(buffer, "%3.0f / ", state->car.speed);
-        offset_x += sh1106_draw_string(&sh1106, offset_x, 15, FONT_SMALL, FONT_WHITE, length, buffer);
-
-        length = sprintf(buffer, "%.0f km/h", state->car.target_speed);
-        sh1106_draw_string(&sh1106, offset_x, 15, FONT_SMALL, FONT_WHITE, length, buffer);
+        content_cruise_control(state);
     }
 }
 
