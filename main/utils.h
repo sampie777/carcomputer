@@ -21,4 +21,6 @@ void utils_reboot(State *state);
 
 double average_read_channel(adc1_channel_t channel, int sample_count);
 
+int get_length(const char *s);
+
 #endif //APP_TEMPLATE_UTILS_H

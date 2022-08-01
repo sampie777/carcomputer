@@ -17,10 +17,14 @@ extern "C" {
 #define SPI_MISO_PIN 12
 #define SPI_CLK_PIN 14
 
-#define I2C_SDA_PIN 21
-#define I2C_SCL_PIN 22
 #define I2C_FREQUENCY_HZ 400000
-#define I2C_PORT 0
+#define I2C_TIMEOUT_MS 1000
+#define MAIN_I2C_PORT I2C_NUM_0
+#define MAIN_I2C_SDA_PIN 18
+#define MAIN_I2C_SCL_PIN 5
+#define DISPLAY_I2C_PORT I2C_NUM_1
+#define DISPLAY_I2C_SDA_PIN 21
+#define DISPLAY_I2C_SCL_PIN 19
 
 #define ADC_RESOLUTION 10
 
@@ -31,10 +35,10 @@ extern "C" {
 #define WIFI_ENABLE false
 
 #define DISPLAY_I2C_ADDRESS 0x3C
-#define DISPLAY_I2C_TIMEOUT_MS 1000
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 #define DISPLAY_UPSIDE_DOWN false
+#define DISPLAY_UPDATE_MIN_INTERVAL 40  // 25 fps
 #define DISPLAY_ERROR_MESSAGE_TIME_MS 7000
 #define DISPLAY_ERROR_MESSAGE_MAX_LENGTH ((DISPLAY_WIDTH - 12) / 5)
 
@@ -47,7 +51,7 @@ extern "C" {
 #define CAR_GAS_PEDAL_RESOLUTION ADC_RESOLUTION
 #define CAR_GAS_PEDAL_ADC_CHANNEL_0 ADC1_CHANNEL_0    // Mapped to PIN 36
 #define CAR_GAS_PEDAL_ADC_CHANNEL_1 ADC1_CHANNEL_1    // Mapped to PIN 37
-#define CAR_GAS_PEDAL_ADC_SAMPLE_COUNT 100
+#define CAR_GAS_PEDAL_ADC_SAMPLE_COUNT 20
 #define CAR_GAS_PEDAL_MIN_VALUE 38  // = 0.38 / 5 * 1023 / 2
 #define CAR_GAS_PEDAL_MAX_VALUE 865 // = 4.23 / 5 * 1023
 #define CAR_VIRTUAL_GAS_PEDAL_OUTPUT_PIN_0 GPIO_NUM_32
@@ -63,7 +67,7 @@ extern "C" {
 #define BUTTON_MIDDLE_LIMIT ((int) (510 + (798 - 510) / 2))
 #define BUTTON_LOWER_LIMIT ((int) (510 / 2))
 #define BUTTONS_READ_INTERVAL_LOOPS 40          // Only read the buttons once very X loops, to decrease the total time this takes
-#define BUTTON_AVERAGE_READ_SAMPLES 1
+#define BUTTON_AVERAGE_READ_SAMPLES 5
 #define BUTTON_MIN_PRESS_TIME_MS 80             // Minimum time the button must be pressed for it to register a valid press (ms)
 #define BUTTON_LONG_PRESS_MS 2000
 #define BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS 80   // Don't check the button after is has been pressed for this amount of time (ms)

@@ -184,7 +184,7 @@ void sh1106_send_byte(SH1106Config *config, uint8_t data) {
     i2c_master_write_byte(command, data, true);
     i2c_master_stop(command);
 
-    if (i2c_master_cmd_begin(I2C_PORT, command, DISPLAY_I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
+    if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
         printf("[sh1106] I2C byte transmission failed\n");
     }
     i2c_cmd_link_delete(command);
@@ -208,7 +208,7 @@ void sh1106_display(SH1106Config *config) {
         i2c_master_write(command, config->buffer[row], DISPLAY_WIDTH, true);
 
         i2c_master_stop(command);
-        if (i2c_master_cmd_begin(I2C_PORT, command, DISPLAY_I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
+        if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
             printf("[sh1106] I2C graphics transmission failed\n");
         }
         i2c_cmd_link_delete(command);
@@ -252,7 +252,7 @@ void sh1106_init(SH1106Config *config) {
     i2c_master_write_byte(command, SH1106_CONFIG_SET_DISPLAY_ON, true);
 
     i2c_master_stop(command);
-    if (i2c_master_cmd_begin(I2C_PORT, command, DISPLAY_I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
+    if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
         printf("[sh1106] I2C init transmission failed\n");
     }
     i2c_cmd_link_delete(command);

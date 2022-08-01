@@ -28,7 +28,6 @@ void display_init() {
 }
 
 void show_error_message(State *state) {
-    printf("[Display] Error message: %s\n", state->display.error_message);
     sh1106_draw_filled_rectangle(&sh1106, 5, 5, sh1106.width - 10, sh1106.height - 10);
     sh1106_draw_string(&sh1106, sh1106.width / 2 - 5 * 2, 7, FONT_SMALL, FONT_BLACK, 5, "ERROR");
     sh1106_draw_string(&sh1106, 10, 18, FONT_SMALL, FONT_BLACK, (int) strlen(state->display.error_message), state->display.error_message);
@@ -81,6 +80,62 @@ void content_cruise_control(State *state) {
     sh1106_draw_filled_rectangle(&sh1106, sh1106.width - 9, virtual_pedal_value_y, 3, virtual_pedal_value_height);
 }
 
+void motion_sensors_data(const State *state) {
+    int offset_x = 0;
+    int offset_y = STATUS_BAR_HEIGHT + 3;
+    char buffer[20];
+
+    offset_y += 10;
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, 1, "x");
+    offset_y += 10;
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, 1, "y");
+    offset_y += 10;
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, 1, "z");
+    offset_x += 9;
+    offset_y = STATUS_BAR_HEIGHT + 5;
+
+    sh1106_draw_string(&sh1106, offset_x + 1 * 5, offset_y, FONT_SMALL, FONT_WHITE, 5, "Accel");
+    offset_y += 10;
+    int length = sprintf(buffer, " %7.1f", state->motion.accel_x);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_y += 10;
+    length = sprintf(buffer, " %7.1f", state->motion.accel_y);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_y += 10;
+    length = sprintf(buffer, " %7.1f", state->motion.accel_z);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_x += 7 * 5;
+    offset_y += 10;
+
+    length = sprintf(buffer, "Temp: %3.1f", state->motion.temperature);
+    sh1106_draw_string(&sh1106, 0, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_y = STATUS_BAR_HEIGHT + 5;
+
+    sh1106_draw_string(&sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, 4, "Gyro");
+    offset_y += 10;
+    length = sprintf(buffer, " %7.1f", state->motion.gyro_x);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_y += 10;
+    length = sprintf(buffer, " %7.1f", state->motion.gyro_y);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_y += 10;
+    length = sprintf(buffer, " %7.1f", state->motion.gyro_z);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_x += 7 * 5;
+    offset_y = STATUS_BAR_HEIGHT + 5;
+
+    sh1106_draw_string(&sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, 4, "Comp");
+    offset_y += 10;
+    length = sprintf(buffer, " %7.1f", state->motion.compass_x);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_y += 10;
+    length = sprintf(buffer, " %7.1f", state->motion.compass_y);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_y += 10;
+    length = sprintf(buffer, " %7.1f", state->motion.compass_z);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+}
+
 void show_content(State *state) {
     if (state->is_rebooting) {
         sh1106_draw_string(&sh1106, (sh1106.width - 5 * 12) / 2, STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2,
@@ -100,10 +155,19 @@ void show_content(State *state) {
 
     if (state->cruise_control.enabled) {
         content_cruise_control(state);
+        return;
     }
+
+    motion_sensors_data(state);
 }
 
 void display_update(State *state) {
+    static unsigned long last_update_time = 0;
+    if (esp_timer_get_time_ms() < last_update_time + DISPLAY_UPDATE_MIN_INTERVAL) {
+        return;
+    }
+    last_update_time = esp_timer_get_time_ms();
+
     sh1106_clear(&sh1106);
 
     show_statusbar(state);
@@ -113,6 +177,19 @@ void display_update(State *state) {
 }
 
 void display_set_error_message(State *state, char *message) {
+    int is_new_message = false;
+    for (int i = 0; i < DISPLAY_ERROR_MESSAGE_MAX_LENGTH; i++) {
+        if (message[i] != state->display.error_message[i]) {
+            is_new_message = true;
+            break;
+        }
+
+        if (message[i] == '\0') {
+            break;
+        }
+    }
+    if (!is_new_message) return;
+
     printf("[Display] Set error message: %s\n", message);
     strncpy(state->display.error_message, message, DISPLAY_ERROR_MESSAGE_MAX_LENGTH);
     state->display.error_message[DISPLAY_ERROR_MESSAGE_MAX_LENGTH] = '\0';

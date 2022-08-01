@@ -42,3 +42,13 @@ double average_read_channel(adc1_channel_t channel, int sample_count) {
     printf("[Utils] Read time for channel %d with %d samples was %lu us\n", channel, sample_count, reading_stop - reading_start);
     return total / sample_count;
 }
+
+int get_length(const char *s) {
+    // Overflow will eventually make i < 0
+    for (int16_t i = 0; i >= 0; i++) {
+        if (s[i] == '\0') {
+            return i;
+        }
+    }
+    return -1;
+}
