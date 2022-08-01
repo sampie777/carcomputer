@@ -107,7 +107,7 @@ void motion_sensors_data(const State *state) {
     offset_x += 7 * 5;
     offset_y += 10;
 
-    length = sprintf(buffer, "Temp: %3.1f", state->motion.temperature);
+    length = sprintf(buffer, "Temp: %6.3f", state->motion.temperature);
     sh1106_draw_string(&sh1106, 0, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
     offset_y = STATUS_BAR_HEIGHT + 5;
 
