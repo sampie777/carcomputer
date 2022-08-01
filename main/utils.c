@@ -34,12 +34,9 @@ void utils_reboot(State *state) {
 
 double average_read_channel(adc1_channel_t channel, int sample_count) {
     double total = 0;
-    unsigned long reading_start = esp_timer_get_time();
     for (int i = 0; i < sample_count; i++) {
         total += adc1_get_raw(channel);
     }
-    unsigned long reading_stop = esp_timer_get_time();
-    printf("[Utils] Read time for channel %d with %d samples was %lu us\n", channel, sample_count, reading_stop - reading_start);
     return total / sample_count;
 }
 

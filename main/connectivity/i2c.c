@@ -14,7 +14,8 @@ void i2c_init() {
             .scl_io_num = MAIN_I2C_SCL_PIN,
             .sda_pullup_en = GPIO_PULLUP_ENABLE,
             .scl_pullup_en = GPIO_PULLUP_ENABLE,
-            .master.clk_speed = I2C_FREQUENCY_HZ
+            .master.clk_speed = I2C_FREQUENCY_HZ,
+            .clk_flags = 0
     };
     ESP_ERROR_CHECK(i2c_param_config(MAIN_I2C_PORT, &i2c_config));
     ESP_ERROR_CHECK(i2c_driver_install(MAIN_I2C_PORT, i2c_config.mode, 0, 0, 0));
@@ -25,7 +26,8 @@ void i2c_init() {
             .scl_io_num = DISPLAY_I2C_SCL_PIN,
             .sda_pullup_en = GPIO_PULLUP_ENABLE,
             .scl_pullup_en = GPIO_PULLUP_ENABLE,
-            .master.clk_speed = I2C_FREQUENCY_HZ
+            .master.clk_speed = I2C_FREQUENCY_HZ,
+            .clk_flags = 0
     };
     ESP_ERROR_CHECK(i2c_param_config(DISPLAY_I2C_PORT, &i2c_config_display));
     ESP_ERROR_CHECK(i2c_driver_install(DISPLAY_I2C_PORT, i2c_config_display.mode, 0, 0, 0));

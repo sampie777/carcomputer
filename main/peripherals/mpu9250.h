@@ -9,6 +9,6 @@
 
 void mpu9250_read(State *state);
 
-void mpu9250_init(State *state);
+void mpu9250_init();
 
 #endif //APP_TEMPLATE_MPU9250_H

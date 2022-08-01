@@ -81,5 +81,5 @@ void control_init(State *state) {
     canbus_init(state);
     gas_pedal_init(state);
     buttons_init();
-    mpu9250_init(state);
+    mpu9250_init();
 }

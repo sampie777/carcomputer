@@ -45,6 +45,7 @@ typedef struct {
 } DisplayState;
 
 typedef struct {
+    uint8_t connected;
     double accel_x;
     double accel_y;
     double accel_z;
