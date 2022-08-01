@@ -82,7 +82,7 @@ void content_cruise_control(State *state) {
 
 void motion_sensors_data(const State *state) {
     int offset_x = 0;
-    int offset_y = STATUS_BAR_HEIGHT + 3;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[20];
 
     offset_y += 10;
@@ -96,13 +96,13 @@ void motion_sensors_data(const State *state) {
 
     sh1106_draw_string(&sh1106, offset_x + 1 * 5, offset_y, FONT_SMALL, FONT_WHITE, 5, "Accel");
     offset_y += 10;
-    int length = sprintf(buffer, " %7.1f", state->motion.accel_x);
+    int length = sprintf(buffer, " %7.3f", state->motion.accel_x);
     sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
     offset_y += 10;
-    length = sprintf(buffer, " %7.1f", state->motion.accel_y);
+    length = sprintf(buffer, " %7.3f", state->motion.accel_y);
     sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
     offset_y += 10;
-    length = sprintf(buffer, " %7.1f", state->motion.accel_z);
+    length = sprintf(buffer, " %7.3f", state->motion.accel_z);
     sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
     offset_x += 7 * 5;
     offset_y += 10;
@@ -113,13 +113,13 @@ void motion_sensors_data(const State *state) {
 
     sh1106_draw_string(&sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, 4, "Gyro");
     offset_y += 10;
-    length = sprintf(buffer, " %7.1f", state->motion.gyro_x);
+    length = sprintf(buffer, " %7.2f", state->motion.gyro_x);
     sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
     offset_y += 10;
-    length = sprintf(buffer, " %7.1f", state->motion.gyro_y);
+    length = sprintf(buffer, " %7.2f", state->motion.gyro_y);
     sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
     offset_y += 10;
-    length = sprintf(buffer, " %7.1f", state->motion.gyro_z);
+    length = sprintf(buffer, " %7.2f", state->motion.gyro_z);
     sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
     offset_x += 7 * 5;
     offset_y = STATUS_BAR_HEIGHT + 5;

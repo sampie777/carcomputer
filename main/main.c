@@ -50,8 +50,6 @@ _Noreturn void process_main(State *state) {
         // Process data
         control_door_lock(state);
         control_cruise_control(state);
-
-        delay_ms(1000);
     }
 }
 
