@@ -65,7 +65,9 @@ void cruise_control_apply_pid(State *state) {
 void cruise_control_step(State *state) {
     static uint8_t car_was_connected = false;
     static uint8_t cruise_control_was_enabled = false;
+    static unsigned long gas_pedal_enable_time = 0;
 
+    // Safety checks
     if (!state->car.gas_pedal_connected) {
         state->cruise_control.enabled = false;
     }
@@ -79,10 +81,21 @@ void cruise_control_step(State *state) {
     }
     car_was_connected = state->car.connected;
 
+    // Check if cruise control was just now enabled
     if (state->cruise_control.enabled && state->cruise_control.enabled != cruise_control_was_enabled) {
         cruise_control_was_enabled = state->cruise_control.enabled;
         state->cruise_control.target_speed = state->car.speed;
         state->cruise_control.initial_control_value = state->car.gas_pedal;
+        gas_pedal_enable_time = esp_timer_get_time_ms() + CAR_VIRTUAL_GAS_PEDAL_RISE_TIME_MS;
+    }
+
+    // Disable or enable gas pedal after pedal output rise time
+    if (!state->cruise_control.enabled) {
+        gas_pedal_enable(false);
+    } else if (gas_pedal_enable_time == 0 || esp_timer_get_time_ms() > gas_pedal_enable_time) {
+        gas_pedal_enable(true);
+        // Reset time to 0 to prevent bugs when get_time_ms overflows
+        gas_pedal_enable_time = 0;
     }
 
     cruise_control_apply_pid(state);

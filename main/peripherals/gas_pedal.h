@@ -7,6 +7,8 @@
 
 #include "../state.h"
 
+void gas_pedal_enable(uint8_t enable);
+
 int gas_pedal_read(State *state);
 
 void gas_pedal_write(State *state);

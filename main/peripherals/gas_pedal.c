@@ -11,6 +11,10 @@
 #include "../return_codes.h"
 #include "../utils.h"
 
+void gas_pedal_enable(uint8_t enable) {
+    gpio_set_level(CAR_VIRTUAL_GAS_PEDAL_ENABLE_PIN, enable ? 1 : 0);
+}
+
 int is_pedal_connected(double reading_0, double reading_1) {
     return reading_0 >= CAR_GAS_PEDAL_MIN_VALUE && reading_1 >= CAR_GAS_PEDAL_MIN_VALUE;
 }
@@ -91,6 +95,9 @@ void gas_pedal_init(State *state) {
     adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_1, ADC_ATTEN_DB_11);
 
     // Init output
+    gpio_set_direction(CAR_VIRTUAL_GAS_PEDAL_ENABLE_PIN, GPIO_MODE_OUTPUT);
+    gas_pedal_enable(false);
+
     // 78 kHz gives max resolution of 10 bits: 80 MHz / 2^10 = 78 kHz
     uint32_t max_frequency = 80000000 / (0x01 << CAR_GAS_PEDAL_RESOLUTION);
     printf("[GasPedal] PWM frequency: %d Hz\n", max_frequency);

@@ -3,6 +3,7 @@
 //
 
 #include <cstring>
+#include <hal/gpio_types.h>
 #include "../config.h"
 #include "mcp2515_wrapper.h"
 
