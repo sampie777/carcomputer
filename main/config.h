@@ -29,7 +29,7 @@ extern "C" {
 
 #define ADC_RESOLUTION 10
 
-#define CANBUS_INTERRUPT_PIN GPIO_NUM_2
+#define CANBUS_INTERRUPT_PIN GPIO_NUM_4     // Don't use GPIO 2 as this results in errors during flashing
 #define CANBUS_CHIP_SELECT_PIN GPIO_NUM_15
 
 #define DISPLAY_I2C_PORT I2C_NUM_1
