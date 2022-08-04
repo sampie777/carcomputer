@@ -8,13 +8,15 @@
 #include "control/control.h"
 #include "connectivity/i2c.h"
 #include "connectivity/spi.h"
+#include "peripherals/display/display.h"
+
 #if WIFI_ENABLE
 #include "connectivity/wifi.h"
 #endif
 #if BLUETOOTH_ENABLE
 #include "connectivity/bluetooth.h"
 #endif
-#include "peripherals/display/display.h"
+
 
 _Noreturn void process_gui(void *args) {
     State *state = args;
@@ -34,9 +36,8 @@ _Noreturn void process_main(State *state) {
 #if BLUETOOTH_ENABLE
     bluetooth_init(state);
 #endif
-
 #if WIFI_ENABLE
-    wifi_connect(state);
+    wifi_init(state);
 #endif
 
     state->is_booting = false;
@@ -50,6 +51,10 @@ _Noreturn void process_main(State *state) {
         // Process data
         control_door_lock(state);
         control_cruise_control(state);
+
+#if WIFI_ENABLE
+        wifi_scan(state);
+#endif
     }
 }
 

@@ -14,7 +14,11 @@ extern "C" {
 #define DEVICE_NAME "Nissan Micra"
 
 #define BLUETOOTH_ENABLE false
-#define WIFI_ENABLE false
+#define WIFI_ENABLE true
+
+#define WIFI_SCAN_INTERVAL_MS 2500
+#define WIFI_SCAN_MAX_DURATION 8000
+#define WIFI_SCAN_MAX_APS 16
 
 #define SPI_MOSI_PIN GPIO_NUM_13
 #define SPI_MISO_PIN GPIO_NUM_12
@@ -42,6 +46,7 @@ extern "C" {
 #define DISPLAY_UPDATE_MIN_INTERVAL 40  // 25 fps
 #define DISPLAY_ERROR_MESSAGE_TIME_MS 2000
 #define DISPLAY_ERROR_MESSAGE_MAX_LENGTH ((DISPLAY_WIDTH - 12) / 5)
+#define DISPLAY_LONG_BLINK_INTERVAL 1000
 
 #define CRUISE_CONTROL_MAX_RPM_LIMIT 4500
 #define CRUISE_CONTROL_PID_ITERATION_TIME 100
@@ -87,6 +92,12 @@ extern "C" {
 #endif
 #ifndef DEFAULT_PWD
 #define DEFAULT_PWD "***"
+#endif
+#ifndef DEFAULT_SSID1
+#define DEFAULT_SSID1 "abc1"
+#endif
+#ifndef DEFAULT_PWD1
+#define DEFAULT_PWD1 "***"
 #endif
 
 #ifdef __cplusplus

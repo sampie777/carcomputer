@@ -31,8 +31,11 @@ typedef struct {
 } CarState;
 
 typedef struct {
-    uint8_t connected;
     esp_ip4_addr_t ip;
+    uint8_t is_scanning;
+    uint8_t has_scan_results;
+    uint8_t is_connecting;
+    uint8_t is_connected;
 } WiFiState;
 
 typedef struct {

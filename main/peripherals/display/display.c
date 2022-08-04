@@ -23,7 +23,6 @@ SH1106Config sh1106 = {
 void display_init() {
     printf("[Display] Initializing display...\n");
     sh1106_init(&sh1106);
-    sh1106_clear(&sh1106);
     printf("[Display] Init done\n");
 }
 
@@ -34,6 +33,14 @@ void show_error_message(State *state) {
 }
 
 void show_statusbar(State *state) {
+    static unsigned long last_long_blink_time = 0;
+    static uint8_t long_blink_state = false;
+
+    if (esp_timer_get_time_ms() > last_long_blink_time + DISPLAY_LONG_BLINK_INTERVAL) {
+        long_blink_state = !long_blink_state;
+        last_long_blink_time = esp_timer_get_time_ms();
+    }
+
     if (state->cruise_control.enabled) {
         sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, FONT_WHITE, 14, "Cruise control");
     } else {
@@ -43,7 +50,7 @@ void show_statusbar(State *state) {
     sh1106_draw_horizontal_line(&sh1106, 0, STATUS_BAR_HEIGHT, sh1106.width);
 
     int offset_right = sh1106.width - 2 - icon_wifi_width;
-    if (state->wifi.connected) {
+    if (state->wifi.is_connected || (long_blink_state && (state->wifi.is_scanning || state->wifi.is_connecting))) {
         sh1106_draw_icon(&sh1106, offset_right, 1,
                          icon_wifi, sizeof(icon_wifi), icon_wifi_width, FONT_WHITE);
     }
