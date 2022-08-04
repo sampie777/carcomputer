@@ -39,16 +39,8 @@
 
 
 void sh1106_clear(SH1106Config *config) {
-    memset(config->buffer, 0, sizeof(config->buffer));
-}
-
-void sh1106_zigzag(SH1106Config *config) {
-    for (int row = 0; row < (DISPLAY_HEIGHT >> 3); row++) {
-        for (int col = 0; col < DISPLAY_WIDTH; col++) {
-            int t = col % 16;
-            int d = t < 8 ? t : 15 - t;
-            config->buffer[row][col] = 0x01 << d;
-        }
+    for (int i = 0; i < config->height; i++) {
+        memset(config->buffer[i], 0, config->width);
     }
 }
 
@@ -193,7 +185,7 @@ void sh1106_send_byte(SH1106Config *config, uint8_t data) {
 void sh1106_display(SH1106Config *config) {
     sh1106_send_byte(config, SH1106_CONFIG_SET_START_LINE | 0x00);
 
-    for (int row = 0; row < (DISPLAY_HEIGHT >> 3); row++) {
+    for (int row = 0; row < (config->height >> 3); row++) {
         i2c_cmd_handle_t command = i2c_cmd_link_create();
         i2c_master_start(command);
         i2c_master_write_byte(command, (config->address << 1) | I2C_MASTER_WRITE, true);
@@ -217,6 +209,15 @@ void sh1106_display(SH1106Config *config) {
 
 void sh1106_init(SH1106Config *config) {
     printf("[sh1106] Initializing...\n");
+
+    // Make sure config height doesn't exceed max height
+    if (config->height > DISPLAY_HEIGHT) {
+        config->height = DISPLAY_HEIGHT;
+    }
+
+    for (int i = 0; i < config->height; i++) {
+        config->buffer[i] = (uint8_t *) malloc(config->width * sizeof(uint8_t));
+    }
 
     i2c_cmd_handle_t command = i2c_cmd_link_create();
     i2c_master_start(command);
@@ -249,13 +250,16 @@ void sh1106_init(SH1106Config *config) {
     i2c_master_write_byte(command, 0x40, true);
     i2c_master_write_byte(command, SH1106_CONFIG_SET_DISPLAY_NON_INVERTED, true);
     i2c_master_write_byte(command, SH1106_CONFIG_SET_DISPLAY_RESUME, true);
-    i2c_master_write_byte(command, SH1106_CONFIG_SET_DISPLAY_ON, true);
 
     i2c_master_stop(command);
     if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
         printf("[sh1106] I2C init transmission failed\n");
     }
     i2c_cmd_link_delete(command);
+
+    sh1106_clear(config);
+    sh1106_display(config);
+    sh1106_send_byte(config, SH1106_CONFIG_SET_DISPLAY_ON);
 
     printf("[sh1106] Init done\n");
 }
