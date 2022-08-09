@@ -49,6 +49,7 @@ _Noreturn void process_main(State *state) {
         control_read_user_input(state);
 
         // Process data
+        control_mpu_power(state);
         control_door_lock(state);
         control_cruise_control(state);
 
@@ -66,6 +67,7 @@ void init() {
 void app_main(void) {
     State state = {
             .is_booting = true,
+            .power_off_count_down_sec = -1,
     };
 
     init();

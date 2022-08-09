@@ -13,7 +13,7 @@
 
 #define RSSI_MIN_THRESHOLD -127
 
-static const char *TAG = "scan";
+static const char *TAG = "WiFi";
 
 static WiFiAPCredentials *wifi_known_aps;
 static int wifi_known_aps_length = -1;

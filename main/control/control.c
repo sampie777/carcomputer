@@ -27,9 +27,7 @@ void control_read_analog_sensors(State *state) {
 void control_read_user_input(State *state) {
     // Only check input once every X loop cycles
     static int counter = 0;
-    if (++counter < BUTTONS_READ_INTERVAL_LOOPS) {
-        return;
-    }
+    if (++counter < BUTTONS_READ_INTERVAL_LOOPS) return;
     counter = 0;
 
     Button button = buttons_get_pressed();
@@ -73,11 +71,36 @@ void control_door_lock(State *state) {
     // ...
 }
 
+void control_mpu_power(State *state) {
+    static unsigned long power_off_time = 0;
+    if (state->car.is_ignition_on) {
+        power_off_time = 0;
+        state->power_off_count_down_sec = -1;
+        return;
+    }
+
+    if (power_off_time == 0) {
+        power_off_time = esp_timer_get_time_ms();
+    }
+
+    state->cruise_control.enabled = false;
+    long remaining_ms = (long) (power_off_time + POWER_OFF_MAX_TIMEOUT_MS - esp_timer_get_time_ms());
+    state->power_off_count_down_sec = (int16_t) (remaining_ms / 1000);
+
+    if (esp_timer_get_time_ms() < power_off_time + POWER_OFF_MAX_TIMEOUT_MS) return;
+
+    gpio_set_level(POWER_PIN, 0);
+    delay_ms(1000);
+}
+
 void control_cruise_control(State *state) {
     cruise_control_step(state);
 }
 
 void control_init(State *state) {
+    gpio_set_direction(POWER_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_level(POWER_PIN, 1);
+
     canbus_init(state);
     gas_pedal_init(state);
     buttons_init();

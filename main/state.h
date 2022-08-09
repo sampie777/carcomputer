@@ -23,6 +23,7 @@ typedef struct {
     double rpm;                     // Absolute value in rpm
     uint8_t is_braking;
     unsigned long last_can_message_time;
+    uint8_t is_ignition_on;
 
     uint8_t gas_pedal_connected;
     double gas_pedal;               // Relative value between 0.0 and 1.0
@@ -70,6 +71,7 @@ typedef struct {
     MotionState motion;
     uint8_t is_booting;
     uint8_t is_rebooting;
+    int16_t power_off_count_down_sec;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

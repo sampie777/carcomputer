@@ -47,8 +47,6 @@ void show_statusbar(State *state) {
         sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, FONT_WHITE, sizeof(DEVICE_NAME), DEVICE_NAME);
     }
 
-    sh1106_draw_horizontal_line(&sh1106, 0, STATUS_BAR_HEIGHT, sh1106.width);
-
     int offset_right = sh1106.width - 2 - icon_wifi_width;
     if (state->wifi.is_connected || (long_blink_state && (state->wifi.is_scanning || state->wifi.is_connecting))) {
         sh1106_draw_icon(&sh1106, offset_right, 1,
@@ -66,6 +64,8 @@ void show_statusbar(State *state) {
         sh1106_draw_icon(&sh1106, offset_right, 1,
                          icon_car, sizeof(icon_car), icon_car_width, FONT_WHITE);
     }
+
+    sh1106_draw_horizontal_line(&sh1106, 0, STATUS_BAR_HEIGHT, sh1106.width);
 }
 
 void content_cruise_control(State *state) {
@@ -87,7 +87,22 @@ void content_cruise_control(State *state) {
     sh1106_draw_filled_rectangle(&sh1106, sh1106.width - 9, virtual_pedal_value_y, 3, virtual_pedal_value_height);
 }
 
-void motion_sensors_data(const State *state) {
+void content_power_off_count_down(State *state) {
+    int length;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[20];
+
+    length = sprintf(buffer, "Powering off in...");
+    sh1106_draw_string(&sh1106, (sh1106.width - length) / 2, offset_y,
+                       FONT_SMALL, FONT_WHITE, length, buffer);
+
+    length = sprintf(buffer, "%d", state->power_off_count_down_sec);
+    sh1106_draw_string(&sh1106, (sh1106.width - length) / 2,
+                       STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2,
+                       FONT_SMALL, FONT_WHITE, length, buffer);
+}
+
+void content_motion_sensors_data(const State *state) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[20];
@@ -165,14 +180,17 @@ void show_content(State *state) {
         return;
     }
 
-    motion_sensors_data(state);
+    if (state->power_off_count_down_sec > -1 && state->power_off_count_down_sec <= 10) {
+        content_power_off_count_down(state);
+        return;
+    }
+
+    content_motion_sensors_data(state);
 }
 
 void display_update(State *state) {
     static unsigned long last_update_time = 0;
-    if (esp_timer_get_time_ms() < last_update_time + DISPLAY_UPDATE_MIN_INTERVAL) {
-        return;
-    }
+    if (esp_timer_get_time_ms() < last_update_time + DISPLAY_UPDATE_MIN_INTERVAL) return;
     last_update_time = esp_timer_get_time_ms();
 
     sh1106_clear(&sh1106);

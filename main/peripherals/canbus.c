@@ -40,6 +40,14 @@ void handle_brake_message(State *state, CanMessage *message) {
     state->car.is_braking = message->data[6] & 16;
 }
 
+void handle_ignition_message(State *state, CanMessage *message) {
+    if (message->length != 8) {
+        return;
+    }
+
+    state->car.is_ignition_on = message->data[0] & 2;
+}
+
 int message_available() {
     // If CAN_INT pin is low, read receive buffer
     return !gpio_get_level(CANBUS_INTERRUPT_PIN);
@@ -54,6 +62,10 @@ void handle_message(State *state, CanMessage *message) {
         case 385:
             state->car.last_can_message_time = esp_timer_get_time_ms();
             handle_rpm_message(state, message);
+            break;
+        case 640:
+            state->car.last_can_message_time = esp_timer_get_time_ms();
+            handle_ignition_message(state, message);
             break;
         case 852:
             state->car.last_can_message_time = esp_timer_get_time_ms();

@@ -11,10 +11,15 @@ extern "C" {
 
 #include "secrets.h"
 
+// Unused GPIOs: 16, 17  (Don't use GPIO 2 as this results in errors during flashing)
+
 #define DEVICE_NAME "Nissan Micra"
 
+#define POWER_OFF_MAX_TIMEOUT_MS 60000
+#define POWER_PIN GPIO_NUM_23
+
 #define BLUETOOTH_ENABLE false
-#define WIFI_ENABLE true
+#define WIFI_ENABLE false
 
 #define WIFI_SCAN_INTERVAL_MS 2500
 #define WIFI_SCAN_MAX_DURATION 8000
@@ -33,7 +38,7 @@ extern "C" {
 
 #define ADC_RESOLUTION 10
 
-#define CANBUS_INTERRUPT_PIN GPIO_NUM_4     // Don't use GPIO 2 as this results in errors during flashing
+#define CANBUS_INTERRUPT_PIN GPIO_NUM_4
 #define CANBUS_CHIP_SELECT_PIN GPIO_NUM_15
 
 #define DISPLAY_I2C_PORT I2C_NUM_1
