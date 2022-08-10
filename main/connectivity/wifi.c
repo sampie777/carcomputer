@@ -46,6 +46,11 @@ static void event_handler(void *args, esp_event_base_t event_base,
         if (state->wifi.is_connecting || state->wifi.is_connected) {
             esp_wifi_connect();
         }
+    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
+        wifi_event_sta_connected_t *event = ( wifi_event_sta_connected_t *) event_data;
+        printf("[WiFi] WIFI_EVENT_STA_CONNECTED to %s\n", event->ssid);
+        memcpy(state->wifi.ssid, event->ssid, event->ssid_len);
+        state->wifi.ssid[min(31, event->ssid_len)] = '\0';
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
         printf("[WiFi] WIFI_EVENT_STA_DISCONNECTED\n");
         state->wifi.is_connected = false;
@@ -129,8 +134,8 @@ void process_scan_results(State *state) {
 }
 
 void wifi_scan(State *state) {
-    static unsigned long last_scan_time = 0;
-    static unsigned long scan_start_time = 0;
+    static int64_t last_scan_time = 0;
+    static int64_t scan_start_time = 0;
 
     if (state->wifi.has_scan_results) {
         process_scan_results(state);

@@ -198,7 +198,7 @@ void mpu9250_read_compass(State *state) {
 }
 
 void mpu9250_read(State *state) {
-    static unsigned long last_read_time = 0;
+    static int64_t last_read_time = 0;
     if (esp_timer_get_time_ms() < last_read_time + MOTION_SENSOR_READ_INTERVAL_MS) {
         return;
     }

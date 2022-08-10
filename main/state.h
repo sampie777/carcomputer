@@ -19,11 +19,13 @@ typedef struct {
 
 typedef struct {
     uint8_t connected;
+    uint8_t is_braking;
+    uint8_t is_ignition_on;
     double speed;                   // Absolute value in km/h
     double rpm;                     // Absolute value in rpm
-    uint8_t is_braking;
-    unsigned long last_can_message_time;
-    uint8_t is_ignition_on;
+    int64_t last_can_message_time;
+    uint32_t odometer_start;
+    uint32_t odometer_end;
 
     uint8_t gas_pedal_connected;
     double gas_pedal;               // Relative value between 0.0 and 1.0
@@ -33,6 +35,7 @@ typedef struct {
 
 typedef struct {
     esp_ip4_addr_t ip;
+    char ssid[32];
     uint8_t is_scanning;
     uint8_t has_scan_results;
     uint8_t is_connecting;
@@ -45,7 +48,7 @@ typedef struct {
 
 typedef struct {
     char error_message[DISPLAY_ERROR_MESSAGE_MAX_LENGTH + 1];
-    unsigned long last_error_message_time;
+    int64_t last_error_message_time;
 } DisplayState;
 
 typedef struct {
@@ -72,6 +75,8 @@ typedef struct {
     uint8_t is_booting;
     uint8_t is_rebooting;
     int16_t power_off_count_down_sec;
+    uint8_t trip_is_uploading;
+    uint8_t trip_has_been_uploaded;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

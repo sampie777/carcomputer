@@ -10,7 +10,7 @@
 void cruise_control_apply_pid(State *state) {
     static double previous_error = 0;
     static double previous_integral = 0;
-    static unsigned long last_iteration_time = 0;
+    static int64_t last_iteration_time = 0;
 
     if (!state->cruise_control.enabled) {
         previous_error = 0;
@@ -26,7 +26,7 @@ void cruise_control_apply_pid(State *state) {
     if (esp_timer_get_time_ms() < last_iteration_time + CRUISE_CONTROL_PID_ITERATION_TIME) {
         return;
     }
-    unsigned long iterationTime = esp_timer_get_time_ms() - last_iteration_time;
+    int64_t iterationTime = esp_timer_get_time_ms() - last_iteration_time;
     last_iteration_time = esp_timer_get_time_ms();
 
     // Calculate PID
@@ -65,7 +65,7 @@ void cruise_control_apply_pid(State *state) {
 void cruise_control_step(State *state) {
     static uint8_t car_was_connected = false;
     static uint8_t cruise_control_was_enabled = false;
-    static unsigned long gas_pedal_enable_time = 0;
+    static int64_t gas_pedal_enable_time = 0;
 
     // Safety checks
     if (!state->car.gas_pedal_connected) {

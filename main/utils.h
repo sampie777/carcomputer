@@ -13,7 +13,7 @@
 
 void nvs_init();
 
-unsigned long esp_timer_get_time_ms();
+int64_t esp_timer_get_time_ms();
 
 void delay_ms(unsigned long ms);
 

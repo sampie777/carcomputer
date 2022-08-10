@@ -7,6 +7,6 @@
 
 #include "../state.h"
 
-void server_test(State *state);
+int server_send_trip_end(State *state);
 
 #endif //APP_TEMPLATE_SERVER_H

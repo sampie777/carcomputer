@@ -51,10 +51,9 @@ _Noreturn void process_main(State *state) {
 
         // Process data
         control_mpu_power(state);
+        control_trip_logger(state);
         control_door_lock(state);
         control_cruise_control(state);
-
-        server_test(state);
 
 #if WIFI_ENABLE
         wifi_scan(state);

@@ -19,6 +19,8 @@ void control_door_lock(State *state);
 
 void control_mpu_power(State *state);
 
+void control_trip_logger(State *state);
+
 void control_cruise_control(State *state);
 
 #endif //APP_TEMPLATE_CONTROL_H

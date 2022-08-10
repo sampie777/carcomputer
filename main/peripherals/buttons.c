@@ -8,14 +8,14 @@
 #include "../utils.h"
 
 int read_debounced(adc1_channel_t sensor_pin, uint8_t sample_count, int min_value, unsigned long debounce_cooldown_period, unsigned long min_press_time) {
-    static unsigned long last_action_time = 0;
+    static int64_t last_action_time = 0;
 
     // Debounce button using cooldown period
     if (esp_timer_get_time_ms() < last_action_time + debounce_cooldown_period)
         return -1;
 
     // Debounce button using minimum pressed time
-    unsigned long pressStartTime = esp_timer_get_time_ms();
+    int64_t pressStartTime = esp_timer_get_time_ms();
     double last_reading = average_read_channel(sensor_pin, sample_count);
     double max_reading = last_reading;
     while (last_reading > min_value && esp_timer_get_time_ms() < pressStartTime + min_press_time) {
@@ -33,7 +33,7 @@ int read_debounced(adc1_channel_t sensor_pin, uint8_t sample_count, int min_valu
 
 Button getPressedButton0() {
     static Button previous_button = BUTTON_NONE;
-    static unsigned long press_start_time = 0;
+    static int64_t press_start_time = 0;
 
     int sens = read_debounced(BUTTONS_ADC_CHANNEL_0, BUTTON_AVERAGE_READ_SAMPLES, BUTTON_LOWER_LIMIT, BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS, BUTTON_MIN_PRESS_TIME_MS);
 
@@ -71,7 +71,7 @@ Button getPressedButton0() {
 
 Button getPressedButton1() {
     static Button previous_button = BUTTON_NONE;
-    static unsigned long press_start_time = 0;
+    static int64_t press_start_time = 0;
 
     int sens = read_debounced(BUTTONS_ADC_CHANNEL_1, BUTTON_AVERAGE_READ_SAMPLES, BUTTON_LOWER_LIMIT, BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS, BUTTON_MIN_PRESS_TIME_MS);
 

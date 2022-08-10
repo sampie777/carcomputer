@@ -7,13 +7,14 @@
 #include <esp_tls.h>
 #include "server.h"
 #include "../utils.h"
+#include "../return_codes.h"
 
-#define MAX_HTTP_RECV_BUFFER 512
-#define MAX_HTTP_OUTPUT_BUFFER 512 //2048
+// Source: https://github.com/espressif/esp-idf/blob/36f49f361c001b49c538364056bc5d2d04c6f321/examples/protocols/esp_http_client/main/esp_http_client_example.c
+
+#define MAX_HTTP_OUTPUT_BUFFER 1024
 static const char *TAG = "Server";
 
 esp_err_t server_http_event_handler(esp_http_client_event_t *evt) {
-
     static char *output_buffer;  // Buffer to store response of http request from event handler
     static int output_len;       // Stores number of bytes read
     switch (evt->event_id) {
@@ -82,24 +83,11 @@ esp_err_t server_http_event_handler(esp_http_client_event_t *evt) {
     return ESP_OK;
 }
 
-void server_test(State *state) {
-    static int has_fired = false;
-    static unsigned long wifi_connected_time = 0;
-    if (!state->wifi.is_connected || has_fired) {
-        return;
-    } else if (wifi_connected_time == 0) {
-        wifi_connected_time = esp_timer_get_time_ms();
-    }
-
-    if (esp_timer_get_time_ms() < wifi_connected_time + 3000) {
-        return;
-    }
-    has_fired = true;
-
+int server_send_data(char *data) {
     printf("[Server] Creating buffer...\n");
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
     esp_http_client_config_t config = {
-            .url = "http://192.168.0.99:7704/list?hours=8",
+            .url = SERVER_POST_URL,
             .event_handler = server_http_event_handler,
             .user_data = local_response_buffer,
             .disable_auto_redirect = true,
@@ -107,19 +95,47 @@ void server_test(State *state) {
     printf("[Server] Init client...\n");
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
+    esp_http_client_set_url(client, SERVER_POST_URL);
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_http_client_set_post_field(client, data, (int) strlen(data));
+
     printf("[Server] Performing request to %s...\n", config.url);
     int result = esp_http_client_perform(client);
     if (result != ESP_OK) {
-        ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(result));
+        ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(result));
     } else {
-        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d",
+        ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %d",
                  esp_http_client_get_status_code(client),
                  esp_http_client_get_content_length(client));
     }
 
-    printf("[Server] Output:\n");
-    ESP_LOG_BUFFER_HEX(TAG, local_response_buffer, strlen(local_response_buffer));
+    printf("[Server] Output: '");
+    for (int i = 0; i < strlen(local_response_buffer); i++) {
+        printf("%c", local_response_buffer[i]);
+    }
+    printf("'\n");
 
     printf("[Server] Clean up client...\n");
     esp_http_client_cleanup(client);
+
+    if (result == ESP_OK) {
+        return RESULT_OK;
+    }
+    return RESULT_FAILED;
+}
+
+int server_send_trip_end(State *state) {
+    printf("[Server] Logging trip end...\n");
+    state->trip_is_uploading = true;
+    char buffer[512];
+    sprintf(buffer, "{"
+                    "\"uptimeMs\": \"%lld\","
+                    "\"wifiSsid\": \"%s\","
+                    "\"odometerStart\": %d,"
+                    "\"odometerEnd\": %d"
+                    "}", esp_timer_get_time_ms(), state->wifi.ssid, state->car.odometer_start, state->car.odometer_end);
+    int result = server_send_data(buffer);
+    state->trip_is_uploading = false;
+    return result;
 }

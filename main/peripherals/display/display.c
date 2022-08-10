@@ -33,7 +33,7 @@ void show_error_message(State *state) {
 }
 
 void show_statusbar(State *state) {
-    static unsigned long last_long_blink_time = 0;
+    static int64_t last_long_blink_time = 0;
     static uint8_t long_blink_state = false;
 
     if (esp_timer_get_time_ms() > last_long_blink_time + DISPLAY_LONG_BLINK_INTERVAL) {
@@ -63,6 +63,12 @@ void show_statusbar(State *state) {
     if (state->car.connected) {
         sh1106_draw_icon(&sh1106, offset_right, 1,
                          icon_car, sizeof(icon_car), icon_car_width, FONT_WHITE);
+    }
+
+    offset_right -= 3 + icon_data_width;
+    if (state->trip_is_uploading) {
+        sh1106_draw_icon(&sh1106, offset_right, 1,
+                         icon_data, sizeof(icon_data), icon_data_width, FONT_WHITE);
     }
 
     sh1106_draw_horizontal_line(&sh1106, 0, STATUS_BAR_HEIGHT, sh1106.width);
@@ -199,7 +205,7 @@ void show_content(State *state) {
 }
 
 void display_update(State *state) {
-    static unsigned long last_update_time = 0;
+    static int64_t last_update_time = 0;
     if (esp_timer_get_time_ms() < last_update_time + DISPLAY_UPDATE_MIN_INTERVAL) return;
     last_update_time = esp_timer_get_time_ms();
 

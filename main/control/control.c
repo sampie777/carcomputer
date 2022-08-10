@@ -11,6 +11,7 @@
 #include "../peripherals/buttons.h"
 #include "../utils.h"
 #include "../peripherals/mpu9250.h"
+#include "../connectivity/server.h"
 
 void control_read_can_bus(State *state) {
     canbus_check_messages(state);
@@ -72,26 +73,31 @@ void control_door_lock(State *state) {
 }
 
 void control_mpu_power(State *state) {
-    static unsigned long power_off_time = 0;
+    static int64_t ignition_off_time = 0;
     if (state->car.is_ignition_on) {
-        power_off_time = 0;
+        ignition_off_time = 0;
         state->power_off_count_down_sec = -1;
         return;
     }
 
-    if (power_off_time == 0) {
-        power_off_time = esp_timer_get_time_ms();
+    if (ignition_off_time == 0) {
+        ignition_off_time = esp_timer_get_time_ms();
     }
 
     state->cruise_control.enabled = false;
-    long remaining_ms = (long) (power_off_time + POWER_OFF_MAX_TIMEOUT_MS - esp_timer_get_time_ms());
+    long remaining_ms = (long) (ignition_off_time + POWER_OFF_MAX_TIMEOUT_MS - esp_timer_get_time_ms());
     state->power_off_count_down_sec = (int16_t) (remaining_ms / 1000);
 
-    if (esp_timer_get_time_ms() < power_off_time + POWER_OFF_MAX_TIMEOUT_MS) return;
+    if (state->trip_has_been_uploaded && remaining_ms > 3000) {
+        // Set countdown to 3 sec.
+        ignition_off_time = esp_timer_get_time_ms() - POWER_OFF_MAX_TIMEOUT_MS + 3000;
+    }
+
+    if (esp_timer_get_time_ms() < ignition_off_time + POWER_OFF_MAX_TIMEOUT_MS) return;
 
     gpio_set_level(POWER_PIN, 0);
     delay_ms(1000);
-    power_off_time = 0;
+    ignition_off_time = 0;
 }
 
 void control_cruise_control(State *state) {
@@ -106,4 +112,38 @@ void control_init(State *state) {
     gas_pedal_init(state);
     buttons_init();
     mpu9250_init();
+}
+
+void control_trip_logger(State *state) {
+    static int64_t engine_off_time = 0;
+
+    if (state->car.is_ignition_on) {
+        engine_off_time = 0;
+        state->trip_has_been_uploaded = false;
+        return;
+    }
+
+    if (engine_off_time == 0) {
+        engine_off_time = esp_timer_get_time_ms();
+    }
+
+    if (esp_timer_get_time_ms() < engine_off_time + TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS) return;
+
+    if (state->car.odometer_end == 0) return;
+
+    // Can't log trip if WiFi is disconnected
+    if (!state->wifi.is_connected) return;
+
+    // Trip already logged
+    if (state->trip_has_been_uploaded || state->car.odometer_start == state->car.odometer_end) return;
+
+    if (server_send_trip_end(state) != RESULT_OK) {
+        // Retry again in X seconds
+        engine_off_time = esp_timer_get_time_ms() + TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS - TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS;
+        return;
+    }
+
+    // Track this value in case ignition turns on after trip ended (for closing windows or something).
+    state->car.odometer_start = state->car.odometer_end;
+    state->trip_has_been_uploaded = true;
 }

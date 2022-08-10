@@ -18,7 +18,7 @@ void nvs_init() {
     ESP_ERROR_CHECK( ret );
 }
 
-unsigned long esp_timer_get_time_ms() {
+int64_t esp_timer_get_time_ms() {
     return esp_timer_get_time() / 1000;
 }
 

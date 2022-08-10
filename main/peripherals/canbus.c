@@ -48,6 +48,20 @@ void handle_ignition_message(State *state, CanMessage *message) {
     state->car.is_ignition_on = message->data[0] & 2;
 }
 
+void handle_odometer_message(State *state, CanMessage *message) {
+    if (message->length != 8) {
+        return;
+    }
+
+    state->car.odometer_end = (uint32_t) message->data[1] << 16
+                     | (uint32_t) message->data[2] << 8
+                     | message->data[3];
+
+    if (state->car.odometer_start == 0) {
+        state->car.odometer_start = state->car.odometer_end;
+    }
+}
+
 int message_available() {
     // If CAN_INT pin is low, read receive buffer
     return !gpio_get_level(CANBUS_INTERRUPT_PIN);
@@ -71,6 +85,10 @@ void handle_message(State *state, CanMessage *message) {
             state->car.last_can_message_time = esp_timer_get_time_ms();
             handle_speed_message(state, message);
             handle_brake_message(state, message);
+            break;
+        case 1477:
+            state->car.last_can_message_time = esp_timer_get_time_ms();
+            handle_odometer_message(state, message);
             break;
         default:
             break;

@@ -37,4 +37,17 @@ static const unsigned char icon_car[] = {
         0x1C, // 00011100
 };
 
+static const int icon_data_width = 9;
+static const unsigned char icon_data[] = {
+        0x04, // 00000100
+        0x06, // 00000110
+        0x7f, // 01111111
+        0x06, // 00000110
+        0x14, // 00010100
+        0x30, // 00110000
+        0x7f, // 01111111
+        0x30, // 00110000
+        0x10, // 00010000
+};
+
 #endif //APP_TEMPLATE_ICONS_H
