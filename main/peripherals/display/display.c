@@ -88,18 +88,26 @@ void content_cruise_control(State *state) {
 }
 
 void content_power_off_count_down(State *state) {
-    int length;
-    int offset_y = STATUS_BAR_HEIGHT + 5;
+    int length, offset_x, offset_y;
     char buffer[20];
+    int margin = 5;
+    int row_height = 8 + 2 * margin;
 
     length = sprintf(buffer, "Powering off in...");
-    sh1106_draw_string(&sh1106, (sh1106.width - length) / 2, offset_y,
-                       FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_x = (sh1106.width - length * 5) / 2;
+    offset_y = STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 2 * row_height) / 2;
+    sh1106_draw_filled_rectangle(&sh1106, offset_x - margin, offset_y,
+                                 sh1106.width - 2 * offset_x + 2 * margin, row_height);
+    sh1106_draw_string(&sh1106, offset_x, offset_y + margin,
+                       FONT_SMALL, FONT_BLACK, length, buffer);
 
     length = sprintf(buffer, "%d", state->power_off_count_down_sec);
-    sh1106_draw_string(&sh1106, (sh1106.width - length) / 2,
-                       STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2,
-                       FONT_SMALL, FONT_WHITE, length, buffer);
+    offset_x = (sh1106.width - length * 5) / 2;
+    offset_y += row_height;
+    sh1106_draw_filled_rectangle(&sh1106, offset_x - margin, offset_y,
+                                 sh1106.width - 2 * offset_x + 2 * margin, row_height);
+    sh1106_draw_string(&sh1106, offset_x, offset_y + margin,
+                       FONT_SMALL, FONT_BLACK, length, buffer);
 }
 
 void content_motion_sensors_data(const State *state) {
@@ -158,6 +166,18 @@ void content_motion_sensors_data(const State *state) {
     sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
 }
 
+void show_content_overlay(State *state) {
+    if (state->power_off_count_down_sec > -1 && state->power_off_count_down_sec <= 10) {
+        content_power_off_count_down(state);
+        return;
+    }
+
+    if (state->display.last_error_message_time != 0 && esp_timer_get_time_ms() < state->display.last_error_message_time + DISPLAY_ERROR_MESSAGE_TIME_MS) {
+        show_error_message(state);
+        return;
+    }
+}
+
 void show_content(State *state) {
     if (state->is_rebooting) {
         sh1106_draw_string(&sh1106, (sh1106.width - 5 * 12) / 2, STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2,
@@ -170,18 +190,8 @@ void show_content(State *state) {
         return;
     }
 
-    if (state->display.last_error_message_time != 0 && esp_timer_get_time_ms() < state->display.last_error_message_time + DISPLAY_ERROR_MESSAGE_TIME_MS) {
-        show_error_message(state);
-        return;
-    }
-
     if (state->cruise_control.enabled) {
         content_cruise_control(state);
-        return;
-    }
-
-    if (state->power_off_count_down_sec > -1 && state->power_off_count_down_sec <= 10) {
-        content_power_off_count_down(state);
         return;
     }
 
@@ -197,6 +207,7 @@ void display_update(State *state) {
 
     show_statusbar(state);
     show_content(state);
+    show_content_overlay(state);
 
     sh1106_display(&sh1106);
 }

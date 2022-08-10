@@ -91,6 +91,7 @@ void control_mpu_power(State *state) {
 
     gpio_set_level(POWER_PIN, 0);
     delay_ms(1000);
+    power_off_time = 0;
 }
 
 void control_cruise_control(State *state) {
