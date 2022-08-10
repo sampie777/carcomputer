@@ -38,6 +38,36 @@
 #define SH1106_COL_OFFSET 0x02
 
 
+uint8_t **scale_data(const uint8_t *data, int data_length, int scale, int *scaled_data_cols, int *scaled_data_rows) {
+    *scaled_data_rows = scale;
+    *scaled_data_cols = scale * data_length;
+
+    uint8_t **scaled_data = malloc(sizeof(uint8_t *) * *scaled_data_rows);
+    for (int i = 0; i < *scaled_data_rows; i++) {
+        scaled_data[i] = malloc(sizeof(uint8_t) * (*scaled_data_cols));
+        memset(scaled_data[i], 0, *scaled_data_cols);
+    }
+
+    int scaled_x = 0;
+    for (int x = 0; x < data_length; x++) {
+        for (int y = 0; y < 8; y++) {
+            int pixel = (data[x] >> y) & 1;
+            int scaled_y = y * scale;
+
+            // Fill in the rectangle as the enlarged pixel
+            for (int px = 0; px < scale; px++) {
+                for (int py = 0; py < scale; py++) {
+                    int scaled_pixel_y = (scaled_y + py) % 8;
+                    scaled_data[(scaled_y + py) / 8][scaled_x + px] |= pixel << scaled_pixel_y;
+                }
+            }
+        }
+
+        scaled_x += scale;
+    }
+    return scaled_data;
+}
+
 void sh1106_clear(SH1106Config *config) {
     for (int i = 0; i < config->height; i++) {
         memset(config->buffer[i], 0, config->width);
@@ -61,11 +91,22 @@ void sh1106_draw_byte(SH1106Config *config, int x, int y, unsigned char data, Fo
     }
 }
 
-void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c, FontColor color) {
+void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontColor color, char c) {
     int font_char_index = c * font_width;
 
-    for (int col = 0; col < font_width; col++) {
-        sh1106_draw_byte(config, x + col, y, font[font_char_index + col], color);
+    if (size == FONT_SMALL) {
+        for (int col = 0; col < font_width; col++) {
+            sh1106_draw_byte(config, x + col, y, font[font_char_index + col], color);
+        }
+    } else {
+        int scaled_data_cols, scaled_data_rows;
+        uint8_t **scaled_data = scale_data(&font[font_char_index], font_width, size, &scaled_data_cols, &scaled_data_rows);
+
+        for (int row = 0; row < scaled_data_rows; row++) {
+            for (int col = 0; col < scaled_data_cols; col++) {
+                sh1106_draw_byte(config, x + col, y + row * 8, scaled_data[row][col], color);
+            }
+        }
     }
 }
 
@@ -87,7 +128,7 @@ int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontCo
             letter_spacing--;
         }
 
-        sh1106_draw_char(config, x + i * font_width + letter_spacing, y, size, c[i], color);
+        sh1106_draw_char(config, x + i * font_width * (int) size + letter_spacing * (int) size, y, size, color, c[i]);
 
         // If current char ends with empty space, move the next char a bit to the right
         if (font[c[i] * font_width + font_width - 1] != 0x00) {
@@ -95,7 +136,7 @@ int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontCo
         }
     }
 
-    return (int) length * font_width + letter_spacing - 1;
+    return (int) length * font_width * (int) size + letter_spacing * (int) size - 1;
 }
 
 void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length) {

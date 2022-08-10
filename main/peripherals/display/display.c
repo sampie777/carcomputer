@@ -75,22 +75,23 @@ void show_statusbar(State *state) {
 }
 
 void content_cruise_control(State *state) {
-    int offset_x = 15;
+    int offset_x = 5;
+    int offset_y = STATUS_BAR_HEIGHT + 17;
     char buffer[20];
-    int length = sprintf(buffer, "%3.0f / ", state->car.speed);
-    offset_x += sh1106_draw_string(&sh1106, offset_x, STATUS_BAR_HEIGHT + 6, FONT_SMALL, FONT_WHITE, length, buffer);
+    int length = sprintf(buffer, "%3.0f/ ", state->car.speed);
+    offset_x += sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, length, buffer);
 
-    length = sprintf(buffer, "%.0f km/h", state->cruise_control.target_speed);
-    sh1106_draw_string(&sh1106, offset_x, STATUS_BAR_HEIGHT + 6, FONT_SMALL, FONT_WHITE, length, buffer);
+    length = sprintf(buffer, "%.0f", state->cruise_control.target_speed);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_LARGE, FONT_WHITE, length, buffer);
 
     // Animate virtual pedal position
     int virtual_pedal_container_y = STATUS_BAR_HEIGHT + 6;
     int virtual_pedal_container_height = sh1106.height - virtual_pedal_container_y - 10;
     int virtual_pedal_value_height = (int) (state->cruise_control.virtual_gas_pedal * virtual_pedal_container_height);
     int virtual_pedal_value_y = virtual_pedal_container_height - virtual_pedal_value_height;
-    sh1106_draw_vertical_line(&sh1106, sh1106.width - 10, virtual_pedal_container_y, virtual_pedal_container_height);
-    sh1106_draw_vertical_line(&sh1106, sh1106.width - 6, virtual_pedal_container_y, virtual_pedal_container_height);
-    sh1106_draw_filled_rectangle(&sh1106, sh1106.width - 9, virtual_pedal_value_y, 3, virtual_pedal_value_height);
+    sh1106_draw_vertical_line(&sh1106, sh1106.width - 5, virtual_pedal_container_y, virtual_pedal_container_height);
+    sh1106_draw_vertical_line(&sh1106, sh1106.width - 1, virtual_pedal_container_y, virtual_pedal_container_height);
+    sh1106_draw_filled_rectangle(&sh1106, sh1106.width - 4, virtual_pedal_value_y, 3, virtual_pedal_value_height);
 }
 
 void content_power_off_count_down(State *state) {

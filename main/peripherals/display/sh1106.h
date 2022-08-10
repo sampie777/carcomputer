@@ -17,8 +17,8 @@ typedef struct {
 
 typedef enum {
     FONT_SMALL = 1,
-//    FONT_MEDIUM = 2,
-//    FONT_LARGE = 3,
+    FONT_MEDIUM = 2,
+    FONT_LARGE = 3,
 } FontSize;
 
 typedef enum {
@@ -29,7 +29,7 @@ typedef enum {
 void sh1106_init(SH1106Config *config);
 void sh1106_display(SH1106Config *config);
 void sh1106_clear(SH1106Config *config);
-void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, char c, FontColor color);
+void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontColor color, char c);
 int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontColor color, size_t length, char *c);
 void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length);
 void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length);

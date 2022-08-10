@@ -84,7 +84,6 @@ esp_err_t server_http_event_handler(esp_http_client_event_t *evt) {
 }
 
 int server_send_data(char *data) {
-    printf("[Server] Creating buffer...\n");
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
     esp_http_client_config_t config = {
             .url = SERVER_POST_URL,
@@ -92,7 +91,6 @@ int server_send_data(char *data) {
             .user_data = local_response_buffer,
             .disable_auto_redirect = true,
     };
-    printf("[Server] Init client...\n");
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
     esp_http_client_set_url(client, SERVER_POST_URL);
@@ -116,7 +114,6 @@ int server_send_data(char *data) {
     }
     printf("'\n");
 
-    printf("[Server] Clean up client...\n");
     esp_http_client_cleanup(client);
 
     if (result == ESP_OK) {

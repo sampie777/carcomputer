@@ -9,7 +9,6 @@
 #include "connectivity/i2c.h"
 #include "connectivity/spi.h"
 #include "peripherals/display/display.h"
-#include "connectivity/server.h"
 
 #if WIFI_ENABLE
 #include "connectivity/wifi.h"

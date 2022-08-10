@@ -11,7 +11,9 @@
 #include "../peripherals/buttons.h"
 #include "../utils.h"
 #include "../peripherals/mpu9250.h"
+#if WIFI_ENABLE
 #include "../connectivity/server.h"
+#endif
 
 void control_read_can_bus(State *state) {
     canbus_check_messages(state);
@@ -137,11 +139,13 @@ void control_trip_logger(State *state) {
     // Trip already logged
     if (state->trip_has_been_uploaded || state->car.odometer_start == state->car.odometer_end) return;
 
+#if WIFI_ENABLE
     if (server_send_trip_end(state) != RESULT_OK) {
         // Retry again in X seconds
         engine_off_time = esp_timer_get_time_ms() + TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS - TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS;
         return;
     }
+#endif
 
     // Track this value in case ignition turns on after trip ended (for closing windows or something).
     state->car.odometer_start = state->car.odometer_end;
