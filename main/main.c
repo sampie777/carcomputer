@@ -9,6 +9,7 @@
 #include "connectivity/i2c.h"
 #include "connectivity/spi.h"
 #include "peripherals/display/display.h"
+#include "connectivity/server.h"
 
 #if WIFI_ENABLE
 #include "connectivity/wifi.h"
@@ -52,6 +53,8 @@ _Noreturn void process_main(State *state) {
         control_mpu_power(state);
         control_door_lock(state);
         control_cruise_control(state);
+
+        server_test(state);
 
 #if WIFI_ENABLE
         wifi_scan(state);

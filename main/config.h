@@ -19,7 +19,7 @@ extern "C" {
 #define POWER_PIN GPIO_NUM_23
 
 #define BLUETOOTH_ENABLE false
-#define WIFI_ENABLE false
+#define WIFI_ENABLE true
 
 #define WIFI_SCAN_INTERVAL_MS 2500
 #define WIFI_SCAN_MAX_DURATION 8000
