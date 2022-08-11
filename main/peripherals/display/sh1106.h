@@ -12,7 +12,7 @@ typedef struct {
     int8_t flip;
     int height;
     int width;
-    uint8_t *buffer[DISPLAY_HEIGHT];
+    uint8_t **buffer;
 } SH1106Config;
 
 typedef enum {

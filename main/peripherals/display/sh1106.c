@@ -238,7 +238,7 @@ void sh1106_display(SH1106Config *config) {
         i2c_master_write_byte(command, SH1106_CONFIG_SET_COLUMN_HIGH | (SH1106_COL_OFFSET >> 4), true);
 
         i2c_master_write_byte(command, CONTROL_BYTE_RAM_MULTI_DATA, true);
-        i2c_master_write(command, config->buffer[row], DISPLAY_WIDTH, true);
+        i2c_master_write(command, config->buffer[row], config->width, true);
 
         i2c_master_stop(command);
         if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
@@ -251,13 +251,9 @@ void sh1106_display(SH1106Config *config) {
 void sh1106_init(SH1106Config *config) {
     printf("[sh1106] Initializing...\n");
 
-    // Make sure config height doesn't exceed max height
-    if (config->height > DISPLAY_HEIGHT) {
-        config->height = DISPLAY_HEIGHT;
-    }
-
+    config->buffer = malloc(config->height * sizeof(uint8_t *));
     for (int i = 0; i < config->height; i++) {
-        config->buffer[i] = (uint8_t *) malloc(config->width * sizeof(uint8_t));
+        config->buffer[i] = malloc(config->width * sizeof(uint8_t));
     }
 
     i2c_cmd_handle_t command = i2c_cmd_link_create();
