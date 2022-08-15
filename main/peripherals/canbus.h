@@ -21,6 +21,8 @@ void canbus_init(State *state);
 
 void canbus_check_messages(State *state);
 
+void canbus_check_controller_connection(State *state);
+
 #ifdef __cplusplus
 }
 #endif

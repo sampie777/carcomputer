@@ -14,7 +14,7 @@
 static MCP2515 *mcp2515;
 
 int mcp2515_init() {
-    spi_device_handle_t spi_handle;
+    static spi_device_handle_t spi_handle;
     spi_register_device(&spi_handle, CANBUS_CHIP_SELECT_PIN);
 
     mcp2515 = new MCP2515(&spi_handle);
@@ -22,6 +22,8 @@ int mcp2515_init() {
         printf("[mcp2515] Failed to reset\n");
     if (mcp2515->setBitrate(CAN_500KBPS, MCP_8MHZ) != MCP2515::ERROR_OK)
         printf("[mcp2515] Failed to set bitrate\n");
+    if (mcp2515->setListenOnlyMode() != MCP2515::ERROR_OK)
+        printf("[mcp2515] Failed to set setListenOnlyMode\n");
     if (mcp2515->setFilterMask(MCP2515::MASK0, false, 0x07ff) != MCP2515::ERROR_OK)
         printf("[mcp2515] Failed to set filter mask\n");
     if (mcp2515->setFilter(MCP2515::RXF0, false, 385) != MCP2515::ERROR_OK)
@@ -45,6 +47,6 @@ int mcp2515_read_message(CanMessage *message) {
     return RESULT_OK;
 }
 
-int mcp2515_get_status() {
-    return mcp2515->getStatus();
+int mcp2515_get_mode() {
+    return mcp2515->getMode();
 }

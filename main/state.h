@@ -18,7 +18,8 @@ typedef struct {
 } CruiseControlState;
 
 typedef struct {
-    uint8_t connected;
+    uint8_t is_connected;
+    uint8_t is_controller_connected;
     uint8_t is_braking;
     uint8_t is_ignition_on;
     double speed;                   // Absolute value in km/h

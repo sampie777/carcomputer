@@ -14,7 +14,7 @@ extern "C" {
 
 int mcp2515_init();
 int mcp2515_read_message(CanMessage *message);
-int mcp2515_get_status();
+int mcp2515_get_mode();
 
 #ifdef __cplusplus
 }

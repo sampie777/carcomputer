@@ -16,7 +16,14 @@
 #endif
 
 void control_read_can_bus(State *state) {
+    canbus_check_controller_connection(state);
     canbus_check_messages(state);
+
+    if (esp_timer_get_time_ms() < state->car.last_can_message_time + CAR_CAN_MAX_MESSAGE_RECEIVE_TIMEOUT) {
+        state->car.is_connected = true;
+    } else {
+        state->car.is_connected = false;
+    }
 }
 
 void control_read_analog_sensors(State *state) {

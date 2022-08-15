@@ -60,7 +60,7 @@ void show_statusbar(State *state) {
     }
 
     offset_right -= 3 + icon_car_width;
-    if (state->car.connected) {
+    if (state->car.is_connected || (long_blink_state && state->car.is_controller_connected)) {
         sh1106_draw_icon(&sh1106, offset_right, 1,
                          icon_car, sizeof(icon_car), icon_car_width, FONT_WHITE);
     }

@@ -33,7 +33,7 @@ int spi_register_device(spi_device_handle_t *handle, int cs_pin) {
             .mode = 0,
             .clock_speed_hz = 2 * (int) 10e6,
             .spics_io_num = cs_pin,
-            .queue_size = 3
+            .queue_size = 1
     };
     int error = spi_bus_add_device(HSPI_HOST, &device_config, handle);
 

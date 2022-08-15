@@ -72,14 +72,14 @@ void cruise_control_step(State *state) {
         state->cruise_control.enabled = false;
     }
 
-    if (state->car.connected) {
+    if (state->car.is_connected) {
         if (state->car.is_braking || state->car.rpm > CRUISE_CONTROL_MAX_RPM_LIMIT) {
             state->cruise_control.enabled = false;
         }
     } else if (car_was_connected) {
         state->cruise_control.enabled = false;
     }
-    car_was_connected = state->car.connected;
+    car_was_connected = state->car.is_connected;
 
     // Check if cruise control was just now enabled
     if (state->cruise_control.enabled && state->cruise_control.enabled != cruise_control_was_enabled) {

@@ -54,8 +54,8 @@ void handle_odometer_message(State *state, CanMessage *message) {
     }
 
     state->car.odometer_end = (uint32_t) message->data[1] << 16
-                     | (uint32_t) message->data[2] << 8
-                     | message->data[3];
+                              | (uint32_t) message->data[2] << 8
+                              | message->data[3];
 
     if (state->car.odometer_start == 0) {
         state->car.odometer_start = state->car.odometer_end;
@@ -111,6 +111,17 @@ void canbus_init(State *state) {
     gpio_set_direction(CANBUS_INTERRUPT_PIN, GPIO_MODE_INPUT);
     mcp2515_init();
 
-    state->car.connected = true;
     printf("[CAN] Init done\n");
+}
+
+void canbus_check_controller_connection(State *state) {
+    static int64_t last_check_time = 0;
+    if (esp_timer_get_time_ms() < last_check_time + CAR_CAN_CONTROLLER_CHECK_INTERVAL) return;
+    last_check_time = esp_timer_get_time_ms();
+
+    uint8_t status = mcp2515_get_mode();
+    state->car.is_controller_connected = status == 0x60;    // Listen only mode
+
+    if (state->car.is_controller_connected) return;
+    canbus_init(state);
 }
