@@ -77,6 +77,7 @@ void control_door_lock(State *state) {
 void control_mpu_power(State *state) {
     static int64_t ignition_off_time = 0;
     if (state->car.is_ignition_on) {
+        gpio_set_level(POWER_PIN, 1);
         ignition_off_time = 0;
         state->power_off_count_down_sec = -1;
         return;
@@ -108,7 +109,6 @@ void control_cruise_control(State *state) {
 
 void control_init(State *state) {
     gpio_set_direction(POWER_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(POWER_PIN, 1);
 
     canbus_init(state);
     gas_pedal_init(state);
