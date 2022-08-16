@@ -119,8 +119,8 @@ void canbus_check_controller_connection(State *state) {
     if (esp_timer_get_time_ms() < last_check_time + CAR_CAN_CONTROLLER_CHECK_INTERVAL) return;
     last_check_time = esp_timer_get_time_ms();
 
-    uint8_t status = mcp2515_get_mode();
-    state->car.is_controller_connected = status == 0x60;    // Listen only mode
+    uint8_t config3 = mcp2515_get_config3();
+    state->car.is_controller_connected = (config3 >> 3) == 0x10;    // Check certain bits we know will be constant
 
     if (state->car.is_controller_connected) return;
     canbus_init(state);

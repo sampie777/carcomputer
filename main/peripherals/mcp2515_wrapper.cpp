@@ -47,6 +47,10 @@ int mcp2515_read_message(CanMessage *message) {
     return RESULT_OK;
 }
 
-int mcp2515_get_mode() {
+uint8_t mcp2515_get_mode() {
     return mcp2515->getMode();
+}
+
+uint8_t mcp2515_get_config3() {
+    return mcp2515->getConfig3();
 }
