@@ -11,7 +11,9 @@ extern "C" {
 
 #include "secrets.h"
 
-// Unused GPIOs: 16, 17  (Don't use GPIO 2 as this results in errors during flashing)
+// Unused GPIOs: 15, 22, 25, 26 (GPIO15 will/must be HIGH on device reset: strapping pin)
+// GPIO16-17 are usually connected to the SPI flash and PSRAM integrated on the module
+// and therefore should not be used for other purposes (https://docs.espressif.com/projects/esp-idf/en/v4.4.1/esp32/api-reference/peripherals/gpio.html)
 
 #define DEVICE_NAME "Nissan Micra"
 
@@ -43,7 +45,7 @@ extern "C" {
 #define ADC_RESOLUTION 10
 
 #define CANBUS_INTERRUPT_PIN GPIO_NUM_4
-#define CANBUS_CHIP_SELECT_PIN GPIO_NUM_15
+#define CANBUS_CHIP_SELECT_PIN GPIO_NUM_2
 
 #define DISPLAY_I2C_PORT I2C_NUM_1
 #define DISPLAY_I2C_SDA_PIN GPIO_NUM_21
@@ -67,14 +69,14 @@ extern "C" {
 #define CAR_CAN_CONTROLLER_CHECK_INTERVAL 500
 
 #define CAR_GAS_PEDAL_RESOLUTION ADC_RESOLUTION
-#define CAR_GAS_PEDAL_ADC_CHANNEL_0 ADC1_CHANNEL_4    // Mapped to PIN 32
-#define CAR_GAS_PEDAL_ADC_CHANNEL_1 ADC1_CHANNEL_5    // Mapped to PIN 33
+#define CAR_GAS_PEDAL_ADC_CHANNEL_0 ADC1_CHANNEL_6    // Mapped to PIN 34
+#define CAR_GAS_PEDAL_ADC_CHANNEL_1 ADC1_CHANNEL_7    // Mapped to PIN 35
 #define CAR_GAS_PEDAL_ADC_SAMPLE_COUNT 20
 #define CAR_GAS_PEDAL_MIN_VALUE 38  // = 0.38 / 5 * 1023 / 2
 #define CAR_GAS_PEDAL_MAX_VALUE 865 // = 4.23 / 5 * 1023
 
-#define CAR_VIRTUAL_GAS_PEDAL_OUTPUT_PIN_0 GPIO_NUM_25
-#define CAR_VIRTUAL_GAS_PEDAL_OUTPUT_PIN_1 GPIO_NUM_26
+#define CAR_VIRTUAL_GAS_PEDAL_OUTPUT_PIN_0 GPIO_NUM_32
+#define CAR_VIRTUAL_GAS_PEDAL_OUTPUT_PIN_1 GPIO_NUM_33
 #define CAR_VIRTUAL_GAS_PEDAL_ENABLE_PIN GPIO_NUM_27
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER LEDC_TIMER_0
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER_SPEED_MODE LEDC_HIGH_SPEED_MODE
@@ -82,8 +84,8 @@ extern "C" {
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_1 LEDC_CHANNEL_0
 #define CAR_VIRTUAL_GAS_PEDAL_RISE_TIME_MS 100  // Time to wait before switching gas pedal to virtual gas pedalr
 
-#define BUTTONS_ADC_CHANNEL_0 ADC1_CHANNEL_6    // Mapped to PIN 34
-#define BUTTONS_ADC_CHANNEL_1 ADC1_CHANNEL_7    // Mapped to PIN 35
+#define BUTTONS_ADC_CHANNEL_0 ADC1_CHANNEL_0    // Mapped to PIN 36
+#define BUTTONS_ADC_CHANNEL_1 ADC1_CHANNEL_3    // Mapped to PIN 39
 #define BUTTON_UPPER_LIMIT ((int) (798 + (985 - 798) / 2))
 #define BUTTON_MIDDLE_LIMIT ((int) (510 + (798 - 510) / 2))
 #define BUTTON_LOWER_LIMIT ((int) (510 / 2))
