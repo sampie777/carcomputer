@@ -21,8 +21,8 @@ int is_pedal_connected(double reading_0, double reading_1) {
 
 int gas_pedal_init_minimums(State *state) {
 //    printf("[GasPedal] Calibrating minimums\n");
-    double reading_0 = average_read_channel(CAR_GAS_PEDAL_ADC_CHANNEL_0, CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
-    double reading_1 = average_read_channel(CAR_GAS_PEDAL_ADC_CHANNEL_1, CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
+    double reading_0 = average_read_channel(CAR_GAS_PEDAL_ADC_CHANNEL_0, 5 * CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
+    double reading_1 = average_read_channel(CAR_GAS_PEDAL_ADC_CHANNEL_1, 5 * CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
 
     if (!is_pedal_connected(reading_0, reading_1)) {
         state->car.gas_pedal_connected = false;
