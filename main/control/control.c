@@ -124,6 +124,9 @@ void control_init(State *state) {
     buttons_init();
     mpu9250_init();
     sd_card_init();
+
+    sd_card_test();
+    sd_card_deinit();
 }
 
 void control_trip_logger(State *state) {
