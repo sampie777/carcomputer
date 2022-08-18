@@ -11,6 +11,8 @@
 #include "../peripherals/buttons.h"
 #include "../utils.h"
 #include "../peripherals/mpu9250.h"
+#include "../peripherals/sd_card.h"
+
 #if WIFI_ENABLE
 #include "../connectivity/server.h"
 #endif
@@ -121,6 +123,7 @@ void control_init(State *state) {
     gas_pedal_init(state);
     buttons_init();
     mpu9250_init();
+    sd_card_init();
 }
 
 void control_trip_logger(State *state) {
