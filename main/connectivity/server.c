@@ -124,15 +124,100 @@ int server_send_data(char *data) {
 
 int server_send_trip_end(State *state) {
     printf("[Server] Logging trip end...\n");
-    state->trip_is_uploading = true;
+    state->server_is_uploading = true;
     char buffer[512];
     sprintf(buffer, "{"
                     "\"uptimeMs\": \"%lld\","
                     "\"wifiSsid\": \"%s\","
                     "\"odometerStart\": %d,"
                     "\"odometerEnd\": %d"
-                    "}", esp_timer_get_time_ms(), state->wifi.ssid, state->car.odometer_start, state->car.odometer_end);
+                    "}", esp_timer_get_time_ms(), state->wifi.ssid, state->car.odometer_start, state->car.odometer);
     int result = server_send_data(buffer);
-    state->trip_is_uploading = false;
+    state->server_is_uploading = false;
+    return result;
+}
+
+int server_send_data_log_record(State *state) {
+    printf("[Server] Logging data record...\n");
+    state->server_is_uploading = true;
+    char buffer[1024];
+    sprintf(buffer, "{"
+                    "\"uptimeMs\": \"%lld\","
+                    "\"car\": {"
+                    "  \"is_connected\": %d,"
+                    "  \"is_controller_connected\": %d,"
+                    "  \"is_braking\": %d,"
+                    "  \"is_ignition_on\": %d,"
+                    "  \"speed\": %.3f,"
+                    "  \"rpm\": %.3f,"
+                    "  \"odometer\": %d,"
+                    "  \"gas_pedal_connected\": %d,"
+                    "  \"gas_pedal\": %.5f"
+                    "},"
+                    "\"cruiseControl\": {"
+                    "  \"enabled\": %d,"
+                    "  \"target_speed\": %.3f,"
+                    "  \"virtual_gas_pedal\": %.5f,"
+                    "  \"control_value\": %.5f"
+                    "},"
+                    "\"wifi\": {"
+                    "  \"ssid\": \"%s\","
+                    "  \"ip\": %d,"
+                    "  \"is_connected\": %d"
+                    "},"
+                    "\"bluetooth\": {"
+                    "  \"connected\": %d"
+                    "},"
+                    "\"motion\": {"
+                    "  \"connected\": %d,"
+                    "  \"accel_x\": %.3f,"
+                    "  \"accel_y\": %.3f,"
+                    "  \"accel_z\": %.3f,"
+                    "  \"gyro_x\": %.3f,"
+                    "  \"gyro_y\": %.3f,"
+                    "  \"gyro_z\": %.3f,"
+                    "  \"compass_x\": %.3f,"
+                    "  \"compass_y\": %.3f,"
+                    "  \"compass_z\": %.3f,"
+                    "  \"temperature\": %.3f"
+                    "}"
+                    "}\n",
+            esp_timer_get_time_ms(),
+
+            state->car.is_connected,
+            state->car.is_controller_connected,
+            state->car.is_braking,
+            state->car.is_ignition_on,
+            state->car.speed,
+            state->car.rpm,
+            state->car.odometer,
+            state->car.gas_pedal_connected,
+            state->car.gas_pedal,
+
+            state->cruise_control.enabled,
+            state->cruise_control.target_speed,
+            state->cruise_control.virtual_gas_pedal,
+            state->cruise_control.control_value,
+
+            state->wifi.ssid,
+            state->wifi.ip.addr,
+            state->wifi.is_connected,
+
+            state->bluetooth.connected,
+
+            state->motion.connected,
+            state->motion.accel_x,
+            state->motion.accel_y,
+            state->motion.accel_z,
+            state->motion.gyro_x,
+            state->motion.gyro_y,
+            state->motion.gyro_z,
+            state->motion.compass_x,
+            state->motion.compass_y,
+            state->motion.compass_z,
+            state->motion.temperature
+    );
+    int result = server_send_data(buffer);
+    state->server_is_uploading = false;
     return result;
 }

@@ -11,8 +11,6 @@
 #include "../peripherals/buttons.h"
 #include "../utils.h"
 #include "../peripherals/mpu9250.h"
-#include "../peripherals/sd_card.h"
-
 #if WIFI_ENABLE
 #include "../connectivity/server.h"
 #endif
@@ -123,10 +121,6 @@ void control_init(State *state) {
     gas_pedal_init(state);
     buttons_init();
     mpu9250_init();
-    sd_card_init();
-
-    sd_card_test();
-    sd_card_deinit();
 }
 
 void control_trip_logger(State *state) {
@@ -144,13 +138,13 @@ void control_trip_logger(State *state) {
 
     if (esp_timer_get_time_ms() < engine_off_time + TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS) return;
 
-    if (state->car.odometer_end == 0) return;
+    if (state->car.odometer == 0) return;
 
     // Can't log trip if WiFi is disconnected
     if (!state->wifi.is_connected) return;
 
     // Trip already logged
-    if (state->trip_has_been_uploaded || state->car.odometer_start == state->car.odometer_end) return;
+    if (state->trip_has_been_uploaded || state->car.odometer_start == state->car.odometer) return;
 
 #if WIFI_ENABLE
     if (server_send_trip_end(state) != RESULT_OK) {
@@ -161,6 +155,6 @@ void control_trip_logger(State *state) {
 #endif
 
     // Track this value in case ignition turns on after trip ended (for closing windows or something).
-    state->car.odometer_start = state->car.odometer_end;
+    state->car.odometer_start = state->car.odometer;
     state->trip_has_been_uploaded = true;
 }

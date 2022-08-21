@@ -53,12 +53,12 @@ void handle_odometer_message(State *state, CanMessage *message) {
         return;
     }
 
-    state->car.odometer_end = (uint32_t) message->data[1] << 16
-                              | (uint32_t) message->data[2] << 8
-                              | message->data[3];
+    state->car.odometer = (uint32_t) message->data[1] << 16
+                          | (uint32_t) message->data[2] << 8
+                          | message->data[3];
 
     if (state->car.odometer_start == 0) {
-        state->car.odometer_start = state->car.odometer_end;
+        state->car.odometer_start = state->car.odometer;
     }
 }
 

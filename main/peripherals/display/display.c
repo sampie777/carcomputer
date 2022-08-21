@@ -66,7 +66,7 @@ void show_statusbar(State *state) {
     }
 
     offset_right -= 3 + icon_data_width;
-    if (state->trip_is_uploading) {
+    if (state->server_is_uploading) {
         sh1106_draw_icon(&sh1106, offset_right, 1,
                          icon_data, sizeof(icon_data), icon_data_width, FONT_WHITE);
     }

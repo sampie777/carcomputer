@@ -26,7 +26,7 @@ typedef struct {
     double rpm;                     // Absolute value in rpm
     int64_t last_can_message_time;
     uint32_t odometer_start;
-    uint32_t odometer_end;
+    uint32_t odometer;
 
     uint8_t gas_pedal_connected;
     double gas_pedal;               // Relative value between 0.0 and 1.0
@@ -76,7 +76,7 @@ typedef struct {
     uint8_t is_booting;
     uint8_t is_rebooting;
     int16_t power_off_count_down_sec;
-    uint8_t trip_is_uploading;
+    uint8_t server_is_uploading;
     uint8_t trip_has_been_uploaded;
 } State;
 

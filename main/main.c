@@ -9,6 +9,7 @@
 #include "connectivity/i2c.h"
 #include "connectivity/spi.h"
 #include "peripherals/display/display.h"
+#include "control/data_logger.h"
 
 #if WIFI_ENABLE
 #include "connectivity/wifi.h"
@@ -33,6 +34,7 @@ _Noreturn void process_main(State *state) {
     i2c_init();
     spi_init(state);
     control_init(state);
+    data_logger_init();
 #if BLUETOOTH_ENABLE
     bluetooth_init(state);
 #endif
@@ -53,6 +55,8 @@ _Noreturn void process_main(State *state) {
         control_trip_logger(state);
         control_door_lock(state);
         control_cruise_control(state);
+
+        data_logger_process(state);
 
 #if WIFI_ENABLE
         wifi_scan(state);
