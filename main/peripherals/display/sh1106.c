@@ -107,6 +107,11 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontCol
                 sh1106_draw_byte(config, x + col, y + row * 8, scaled_data[row][col], color);
             }
         }
+
+        for (int i = 0; i < scaled_data_rows; i++) {
+            free(scaled_data[i]);
+        }
+        free(scaled_data);
     }
 }
 
