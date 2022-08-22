@@ -142,7 +142,7 @@ int server_send_data_log_record(State *state) {
     state->server_is_uploading = true;
     char buffer[1024];
     sprintf(buffer, "{"
-                    "\"uptimeMs\": \"%lld\","
+                    "\"uptimeMs\": %lld,"
                     "\"car\": {"
                     "  \"is_connected\": %d,"
                     "  \"is_controller_connected\": %d,"

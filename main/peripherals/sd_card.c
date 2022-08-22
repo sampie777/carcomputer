@@ -71,17 +71,53 @@ void sd_card_test() {
     ESP_LOGI(TAG, "Read from file: '%s'", line);
 }
 
+void sd_card_file_append(char *file_name, char *line) {
+    char path[64];
+    sprintf(path, "%s/%s", MOUNT_POINT, file_name);
+
+    FILE *file = fopen(path, "a");
+    if (file == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for writing: %s", path);
+        return;
+    }
+    fprintf(file, "%s", line);
+    fclose(file);
+}
+
+/**
+ * Create a file with given name and extension. If filename already exists, increment new filename with a number until unique.
+ * The new filename will be stored in the file_name parameter.
+  * @param base_file_name
+  * @param iteration        Iteration number to start with
+  * @param file_name_out    The new file name will be stored in here (size: 32)
+  */
+void sd_card_create_file_incremental(char *base_file_name, char *base_file_extension, int iteration, char *file_name_out) {
+    char new_file_name[32];
+    sprintf(new_file_name, "%s-%d.%s", base_file_name, iteration, base_file_extension);
+
+    char path[128];
+    sprintf(path, "%s/%s", MOUNT_POINT, new_file_name);
+
+    struct stat st;
+    if (stat(path, &st) == 0) {
+        printf("[SD] File already exists: %s\n", path);
+        sd_card_create_file_incremental(base_file_name, base_file_extension, iteration + 1, file_name_out);
+        return;
+    }
+
+    memcpy(file_name_out, new_file_name, 32);
+}
+
 void sd_card_deinit() {
     // All done, unmount partition and disable SPI peripheral
     esp_vfs_fat_sdcard_unmount(mount_point, card);
     ESP_LOGI(TAG, "Card unmounted");
-
-    //deinitialize the bus after all devices are removed
-    spi_bus_free(host.slot);
 }
 
 void sd_card_init() {
     printf("[SD] Initializing...\n");
+
+    host.max_freq_khz = 15000;
 
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
             .format_if_mount_failed = false,
@@ -109,5 +145,36 @@ void sd_card_init() {
     ESP_LOGI(TAG, "Filesystem mounted");
 
     sdmmc_card_print_info(stdout, card);
+
+    printf("[SD] Init done: \n"
+           "\t-- Card IDentification --\n"
+           "\tmanufacturer identification number = %d\n"
+           "\tOEM/product identification number = %d\n"
+           "\tproduct name (MMC v1 has the longest) = %s\n"
+           "\tproduct revision = %d\n"
+           "\tproduct serial number = %d\n"
+           "\tmanufacturing date = %d\n"
+           "\t-- Card Specific Data --\n"
+           "\tCSD structure format = %d\n"
+           "\tMMC version (for CID format) = %d\n"
+           "\ttotal number of sectors = %d\n"
+           "\tsector size in bytes = %d\n"
+           "\tblock length for reads = %d\n"
+           "\tCard Command Class for SD = %d\n"
+           "\tMax transfer speed = %d\n",
+           card->cid.mfg_id,
+           card->cid.oem_id,
+           card->cid.name,
+           card->cid.revision,
+           card->cid.serial,
+           card->cid.date,
+           card->csd.csd_ver,
+           card->csd.mmc_ver,
+           card->csd.capacity,
+           card->csd.sector_size,
+           card->csd.read_block_len,
+           card->csd.card_command_class,
+           card->csd.tr_speed
+    );
     printf("[SD] Init done\n");
 }

@@ -67,12 +67,18 @@ typedef struct {
 } MotionState;
 
 typedef struct {
+    uint8_t is_connected;
+    char filename[32];
+} SDState;
+
+typedef struct {
     CarState car;
     WiFiState wifi;
     BluetoothState bluetooth;
     DisplayState display;
     CruiseControlState cruise_control;
     MotionState motion;
+    SDState storage;
     uint8_t is_booting;
     uint8_t is_rebooting;
     int16_t power_off_count_down_sec;
