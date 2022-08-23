@@ -50,4 +50,14 @@ static const unsigned char icon_data[] = {
         0x10, // 00010000
 };
 
+static const int icon_sd_width = 6;
+static const unsigned char icon_sd[] = {
+        0x7c, // 01111100
+        0x72, // 01110010
+        0x79, // 01111001
+        0x7d, // 01111101
+        0x7f, // 01111111
+        0x7f, // 01111111
+};
+
 #endif //APP_TEMPLATE_ICONS_H

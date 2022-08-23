@@ -47,16 +47,12 @@ void show_statusbar(State *state) {
         sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, FONT_WHITE, sizeof(DEVICE_NAME), DEVICE_NAME);
     }
 
-    int offset_right = sh1106.width - 2 - icon_wifi_width;
-    if (state->wifi.is_connected || (long_blink_state && (state->wifi.is_scanning || state->wifi.is_connecting))) {
-        sh1106_draw_icon(&sh1106, offset_right, 1,
-                         icon_wifi, sizeof(icon_wifi), icon_wifi_width, FONT_WHITE);
-    }
+    int offset_right = sh1106.width + 1;
 
-    offset_right -= 3 + icon_bluetooth_width;
-    if (state->bluetooth.connected) {
-        sh1106_draw_icon(&sh1106, offset_right, 0,
-                         icon_bluetooth, sizeof(icon_bluetooth), icon_bluetooth_width, FONT_WHITE);
+    offset_right -= 3 + icon_sd_width;
+    if (state->storage.is_connected) {
+        sh1106_draw_icon(&sh1106, offset_right, 1,
+                         icon_sd, sizeof(icon_sd), icon_sd_width, FONT_WHITE);
     }
 
     offset_right -= 3 + icon_car_width;
@@ -65,11 +61,27 @@ void show_statusbar(State *state) {
                          icon_car, sizeof(icon_car), icon_car_width, FONT_WHITE);
     }
 
+#if WIFI_ENABLE
+    offset_right -= 3 + icon_wifi_width;
+    if (state->wifi.is_connected || (long_blink_state && (state->wifi.is_scanning || state->wifi.is_connecting))) {
+        sh1106_draw_icon(&sh1106, offset_right, 1,
+                         icon_wifi, sizeof(icon_wifi), icon_wifi_width, FONT_WHITE);
+    }
+
     offset_right -= 3 + icon_data_width;
-    if (state->trip_is_uploading) {
+    if (state->server_is_uploading) {
         sh1106_draw_icon(&sh1106, offset_right, 1,
                          icon_data, sizeof(icon_data), icon_data_width, FONT_WHITE);
     }
+#endif
+
+#if BLUETOOTH_ENABLE
+    offset_right -= 3 + icon_bluetooth_width;
+    if (state->bluetooth.connected) {
+        sh1106_draw_icon(&sh1106, offset_right, 0,
+                         icon_bluetooth, sizeof(icon_bluetooth), icon_bluetooth_width, FONT_WHITE);
+    }
+#endif
 
     sh1106_draw_horizontal_line(&sh1106, 0, STATUS_BAR_HEIGHT, sh1106.width);
 }
@@ -219,7 +231,7 @@ void display_update(State *state) {
     sh1106_display(&sh1106);
 }
 
-void display_set_error_message(State *state, char *message) {
+void display_set_error_message(State *state, const char *message) {
     int is_new_message = false;
     for (int i = 0; i < DISPLAY_ERROR_MESSAGE_MAX_LENGTH; i++) {
         if (message[i] != state->display.error_message[i]) {

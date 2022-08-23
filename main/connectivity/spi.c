@@ -16,9 +16,9 @@ int spi_init(State *state) {
             .sclk_io_num = SPI_CLK_PIN,
             .quadwp_io_num = -1,
             .quadhd_io_num = -1,
-            .max_transfer_sz = (4 * 8)
+            .max_transfer_sz = (8 * 8)
     };
-    int error = spi_bus_initialize(HSPI_HOST, &config, SPI_DMA_CH_AUTO);
+    int error = spi_bus_initialize(SPI_DEFAULT_HOST, &config, SPI_DMA_CH_AUTO);
 
     if (error != ESP_OK) {
         printf("Return code for spi_bus_initialize: %d\n", error);
@@ -35,7 +35,7 @@ int spi_register_device(spi_device_handle_t *handle, int cs_pin) {
             .spics_io_num = cs_pin,
             .queue_size = 1
     };
-    int error = spi_bus_add_device(HSPI_HOST, &device_config, handle);
+    int error = spi_bus_add_device(SPI_DEFAULT_HOST, &device_config, handle);
 
     if (error != ESP_OK) {
         printf("Return code for spi_bus_add_device: %d\n", error);
