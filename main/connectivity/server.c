@@ -83,7 +83,7 @@ esp_err_t server_http_event_handler(esp_http_client_event_t *evt) {
     return ESP_OK;
 }
 
-int server_send_data(char *data) {
+int server_send_data(const char *data) {
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
     esp_http_client_config_t config = {
             .url = SERVER_POST_URL,

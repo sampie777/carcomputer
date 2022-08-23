@@ -6,6 +6,7 @@
 #include "../peripherals/sd_card.h"
 #include "../return_codes.h"
 #include "../utils.h"
+#include "../peripherals/display/display.h"
 
 #if WIFI_ENABLE
 #include "../connectivity/server.h"
@@ -113,20 +114,44 @@ void data_logger_log_current(State *state) {
             state->motion.compass_z,
             state->motion.temperature
     );
-    sd_card_file_append(state->storage.filename, buffer);
+
+    if (sd_card_file_append(state->storage.filename, buffer) == RESULT_OK) {
+        state->storage.is_connected = true;
+    } else {
+        state->storage.is_connected = false;
+    }
 }
 
 void data_logger_process(State *state) {
+    static int64_t last_init_time = 0;
+    if (state->storage.is_connected == false) {
+        if (esp_timer_get_time_ms() > last_init_time + 3000) {
+            data_logger_init(state);
+            last_init_time = esp_timer_get_time_ms();
+        }
+        return;
+    }
+
     data_logger_log_current(state);
     data_logger_upload(state);
 }
 
 void data_logger_init(State *state) {
     printf("[DataLogger] Initializing...\n");
-    sd_card_init();
+    if (sd_card_init() != RESULT_OK) {
+        state->storage.is_connected = false;
+        printf("[DataLogger] Init failed\n");
+        return;
+    }
+    state->storage.is_connected = true;
 
-    sd_card_create_file_incremental("data", "csv", 0, state->storage.filename);
-    sd_card_file_append(state->storage.filename, "timestamp;car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;wifi_ssid;wifi_ip.addr;wifi_is_connected;bluetooth_connected;motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature\n");
+    if (state->storage.filename[0] == 0x00) {
+        if (sd_card_create_file_incremental("data", "csv", state->storage.filename) == RESULT_OVERFLOW) {
+            display_set_error_message(state, "SD card full");
+        }
 
-    printf("[DataLogger] Init done...\n");
+        sd_card_file_append(state->storage.filename, "timestamp;car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;wifi_ssid;wifi_ip.addr;wifi_is_connected;bluetooth_connected;motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;\n");
+    }
+
+    printf("[DataLogger] Init done\n");
 }

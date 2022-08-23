@@ -5,14 +5,16 @@
 #ifndef APP_TEMPLATE_SD_CARD_H
 #define APP_TEMPLATE_SD_CARD_H
 
-void sd_card_init();
+#include "../state.h"
 
-void sd_card_deinit();
+int sd_card_init();
+
+void sd_card_deinit(State *state);
 
 void sd_card_test();
 
-void sd_card_file_append(char *file_name, char *line);
+int sd_card_file_append(const char *file_name, const char *line);
 
-void sd_card_create_file_incremental(char *base_file_name, char *base_file_extension, int iteration, char *file_name_out);
+int sd_card_create_file_incremental(const char *base_file_name, const char *base_file_extension, char *file_name_out);
 
 #endif //APP_TEMPLATE_SD_CARD_H
