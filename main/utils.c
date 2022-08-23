@@ -40,12 +40,18 @@ double average_read_channel(adc1_channel_t channel, int sample_count) {
     return total / sample_count;
 }
 
-int get_length(const char *s) {
-    // Overflow will eventually make i < 0
-    for (int16_t i = 0; i >= 0; i++) {
-        if (s[i] == '\0') {
-            return i;
+char *string_remove_chars(const char *string, char needle) {
+    unsigned int length = strlen(string);
+    char *temp = malloc(length + 1);
+
+    int j = 0;
+    for (int i = 0; i < length; i++) {
+        if (string[i] == needle) {
+            continue;
         }
+        temp[j++] = string[i];
     }
-    return -1;
+    temp[j] = '\0';
+
+    return temp;
 }

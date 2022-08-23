@@ -11,7 +11,7 @@ extern "C" {
 
 #include "secrets.h"
 
-// Unused GPIOs: 15, 22, 25, 26 (GPIO15 will/must be HIGH on device reset: strapping pin)
+// Unused GPIOs: 22, 25, 26 (GPIO15 will/must be HIGH on device reset: strapping pin)
 // GPIO16-17 are usually connected to the SPI flash and PSRAM integrated on the module
 // and therefore should not be used for other purposes (https://docs.espressif.com/projects/esp-idf/en/v4.4.1/esp32/api-reference/peripherals/gpio.html)
 
@@ -104,6 +104,11 @@ extern "C" {
 #define MOTION_SENSOR_READ_INTERVAL_MS 20
 
 #define SD_CHIP_SELECT_PIN GPIO_NUM_15
+
+#define GPSGSM_UART_NUMBER UART_NUM_2
+#define GPSGSM_UART_TX_PIN GPIO_NUM_17
+#define GPSGSM_UART_RX_PIN GPIO_NUM_16
+#define GPSGSM_UART_BAUD_RATE 115200
 
 #ifndef DEFAULT_SSID
 #define DEFAULT_SSID "abc"

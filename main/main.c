@@ -10,6 +10,7 @@
 #include "connectivity/spi.h"
 #include "peripherals/display/display.h"
 #include "control/data_logger.h"
+#include "peripherals/gpsgsm.h"
 
 #if WIFI_ENABLE
 #include "connectivity/wifi.h"
@@ -35,6 +36,7 @@ _Noreturn void process_main(State *state) {
     spi_init(state);
     control_init(state);
     data_logger_init(state);
+    gpsgsm_init();
 #if BLUETOOTH_ENABLE
     bluetooth_init(state);
 #endif
@@ -49,6 +51,7 @@ _Noreturn void process_main(State *state) {
         control_read_can_bus(state);
         control_read_analog_sensors(state);
         control_read_user_input(state);
+        gpsgsm_process();
 
         // Process data
         control_mpu_power(state);
