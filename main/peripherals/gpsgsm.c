@@ -110,7 +110,7 @@ void gpsgsm_process(State *state) {
         previous_state = connection_state;
     }
 
-    if (connection_state == Initializing && esp_timer_get_time_ms() > state_start_time + 7000) {
+    if (connection_state == Initializing && esp_timer_get_time_ms() > state_start_time + GPSGSM_INIT_MAX_TIMEOUT_MS) {
         printf("[GPS] Init timeout\n");
         connection_state = Initialized;
     } else if (connection_state == Initialized) {
@@ -118,7 +118,7 @@ void gpsgsm_process(State *state) {
     } else if (connection_state == GpsEnableRequestApproved
                || (connection_state == GpsEnableRequestSent && esp_timer_get_time_ms() > state_start_time + 500)) {
         enable_gps_logging();
-    } else if (connection_state != GpsNmeaLoggingStarted && esp_timer_get_time_ms() > state_start_time + 10000) {
+    } else if (connection_state != GpsNmeaLoggingStarted && esp_timer_get_time_ms() > state_start_time + GPSGSM_MESSAGE_MAX_TIMEOUT_MS) {
         printf("[GPS] Initial NMEA message timeout\n");
         display_set_error_message(state, "GPS timeout");
         // Retry GPS enabling
