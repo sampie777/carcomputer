@@ -109,8 +109,6 @@ int sd_card_create_file_incremental(const char *base_file_name, const char *base
             memcpy(file_name_out, new_file_name, 32);
             return RESULT_OK;
         }
-
-        printf("[SD] File already exists: %s\n", path);
     }
 
     sprintf(new_file_name, "%s-overflow.%s", base_file_name, base_file_extension);

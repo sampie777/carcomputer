@@ -149,6 +149,7 @@ void data_logger_init(State *state) {
         if (sd_card_create_file_incremental("data", "csv", state->storage.filename) == RESULT_OVERFLOW) {
             display_set_error_message(state, "SD card full");
         }
+        printf("[SD] Using file: %s\n", state->storage.filename);
 
         sd_card_file_append(state->storage.filename, "timestamp;car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;wifi_ssid;wifi_ip.addr;wifi_is_connected;bluetooth_connected;motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;\n");
     }
