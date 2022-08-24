@@ -11,9 +11,57 @@
 #include "../config.h"
 #include "../utils.h"
 
+#define MESSAGE_MAX_LENGTH 128
+
 void transmit(const char *data) {
     printf("[GPS] Sending\n");
     uart_write_bytes_with_break(GPSGSM_UART_NUMBER, data, strlen(data), 100);
+}
+
+void process_message(const char *message) {
+    if (strlen(message) == 0) {
+        return;
+    }
+    printf("[GPS] Processing: '%s' with length: %d\n", message, strlen(message));
+}
+
+void read_messages() {
+    static char *last_message;
+    static int last_message_index = 0;
+
+    if (last_message == NULL) {
+        last_message = malloc(MESSAGE_MAX_LENGTH);
+    }
+
+    // Read data from UART.
+    int length = 0;
+    ESP_ERROR_CHECK(uart_get_buffered_data_len(GPSGSM_UART_NUMBER, (size_t *) &length));
+    if (length == 0) {
+        return;
+    }
+
+    char data[MESSAGE_MAX_LENGTH];
+    length = uart_read_bytes(GPSGSM_UART_NUMBER, data, min(length, MESSAGE_MAX_LENGTH), 100);
+
+    for (int i = 0; i < length; i++) {
+        if (last_message_index >= MESSAGE_MAX_LENGTH) {
+            printf("[GPS] Max message length reached\n");
+            last_message[MESSAGE_MAX_LENGTH - 1] = '\0';
+            process_message(last_message);
+            last_message_index = 0;
+            continue;
+        }
+
+        if (data[i] == '\n') continue;
+        if (data[i] == '\r') {
+            last_message[last_message_index] = '\0';
+            process_message(last_message);
+            last_message_index = 0;
+            continue;
+        }
+
+        last_message[last_message_index++] = data[i];
+    }
 }
 
 void gpsgsm_process() {
@@ -30,18 +78,7 @@ void gpsgsm_process() {
         gps_logging_enabled = true;
     }
 
-    // Read data from UART.
-    char data[128];
-    int length = 0;
-    ESP_ERROR_CHECK(uart_get_buffered_data_len(GPSGSM_UART_NUMBER, (size_t *) &length));
-    if (length == 0) {
-        return;
-    }
-    length = uart_read_bytes(GPSGSM_UART_NUMBER, data, length, 100);
-    data[min(length, 127)] = '\0';
-    char *stripped_data = string_remove_chars(data, '\r');
-    stripped_data = string_remove_chars(stripped_data, '\n');
-    printf("[GPS] Received: '%s' with length: %d\n", stripped_data, length);
+    read_messages();
 }
 
 void gpsgsm_init() {
