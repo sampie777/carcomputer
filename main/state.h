@@ -72,6 +72,10 @@ typedef struct {
 } SDState;
 
 typedef struct {
+    uint8_t is_connected;
+} GpsState;
+
+typedef struct {
     CarState car;
     WiFiState wifi;
     BluetoothState bluetooth;
@@ -79,6 +83,7 @@ typedef struct {
     CruiseControlState cruise_control;
     MotionState motion;
     SDState storage;
+    GpsState location;
     uint8_t is_booting;
     uint8_t is_rebooting;
     int16_t power_off_count_down_sec;

@@ -54,7 +54,7 @@ _Noreturn void process_main(State *state) {
         control_read_can_bus(state);
         control_read_analog_sensors(state);
         control_read_user_input(state);
-        gpsgsm_process();
+        gpsgsm_process(state);
 
         // Process data
         control_mpu_power(state);
