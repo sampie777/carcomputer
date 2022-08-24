@@ -22,6 +22,6 @@ void utils_reboot(State *state);
 
 double average_read_channel(adc1_channel_t channel, int sample_count);
 
-char *string_remove_chars(const char *string, char needle);
+uint8_t starts_with(const char *source, const char *needle);
 
 #endif //APP_TEMPLATE_UTILS_H

@@ -8,41 +8,20 @@
 #include <hal/gpio_types.h>
 #include <string.h>
 #include "gpsgsm.h"
-#include "../config.h"
 #include "../utils.h"
 #include "display/display.h"
-/*
-
-  MCU                  A9G
-  # Check connection
-  AT -->
-                   <-- OK
-
-  # Enable GPS
-  AT+GPS=1 -->
-                   <-- OK
-  # Check GPS status
-  AT+GPS? -->
-                   <-- +GPS: 1
-
-  AT+GPSRD=1 -->
-                   <-- OK
-  AT+GPSRD? -->
-                   <-- +GPSRD:1
-
- */
 
 #define MESSAGE_MAX_LENGTH 128
 
 
 enum ConnectionState {
-    ColdBoot = 0,
-    Initializing,
+    Initializing = 0,
     Initialized,
     GpsEnableRequestSent,
     GpsEnableRequestApproved,
     GpsEnableNmeaLoggingRequestSent,
     GpsEnableNmeaLoggingRequestApproved,
+    GpsNmeaLoggingStarted,
 };
 static enum ConnectionState connection_state = Initializing;
 
@@ -52,12 +31,13 @@ void transmit(const char *data) {
 }
 
 void enable_gps() {
-    delay_ms(10);
+    printf("[GPS] Enable GPS\n");
     transmit("AT+GPS=1\r\n");
     connection_state = GpsEnableRequestSent;
 }
 
 void enable_gps_logging() {
+    printf("[GPS] Enable GPS logging\n");
     delay_ms(10);
     transmit("AT+GPSRD=1\r\n");
     connection_state = GpsEnableNmeaLoggingRequestSent;
@@ -71,13 +51,14 @@ void process_message(State *state, const char *message) {
 
     if (strcmp(message, "Init...") == 0) {
         connection_state = Initializing;
-    } else if (strcmp(message, "+CIEV") == 0) {
+    } else if (starts_with(message, "+CIEV") || starts_with(message, "+CREG")) {
         connection_state = Initialized;
+    } else if (starts_with(message, "$GNRMC")) {
+        connection_state = GpsNmeaLoggingStarted;
     } else if (connection_state == GpsEnableRequestSent && strcmp(message, "OK") == 0) {
         connection_state = GpsEnableRequestApproved;
     } else if (connection_state == GpsEnableNmeaLoggingRequestSent && strcmp(message, "OK") == 0) {
         connection_state = GpsEnableNmeaLoggingRequestApproved;
-        state->location.is_connected = true;
     }
 }
 
@@ -129,32 +110,29 @@ void gpsgsm_process(State *state) {
         previous_state = connection_state;
     }
 
-    if (connection_state != GpsEnableNmeaLoggingRequestApproved && esp_timer_get_time_ms() > state_start_time + GPSGSM_INIT_MAX_TIMEOUT_MS) {
-        printf("[GPS] Init timeout reached for state: %d. Going to previous state.\n", connection_state);
-        display_set_error_message(state, "GPS failed");
-
-        // Go to previous state
-        if (connection_state > 0) {
-            connection_state--;
-        }
-    }
-
-    if (connection_state == ColdBoot) {
-        connection_state = Initializing;
+    if (connection_state == Initializing && esp_timer_get_time_ms() > state_start_time + 7000) {
+        printf("[GPS] Init timeout\n");
+        connection_state = Initialized;
     } else if (connection_state == Initialized) {
         enable_gps();
-    } else if (connection_state == GpsEnableRequestApproved) {
+    } else if (connection_state == GpsEnableRequestApproved
+               || (connection_state == GpsEnableRequestSent && esp_timer_get_time_ms() > state_start_time + 500)) {
         enable_gps_logging();
+    } else if (connection_state != GpsNmeaLoggingStarted && esp_timer_get_time_ms() > state_start_time + 10000) {
+        printf("[GPS] Initial NMEA message timeout\n");
+        display_set_error_message(state, "GPS timeout");
+        // Retry GPS enabling
+        connection_state = Initialized;
     }
 
     read_messages(state);
 
-    state->location.is_connected = connection_state == GpsEnableNmeaLoggingRequestApproved;
+    state->location.is_connected = connection_state == GpsNmeaLoggingStarted;
 }
 
 void gpsgsm_init() {
     printf("[GPS] Initializing...\n");
-    connection_state = ColdBoot;
+    connection_state = Initializing;
 
     uart_config_t uart_config = {
             .baud_rate = GPSGSM_UART_BAUD_RATE,
