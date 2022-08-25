@@ -72,7 +72,25 @@ typedef struct {
 } SDState;
 
 typedef struct {
-    uint8_t is_connected;
+    uint8_t is_gps_on;
+    uint8_t quality;
+    uint8_t satellites;
+    uint8_t is_effective_positioning;
+    double latitude;
+    double longitude;
+    double altitude;        // m
+    double ground_speed;    // km/h
+    double ground_heading;
+    double datetime;
+
+    struct Time {
+        uint8_t seconds;
+        uint8_t minutes;
+        uint8_t hours;
+        uint8_t day;
+        uint8_t month;
+        uint16_t year;
+    } time;
 } GpsState;
 
 typedef struct {

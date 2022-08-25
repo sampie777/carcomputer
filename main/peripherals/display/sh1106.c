@@ -125,9 +125,9 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontCol
  * @param length
  * @return the total horizontal pixel length used to draw the string
  */
-int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontColor color, size_t length, const char *c) {
+int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c) {
     int letter_spacing = 0;
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < strlen(c); i++) {
         // If current char starts with empty space, move it a bit to the left
         if (font[c[i] * font_width] == 0x00) {
             letter_spacing--;
@@ -141,7 +141,7 @@ int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontCo
         }
     }
 
-    return (int) length * font_width * (int) size + letter_spacing * (int) size - 1;
+    return (int) strlen(c) * font_width * (int) size + letter_spacing * (int) size - 1;
 }
 
 void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length) {

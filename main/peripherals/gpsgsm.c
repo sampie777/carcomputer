@@ -13,6 +13,39 @@
 
 #define MESSAGE_MAX_LENGTH 128
 
+typedef struct {
+    double timestamp;
+    double latitude;
+    char latitude_direction;
+    double longitude;
+    char longitude_direction;
+    int quality;
+    int satellites;
+    double hdop;
+    double altitude;
+    char unit;
+    double geoidal_separation;
+    char geoidal_separation_unit;
+    double correction_age;
+    int station_id;
+    unsigned int checksum;
+} NmeaGNGGAMessage;
+
+typedef struct {
+    double timestamp;
+    char status;
+    double latitude;
+    char latitude_direction;
+    double longitude;
+    char longitude_direction;
+    double ground_speed;    // knots
+    double ground_heading;
+    int date;
+    double declination;
+    char declination_direction;
+    char mode;
+    unsigned int checksum;
+} NmeaGNRMCMessage;
 
 enum ConnectionState {
     Initializing = 0,
@@ -24,6 +57,155 @@ enum ConnectionState {
     GpsNmeaLoggingStarted,
 };
 static enum ConnectionState connection_state = Initializing;
+
+void extract_int(char **source, int *destination, char *delimiter) {
+    char *match = strsep(source, delimiter);
+    if (match == NULL) return;
+    *destination = (int) strtol(match, NULL, 10);
+}
+
+void extract_double(char **source, double *destination, char *delimiter) {
+    char *match = strsep(source, delimiter);
+    if (match == NULL) return;
+    *destination = strtod(match, NULL);
+}
+
+void extract_char(char **source, char *destination, char *delimiter) {
+    char *match = strsep(source, delimiter);
+    if (match == NULL) return;
+    sscanf(match, "%c", destination);
+}
+
+void extract_string(char **source, char **destination, char *delimiter) {
+    char *match = strsep(source, delimiter);
+    if (match == NULL) return;
+    char *result = malloc(strlen(*source));
+    sscanf(match, "%s", result);
+    if (destination != NULL) {
+        *destination = malloc(strlen(result));
+        strcpy(*destination, result);
+    }
+    free(result);
+}
+
+void extract_hex(char **source, unsigned int *destination, char *delimiter) {
+    char *match = strsep(source, delimiter);
+    if (match == NULL) return;
+    *destination = strtoul(match, NULL, 16);
+}
+
+void extract_GNGGA_message(const char *string, NmeaGNGGAMessage *message) {
+    char *search_string = malloc(strlen(string) + 1);
+    char *search_string_pointer = search_string;
+    strcpy(search_string, string);
+
+    extract_string(&search_string, NULL, ",");
+    extract_double(&search_string, &message->timestamp, ",");
+    extract_double(&search_string, &message->latitude, ",");
+    extract_char(&search_string, &message->latitude_direction, ",");
+    extract_double(&search_string, &message->longitude, ",");
+    extract_char(&search_string, &message->longitude_direction, ",");
+    extract_int(&search_string, &message->quality, ",");
+    extract_int(&search_string, &message->satellites, ",");
+    extract_double(&search_string, &message->hdop, ",");
+    extract_double(&search_string, &message->altitude, ",");
+    extract_char(&search_string, &message->unit, ",");
+    extract_double(&search_string, &message->geoidal_separation, ",");
+    extract_char(&search_string, &message->geoidal_separation_unit, ",");
+    extract_double(&search_string, &message->correction_age, ",");
+    extract_int(&search_string, &message->station_id, "*");
+    extract_hex(&search_string, &message->checksum, "*");
+
+    free(search_string_pointer);
+}
+
+void extract_GNRMC_message(const char *string, NmeaGNRMCMessage *message) {
+    char *search_string = malloc(strlen(string) + 1);
+    char *search_string_pointer = search_string;
+    strcpy(search_string, string);
+
+    extract_string(&search_string, NULL, ",");
+    extract_double(&search_string, &message->timestamp, ",");
+    extract_char(&search_string, &message->status, ",");
+    extract_double(&search_string, &message->latitude, ",");
+    extract_char(&search_string, &message->latitude_direction, ",");
+    extract_double(&search_string, &message->longitude, ",");
+    extract_char(&search_string, &message->longitude_direction, ",");
+    extract_double(&search_string, &message->ground_speed, ",");
+    extract_double(&search_string, &message->ground_heading, ",");
+    extract_int(&search_string, &message->date, ",");
+    extract_double(&search_string, &message->declination, ",");
+    extract_char(&search_string, &message->declination_direction, ",");
+    extract_char(&search_string, &message->mode, "*");
+    extract_hex(&search_string, &message->checksum, "*");
+
+    free(search_string_pointer);
+}
+
+int nmea_calculate_checksum(const char *message) {
+    int crc = 0;
+    char *next = strstr(message, "$") + 1;
+    while (*next != '*' && *next != '\0') {
+        crc ^= *next;
+        next++;
+    }
+    return crc;
+}
+
+double nmea_coordinates_to_degrees(double coordinates, char direction) {
+    int degrees = (int) (coordinates / 100);
+    double minutes = coordinates - degrees * 100;
+    double result = degrees + minutes / 60.0;
+    if (direction == 'S' || direction == 'W')
+        result *= -1;
+    return result;
+}
+
+void convert_gngga_message(State *state, const char *message) {
+    NmeaGNGGAMessage gga_message = {0};
+    extract_GNGGA_message(message, &gga_message);
+    if (nmea_calculate_checksum(message) != gga_message.checksum) {
+        printf("[GPS] Checksum failed\n");
+        return;
+    }
+
+    state->location.latitude = nmea_coordinates_to_degrees(gga_message.latitude, gga_message.latitude_direction);
+    state->location.longitude = nmea_coordinates_to_degrees(gga_message.longitude, gga_message.longitude_direction);
+    state->location.quality = gga_message.quality;
+    state->location.satellites = gga_message.satellites;
+
+    state->location.time.hours = (int) (gga_message.timestamp / 10000);
+    state->location.time.minutes = (int) (gga_message.timestamp / 100) - state->location.time.hours * 100;
+    state->location.time.seconds = (int) gga_message.timestamp - state->location.time.hours * 10000 - state->location.time.minutes * 100;
+    // Adjust for timezone +2
+    state->location.time.hours += 2;
+    if (state->location.time.hours > 23) {
+        state->location.time.hours -= 24;
+    }
+}
+
+void convert_gnrmc_message(State *state, const char *message) {
+    NmeaGNRMCMessage rmc_message = {0};
+    extract_GNRMC_message(message, &rmc_message);
+    if (nmea_calculate_checksum(message) != rmc_message.checksum) {
+        printf("[GPS] Checksum failed\n");
+        return;
+    }
+
+    state->location.is_effective_positioning = rmc_message.status == 'A';
+    state->location.ground_speed = rmc_message.ground_speed * 1.852;
+    state->location.ground_heading = rmc_message.ground_heading;
+
+    uint8_t day = rmc_message.date / 10000;
+    uint8_t month = rmc_message.date / 100 - day * 100;
+    uint16_t year = 2000 + rmc_message.date - day * 10000 - month * 100;
+
+    if (year > 2021 && year < 2079) {
+        state->location.time.day = day;
+        state->location.time.month = month;
+        state->location.time.year = year;
+    }
+}
 
 void transmit(const char *data) {
     printf("[GPS] Sending\n");
@@ -53,12 +235,17 @@ void process_message(State *state, const char *message) {
         connection_state = Initializing;
     } else if (starts_with(message, "+CIEV") || starts_with(message, "+CREG")) {
         connection_state = Initialized;
-    } else if (starts_with(message, "$GNRMC")) {
-        connection_state = GpsNmeaLoggingStarted;
     } else if (connection_state == GpsEnableRequestSent && strcmp(message, "OK") == 0) {
         connection_state = GpsEnableRequestApproved;
     } else if (connection_state == GpsEnableNmeaLoggingRequestSent && strcmp(message, "OK") == 0) {
         connection_state = GpsEnableNmeaLoggingRequestApproved;
+    }
+
+    if (strstr(message, "$GNGGA") != NULL) {
+        connection_state = GpsNmeaLoggingStarted;
+        convert_gngga_message(state, message);
+    }else if (strstr(message, "$GNRMC") != NULL) {
+        convert_gnrmc_message(state, message);
     }
 }
 
@@ -127,7 +314,7 @@ void gpsgsm_process(State *state) {
 
     read_messages(state);
 
-    state->location.is_connected = connection_state == GpsNmeaLoggingStarted;
+    state->location.is_gps_on = connection_state == GpsNmeaLoggingStarted;
 }
 
 void gpsgsm_init() {
