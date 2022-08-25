@@ -61,6 +61,12 @@ void show_statusbar(State *state) {
                          icon_car, sizeof(icon_car), icon_car_width, FONT_WHITE);
     }
 
+    offset_right -= 3 + icon_location_width;
+    if (state->location.quality > 0 || (long_blink_state && state->location.is_gps_on)) {
+        sh1106_draw_icon(&sh1106, offset_right, 1,
+                         icon_location, sizeof(icon_location), icon_location_width, FONT_WHITE);
+    }
+
 #if WIFI_ENABLE
     offset_right -= 3 + icon_wifi_width;
     if (state->wifi.is_connected || (long_blink_state && (state->wifi.is_scanning || state->wifi.is_connecting))) {
