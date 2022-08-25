@@ -130,8 +130,35 @@ int server_send_trip_end(State *state) {
                     "\"uptimeMs\": \"%lld\","
                     "\"wifiSsid\": \"%s\","
                     "\"odometerStart\": %d,"
-                    "\"odometerEnd\": %d"
-                    "}", esp_timer_get_time_ms(), state->wifi.ssid, state->car.odometer_start, state->car.odometer);
+                    "\"odometerEnd\": %d,"
+                    "\"location\": {"
+                    "  \"is_gps_on\": %d,"
+                    "  \"quality\": %d,"
+                    "  \"satellites\": %d,"
+                    "  \"is_effective_positioning\": %d,"
+                    "  \"latitude\": %.5f,"
+                    "  \"longitude\": %.5f,"
+                    "  \"altitude\": %.1f,"
+                    "  \"time\": \"%d-%02d-%02d'T'%02d:%02d%02d%+d\""
+                    "}"
+                    "}", esp_timer_get_time_ms(),
+            state->wifi.ssid,
+            state->car.odometer_start,
+            state->car.odometer,
+            state->location.is_gps_on,
+            state->location.quality,
+            state->location.satellites,
+            state->location.is_effective_positioning,
+            state->location.latitude,
+            state->location.longitude,
+            state->location.altitude,
+            state->location.time.year,
+            state->location.time.month,
+            state->location.time.day,
+            state->location.time.hours,
+            state->location.time.minutes,
+            state->location.time.seconds,
+            state->location.time.timezone);
     int result = server_send_data(buffer);
     state->server_is_uploading = false;
     return result;
