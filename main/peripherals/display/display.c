@@ -28,8 +28,8 @@ void display_init() {
 
 void show_error_message(State *state) {
     sh1106_draw_filled_rectangle(&sh1106, 5, 5, sh1106.width - 10, sh1106.height - 10);
-    sh1106_draw_string(&sh1106, sh1106.width / 2 - 5 * 2, 7, FONT_SMALL, FONT_BLACK, 5, "ERROR");
-    sh1106_draw_string(&sh1106, 10, 18, FONT_SMALL, FONT_BLACK, (int) strlen(state->display.error_message), state->display.error_message);
+    sh1106_draw_string(&sh1106, sh1106.width / 2 - 5 * 2, 7, FONT_SMALL, FONT_BLACK, "ERROR");
+    sh1106_draw_string(&sh1106, 10, 18, FONT_SMALL, FONT_BLACK, state->display.error_message);
 }
 
 void show_statusbar(State *state) {
@@ -42,9 +42,9 @@ void show_statusbar(State *state) {
     }
 
     if (state->cruise_control.enabled) {
-        sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, FONT_WHITE, 14, "Cruise control");
+        sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, FONT_WHITE, "Cruise control");
     } else {
-        sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, FONT_WHITE, sizeof(DEVICE_NAME), DEVICE_NAME);
+        sh1106_draw_string(&sh1106, 1, 1, FONT_SMALL, FONT_WHITE, DEVICE_NAME);
     }
 
     int offset_right = sh1106.width + 1;
@@ -59,6 +59,12 @@ void show_statusbar(State *state) {
     if (state->car.is_connected || (long_blink_state && state->car.is_controller_connected)) {
         sh1106_draw_icon(&sh1106, offset_right, 1,
                          icon_car, sizeof(icon_car), icon_car_width, FONT_WHITE);
+    }
+
+    offset_right -= 3 + icon_location_width;
+    if (state->location.quality > 0 || (long_blink_state && state->location.is_gps_on)) {
+        sh1106_draw_icon(&sh1106, offset_right, 1,
+                         icon_location, sizeof(icon_location), icon_location_width, FONT_WHITE);
     }
 
 #if WIFI_ENABLE
@@ -90,11 +96,11 @@ void content_cruise_control(State *state) {
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 17;
     char buffer[20];
-    int length = sprintf(buffer, "%3.0f/ ", state->car.speed);
-    offset_x += sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, length, buffer);
+    sprintf(buffer, "%3.0f/ ", state->car.speed);
+    offset_x += sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
 
-    length = sprintf(buffer, "%.0f", state->cruise_control.target_speed);
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_LARGE, FONT_WHITE, length, buffer);
+    sprintf(buffer, "%.0f", state->cruise_control.target_speed);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_LARGE, FONT_WHITE, buffer);
 
     // Animate virtual pedal position
     int virtual_pedal_container_y = STATUS_BAR_HEIGHT + 6;
@@ -118,15 +124,15 @@ void content_power_off_count_down(State *state) {
     sh1106_draw_filled_rectangle(&sh1106, offset_x - margin, offset_y,
                                  sh1106.width - 2 * offset_x + 2 * margin, row_height);
     sh1106_draw_string(&sh1106, offset_x, offset_y + margin,
-                       FONT_SMALL, FONT_BLACK, length, buffer);
+                       FONT_SMALL, FONT_BLACK, buffer);
 
-    length = sprintf(buffer, "%d", state->power_off_count_down_sec);
+    sprintf(buffer, "%d", state->power_off_count_down_sec);
     offset_x = (sh1106.width - length * 5) / 2;
     offset_y += row_height;
     sh1106_draw_filled_rectangle(&sh1106, offset_x - margin, offset_y,
                                  sh1106.width - 2 * offset_x + 2 * margin, row_height);
     sh1106_draw_string(&sh1106, offset_x, offset_y + margin,
-                       FONT_SMALL, FONT_BLACK, length, buffer);
+                       FONT_SMALL, FONT_BLACK, buffer);
 }
 
 void content_motion_sensors_data(const State *state) {
@@ -135,54 +141,84 @@ void content_motion_sensors_data(const State *state) {
     char buffer[20];
 
     offset_y += 10;
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, 1, "x");
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "x");
     offset_y += 10;
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, 1, "y");
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "y");
     offset_y += 10;
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, 1, "z");
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "z");
     offset_x += 9;
     offset_y = STATUS_BAR_HEIGHT + 5;
 
-    sh1106_draw_string(&sh1106, offset_x + 1 * 5, offset_y, FONT_SMALL, FONT_WHITE, 5, "Accel");
+    sh1106_draw_string(&sh1106, offset_x + 1 * 5, offset_y, FONT_SMALL, FONT_WHITE, "Accel");
     offset_y += 10;
-    int length = sprintf(buffer, " %7.3f", state->motion.accel_x);
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    sprintf(buffer, " %7.3f", state->motion.accel_x);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    length = sprintf(buffer, " %7.3f", state->motion.accel_y);
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    sprintf(buffer, " %7.3f", state->motion.accel_y);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    length = sprintf(buffer, " %7.3f", state->motion.accel_z);
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    sprintf(buffer, " %7.3f", state->motion.accel_z);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_x += 7 * 5;
     offset_y += 10;
 
-    length = sprintf(buffer, "Temp: %6.3f", state->motion.temperature);
-    sh1106_draw_string(&sh1106, 0, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    sprintf(buffer, "Temp: %6.3f", state->motion.temperature);
+    sh1106_draw_string(&sh1106, 0, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y = STATUS_BAR_HEIGHT + 5;
 
-    sh1106_draw_string(&sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, 4, "Gyro");
+    sh1106_draw_string(&sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, "Gyro");
     offset_y += 10;
-    length = sprintf(buffer, " %7.2f", state->motion.gyro_x);
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    sprintf(buffer, " %7.2f", state->motion.gyro_x);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    length = sprintf(buffer, " %7.2f", state->motion.gyro_y);
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    sprintf(buffer, " %7.2f", state->motion.gyro_y);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    length = sprintf(buffer, " %7.2f", state->motion.gyro_z);
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    sprintf(buffer, " %7.2f", state->motion.gyro_z);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_x += 7 * 5;
     offset_y = STATUS_BAR_HEIGHT + 5;
 
-    sh1106_draw_string(&sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, 4, "Comp");
+    sh1106_draw_string(&sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, "Comp");
     offset_y += 10;
-    length = sprintf(buffer, " %7.1f", state->motion.compass_x);
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    sprintf(buffer, " %7.1f", state->motion.compass_x);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    length = sprintf(buffer, " %7.1f", state->motion.compass_y);
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    sprintf(buffer, " %7.1f", state->motion.compass_y);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    length = sprintf(buffer, " %7.1f", state->motion.compass_z);
-    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, length, buffer);
+    sprintf(buffer, " %7.1f", state->motion.compass_z);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+}
+
+void content_location_data(const State *state) {
+    int offset_x = 0;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[32];
+
+    sprintf(buffer, "%d:%02d:%02d    %d-%02d-%d",
+            state->location.time.hours,
+            state->location.time.minutes,
+            state->location.time.seconds,
+            state->location.time.day,
+            state->location.time.month,
+            state->location.time.year
+    );
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+
+    sprintf(buffer, "%.5lf, %.5lf", state->location.latitude, state->location.longitude);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, "Q:%d S:%d E:%d A:%.0lf",
+            state->location.quality,
+            state->location.satellites,
+            state->location.is_effective_positioning,
+            state->location.altitude);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, "%6.2lf @ %6.1lf*", state->location.ground_speed, state->location.ground_heading);
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
 void show_content_overlay(State *state) {
@@ -200,17 +236,22 @@ void show_content_overlay(State *state) {
 void show_content(State *state) {
     if (state->is_rebooting) {
         sh1106_draw_string(&sh1106, (sh1106.width - 5 * 12) / 2, STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2,
-                           FONT_SMALL, FONT_WHITE, 12, "Rebooting...");
+                           FONT_SMALL, FONT_WHITE, "Rebooting...");
         return;
     }
     if (state->is_booting) {
         sh1106_draw_string(&sh1106, (sh1106.width - 5 * 10) / 2, STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2,
-                           FONT_SMALL, FONT_WHITE, 10, "Booting...");
+                           FONT_SMALL, FONT_WHITE, "Booting...");
         return;
     }
 
     if (state->cruise_control.enabled) {
         content_cruise_control(state);
+        return;
+    }
+
+    if (state->location.is_gps_on) {
+        content_location_data(state);
         return;
     }
 

@@ -7,6 +7,7 @@
 
 #include "state.h"
 #include <driver/adc.h>
+#include <string.h>
 
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #define min(x, y) (((x) < (y)) ? (x) : (y))
@@ -21,6 +22,6 @@ void utils_reboot(State *state);
 
 double average_read_channel(adc1_channel_t channel, int sample_count);
 
-int get_length(const char *s);
+uint8_t starts_with(const char *source, const char *needle);
 
 #endif //APP_TEMPLATE_UTILS_H

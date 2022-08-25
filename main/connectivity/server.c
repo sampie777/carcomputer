@@ -140,7 +140,7 @@ int server_send_trip_end(State *state) {
 int server_send_data_log_record(State *state) {
     printf("[Server] Logging data record...\n");
     state->server_is_uploading = true;
-    char buffer[1024];
+    char buffer[1200];
     sprintf(buffer, "{"
                     "\"uptimeMs\": %lld,"
                     "\"car\": {"
@@ -180,6 +180,18 @@ int server_send_data_log_record(State *state) {
                     "  \"compass_y\": %.3f,"
                     "  \"compass_z\": %.3f,"
                     "  \"temperature\": %.3f"
+                    "},"
+                    "\"location\": {"
+                    "  \"is_gps_on\": %d,"
+                    "  \"quality\": %d,"
+                    "  \"satellites\": %d,"
+                    "  \"is_effective_positioning\": %d,"
+                    "  \"latitude\": %.5f,"
+                    "  \"longitude\": %.5f,"
+                    "  \"altitude\": %.1f,"
+                    "  \"ground_speed\": %.3f,"
+                    "  \"ground_heading\": %.2f,"
+                    "  \"time\": \"%d-%02d-%02d'T'%02d:%02d%02d%+d\""
                     "}"
                     "}\n",
             esp_timer_get_time_ms(),
@@ -215,7 +227,24 @@ int server_send_data_log_record(State *state) {
             state->motion.compass_x,
             state->motion.compass_y,
             state->motion.compass_z,
-            state->motion.temperature
+            state->motion.temperature,
+
+            state->location.is_gps_on,
+            state->location.quality,
+            state->location.satellites,
+            state->location.is_effective_positioning,
+            state->location.latitude,
+            state->location.longitude,
+            state->location.altitude,
+            state->location.ground_speed,
+            state->location.ground_heading,
+            state->location.time.year,
+            state->location.time.month,
+            state->location.time.day,
+            state->location.time.hours,
+            state->location.time.minutes,
+            state->location.time.seconds,
+            state->location.time.timezone
     );
     int result = server_send_data(buffer);
     state->server_is_uploading = false;

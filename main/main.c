@@ -9,8 +9,10 @@
 #include "connectivity/i2c.h"
 #include "connectivity/spi.h"
 #include "peripherals/display/display.h"
+#include "peripherals/gpsgsm.h"
+#if SD_ENABLE
 #include "control/data_logger.h"
-
+#endif
 #if WIFI_ENABLE
 #include "connectivity/wifi.h"
 #endif
@@ -34,7 +36,10 @@ _Noreturn void process_main(State *state) {
     i2c_init();
     spi_init(state);
     control_init(state);
+#if SD_ENABLE
     data_logger_init(state);
+#endif
+    gpsgsm_init();
 #if BLUETOOTH_ENABLE
     bluetooth_init(state);
 #endif
@@ -49,6 +54,7 @@ _Noreturn void process_main(State *state) {
         control_read_can_bus(state);
         control_read_analog_sensors(state);
         control_read_user_input(state);
+        gpsgsm_process(state);
 
         // Process data
         control_mpu_power(state);
@@ -56,7 +62,9 @@ _Noreturn void process_main(State *state) {
         control_door_lock(state);
         control_cruise_control(state);
 
+#if SD_ENABLE
         data_logger_process(state);
+#endif
 
 #if WIFI_ENABLE
         wifi_scan(state);
@@ -73,6 +81,7 @@ void app_main(void) {
     State state = {
             .is_booting = true,
             .power_off_count_down_sec = -1,
+            .location.time.timezone = 2,    // GMT+2
     };
 
     init();

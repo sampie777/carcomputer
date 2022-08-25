@@ -72,6 +72,28 @@ typedef struct {
 } SDState;
 
 typedef struct {
+    uint8_t is_gps_on;
+    uint8_t quality;
+    uint8_t satellites;
+    uint8_t is_effective_positioning;
+    double latitude;
+    double longitude;
+    double altitude;        // m
+    double ground_speed;    // km/h
+    double ground_heading;
+
+    struct Time {
+        uint8_t seconds;
+        uint8_t minutes;
+        uint8_t hours;
+        uint8_t timezone;
+        uint8_t day;
+        uint8_t month;
+        uint16_t year;
+    } time;
+} GpsState;
+
+typedef struct {
     CarState car;
     WiFiState wifi;
     BluetoothState bluetooth;
@@ -79,6 +101,7 @@ typedef struct {
     CruiseControlState cruise_control;
     MotionState motion;
     SDState storage;
+    GpsState location;
     uint8_t is_booting;
     uint8_t is_rebooting;
     int16_t power_off_count_down_sec;

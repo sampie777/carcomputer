@@ -15,7 +15,7 @@ void nvs_init() {
         ESP_ERROR_CHECK(nvs_flash_erase());
         ret = nvs_flash_init();
     }
-    ESP_ERROR_CHECK( ret );
+    ESP_ERROR_CHECK(ret);
 }
 
 int64_t esp_timer_get_time_ms() {
@@ -40,12 +40,6 @@ double average_read_channel(adc1_channel_t channel, int sample_count) {
     return total / sample_count;
 }
 
-int get_length(const char *s) {
-    // Overflow will eventually make i < 0
-    for (int16_t i = 0; i >= 0; i++) {
-        if (s[i] == '\0') {
-            return i;
-        }
-    }
-    return -1;
+uint8_t starts_with(const char *source, const char *needle) {
+    return strncmp(needle, source, strlen(needle)) == 0;
 }

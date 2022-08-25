@@ -60,7 +60,7 @@ void data_logger_log_current(State *state) {
             "%d;"           // state->car.is_braking
             "%d;"           // state->car.is_ignition_on
             "%.3f;"         // state->car.speed
-            "%.3f;"         // state->car.rpm
+            "%.1f;"         // state->car.rpm
             "%d;"           // state->car.odometer
             "%d;"           // state->car.gas_pedal_connected
             "%.5f;"         // state->car.gas_pedal
@@ -83,6 +83,16 @@ void data_logger_log_current(State *state) {
             "%.3f;"         // state->motion.compass_y
             "%.3f;"         // state->motion.compass_z
             "%.3f;"         // state->motion.temperature
+            "%d;"           // state->location.is_gps_on
+            "%d;"           // state->location.quality
+            "%d;"           // state->location.satellites
+            "%d;"           // state->location.is_effective_positioning
+            "%.5f;"         // state->location.latitude
+            "%.5f;"         // state->location.longitude
+            "%.1f;"         // state->location.altitude
+            "%.3f;"         // state->location.ground_speed
+            "%.2f;"         // state->location.ground_heading
+            "%d-%02d-%02d'T'%02d:%02d%02d%+d;"         // state->location.time
             "\n",
             esp_timer_get_time_ms(),
             state->car.is_connected,
@@ -112,7 +122,23 @@ void data_logger_log_current(State *state) {
             state->motion.compass_x,
             state->motion.compass_y,
             state->motion.compass_z,
-            state->motion.temperature
+            state->motion.temperature,
+            state->location.is_gps_on,
+            state->location.quality,
+            state->location.satellites,
+            state->location.is_effective_positioning,
+            state->location.latitude,
+            state->location.longitude,
+            state->location.altitude,
+            state->location.ground_speed,
+            state->location.ground_heading,
+            state->location.time.year,
+            state->location.time.month,
+            state->location.time.day,
+            state->location.time.hours,
+            state->location.time.minutes,
+            state->location.time.seconds,
+            state->location.time.timezone
     );
 
     if (sd_card_file_append(state->storage.filename, buffer) == RESULT_OK) {
@@ -149,8 +175,9 @@ void data_logger_init(State *state) {
         if (sd_card_create_file_incremental("data", "csv", state->storage.filename) == RESULT_OVERFLOW) {
             display_set_error_message(state, "SD card full");
         }
+        printf("[SD] Using file: %s\n", state->storage.filename);
 
-        sd_card_file_append(state->storage.filename, "timestamp;car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;wifi_ssid;wifi_ip.addr;wifi_is_connected;bluetooth_connected;motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;\n");
+        sd_card_file_append(state->storage.filename, "timestamp;car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;wifi_ssid;wifi_ip.addr;wifi_is_connected;bluetooth_connected;motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;location_is_gps_on;location_quality;location_satellites;location_is_effective_positioning;location_latitude;location_longitude;location_altitude;location_ground_speed;location_ground_heading;location_datetime;\n");
     }
 
     printf("[DataLogger] Init done\n");
