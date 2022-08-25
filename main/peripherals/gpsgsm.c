@@ -174,14 +174,17 @@ void convert_gngga_message(State *state, const char *message) {
     state->location.quality = gga_message.quality;
     state->location.satellites = gga_message.satellites;
 
-    state->location.time.hours = (int) (gga_message.timestamp / 10000);
-    state->location.time.minutes = (int) (gga_message.timestamp / 100) - state->location.time.hours * 100;
-    state->location.time.seconds = (int) gga_message.timestamp - state->location.time.hours * 10000 - state->location.time.minutes * 100;
-    // Adjust for timezone +2
-    state->location.time.hours += 2;
-    if (state->location.time.hours > 23) {
-        state->location.time.hours -= 24;
+    int hours = (int) (gga_message.timestamp / 10000);
+    state->location.time.minutes = (int) (gga_message.timestamp / 100) - hours * 100;
+    state->location.time.seconds = (int) gga_message.timestamp - hours * 10000 - state->location.time.minutes * 100;
+    // Adjust for timezone
+    hours += state->location.time.timezone;
+    if (hours > 23) {
+        hours -= 24;
+    } else if (hours < 0) {
+        hours += 24;
     }
+    state->location.time.hours = hours;
 }
 
 void convert_gnrmc_message(State *state, const char *message) {

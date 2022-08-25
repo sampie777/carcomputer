@@ -81,6 +81,7 @@ void app_main(void) {
     State state = {
             .is_booting = true,
             .power_off_count_down_sec = -1,
+            .location.time.timezone = 2,    // GMT+2
     };
 
     init();
