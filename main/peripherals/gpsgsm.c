@@ -171,6 +171,7 @@ void convert_gngga_message(State *state, const char *message) {
 
     state->location.latitude = nmea_coordinates_to_degrees(gga_message.latitude, gga_message.latitude_direction);
     state->location.longitude = nmea_coordinates_to_degrees(gga_message.longitude, gga_message.longitude_direction);
+    state->location.altitude = gga_message.altitude;
     state->location.quality = gga_message.quality;
     state->location.satellites = gga_message.satellites;
 
@@ -196,7 +197,7 @@ void convert_gnrmc_message(State *state, const char *message) {
     }
 
     state->location.is_effective_positioning = rmc_message.status == 'A';
-    state->location.ground_speed = rmc_message.ground_speed * 1.852;
+    state->location.ground_speed = rmc_message.ground_speed * 1.852;    // knots -> km/h
     state->location.ground_heading = rmc_message.ground_heading;
 
     uint8_t day = rmc_message.date / 10000;
