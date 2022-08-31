@@ -92,7 +92,7 @@ extern "C" {
 #define BUTTON_UPPER_LIMIT ((int) (798 + (985 - 798) / 2))
 #define BUTTON_MIDDLE_LIMIT ((int) (510 + (798 - 510) / 2))
 #define BUTTON_LOWER_LIMIT ((int) (510 / 2))
-#define BUTTONS_READ_INTERVAL_LOOPS 40          // Only read the buttons once very X loops, to decrease the total time this takes
+#define BUTTONS_READ_INTERVAL_MS 67          // Only read the buttons once very X loops, to decrease the total time this takes
 #define BUTTON_AVERAGE_READ_SAMPLES 5
 #define BUTTON_MIN_PRESS_TIME_MS 80             // Minimum time the button must be pressed for it to register a valid press (ms)
 #define BUTTON_LONG_PRESS_MS 2000

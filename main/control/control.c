@@ -11,6 +11,7 @@
 #include "../peripherals/buttons.h"
 #include "../utils.h"
 #include "../peripherals/mpu9250.h"
+
 #if WIFI_ENABLE
 #include "../connectivity/server.h"
 #endif
@@ -35,10 +36,9 @@ void control_read_analog_sensors(State *state) {
 }
 
 void control_read_user_input(State *state) {
-    // Only check input once every X loop cycles
-    static int counter = 0;
-    if (++counter < BUTTONS_READ_INTERVAL_LOOPS) return;
-    counter = 0;
+    static int64_t last_read_time = 0;
+    if (esp_timer_get_time_ms() < last_read_time + BUTTONS_READ_INTERVAL_MS) return;
+    last_read_time = esp_timer_get_time_ms();
 
     Button button = buttons_get_pressed();
     switch (button) {
