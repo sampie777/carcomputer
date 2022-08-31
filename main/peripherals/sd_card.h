@@ -15,6 +15,6 @@ void sd_card_test();
 
 int sd_card_file_append(const char *file_name, const char *line);
 
-int sd_card_create_file_incremental(const char *base_file_name, const char *base_file_extension, char *file_name_out);
+int sd_card_create_file_incremental(const char *directory, const char *base_file_name, const char *base_file_extension, char *file_name_out);
 
 #endif //APP_TEMPLATE_SD_CARD_H

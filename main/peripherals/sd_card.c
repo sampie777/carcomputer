@@ -10,6 +10,7 @@
 //#include <sys/unistd.h>
 #include "sd_card.h"
 #include "../return_codes.h"
+#include "../utils.h"
 
 static const char *TAG = "SD";
 #define MOUNT_POINT "/sdcard"
@@ -87,6 +88,30 @@ int sd_card_file_append(const char *file_name, const char *line) {
     return RESULT_OK;
 }
 
+void sd_card_create_directory(const char *directory, char *created_directory){
+    char path[64];
+    char directory_safe_name[32];
+    directory_safe_name[min(31, strlen(directory))] = '\0';
+    strcpy(directory_safe_name, directory);
+
+    string_char_replace(directory_safe_name, ' ', '_');
+    string_char_replace(directory_safe_name, '"', '_');
+    string_char_replace(directory_safe_name, '\'', '_');
+    string_char_replace(directory_safe_name, '\\', '/');
+    string_char_replace(directory_safe_name, '#', '_');
+    string_char_replace(directory_safe_name, '.', '_');
+
+    sprintf(path, "%s/%s", MOUNT_POINT, directory_safe_name);
+
+    struct stat st;
+    if (stat(path, &st) != 0) {
+        printf("[SD] Creating directory '%s'\n", path);
+        mkdir(path, 0775);
+    }
+
+    strcpy(created_directory, directory_safe_name);
+}
+
 /**
  * Create a file with given name and extension. If filename already exists, increment new filename with a number until unique.
  * The new filename will be stored in the file_name parameter.
@@ -96,22 +121,25 @@ int sd_card_file_append(const char *file_name, const char *line) {
   * @param iteration        Iteration number to start with
   * @param file_name_out    The new file name will be stored in here (size: 32)
   */
-int sd_card_create_file_incremental(const char *base_file_name, const char *base_file_extension, char *file_name_out) {
-    char new_file_name[32];
+int sd_card_create_file_incremental(const char *directory, const char *base_file_name, const char *base_file_extension, char *file_name_out) {
     char path[128];
+    char created_directory[32];
+    char new_file_name[64];
+    struct stat st;
+
+    sd_card_create_directory(directory, created_directory);
 
     for (uint16_t i = 0; i < 65535; i++) {
-        sprintf(new_file_name, "%s-%d.%s", base_file_name, i, base_file_extension);
+        sprintf(new_file_name, "%s/%s-%d.%s", created_directory, base_file_name, i, base_file_extension);
         sprintf(path, "%s/%s", MOUNT_POINT, new_file_name);
 
-        struct stat st;
         if (stat(path, &st) != 0) {
             memcpy(file_name_out, new_file_name, 32);
             return RESULT_OK;
         }
     }
 
-    sprintf(new_file_name, "%s-overflow.%s", base_file_name, base_file_extension);
+    sprintf(new_file_name, "%s/%s-overflow.%s", created_directory, base_file_name, base_file_extension);
     memcpy(file_name_out, new_file_name, 32);
     return RESULT_OVERFLOW;
 }

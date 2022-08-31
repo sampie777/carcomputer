@@ -24,4 +24,6 @@ double average_read_channel(adc1_channel_t channel, int sample_count);
 
 uint8_t starts_with(const char *source, const char *needle);
 
+void string_char_replace(char *source, char needle, char replacement);
+
 #endif //APP_TEMPLATE_UTILS_H

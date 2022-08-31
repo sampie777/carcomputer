@@ -43,3 +43,11 @@ double average_read_channel(adc1_channel_t channel, int sample_count) {
 uint8_t starts_with(const char *source, const char *needle) {
     return strncmp(needle, source, strlen(needle)) == 0;
 }
+
+void string_char_replace(char *source, char needle, char replacement) {
+    for(int i = 0; i < strlen(source); i++) {
+        if (source[i] != needle) continue;
+        source[i] = replacement;
+    }
+}
+
