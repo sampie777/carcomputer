@@ -103,13 +103,18 @@ void content_cruise_control(State *state) {
     sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_LARGE, FONT_WHITE, buffer);
 
     // Animate virtual pedal position
+    // Draw the container
     int virtual_pedal_container_y = STATUS_BAR_HEIGHT + 6;
     int virtual_pedal_container_height = sh1106.height - virtual_pedal_container_y - 10;
-    int virtual_pedal_value_height = (int) (state->cruise_control.virtual_gas_pedal * virtual_pedal_container_height);
-    int virtual_pedal_value_y = virtual_pedal_container_height - virtual_pedal_value_height;
     sh1106_draw_vertical_line(&sh1106, sh1106.width - 5, virtual_pedal_container_y, virtual_pedal_container_height);
     sh1106_draw_vertical_line(&sh1106, sh1106.width - 1, virtual_pedal_container_y, virtual_pedal_container_height);
-    sh1106_draw_filled_rectangle(&sh1106, sh1106.width - 4, virtual_pedal_value_y, 3, virtual_pedal_value_height);
+    sh1106_draw_horizontal_line(&sh1106, sh1106.width - 4, virtual_pedal_container_y - 1, 3);
+    sh1106_draw_horizontal_line(&sh1106, sh1106.width - 4, virtual_pedal_container_y + virtual_pedal_container_height, 3);
+
+    // Draw the value
+    int virtual_pedal_value_height = (int) (state->cruise_control.virtual_gas_pedal * virtual_pedal_container_height);
+    int virtual_pedal_value_y = virtual_pedal_container_y + virtual_pedal_container_height - virtual_pedal_value_height;
+    sh1106_draw_filled_rectangle(&sh1106, sh1106.width - 4 + 1, virtual_pedal_value_y, 2, virtual_pedal_value_height);
 }
 
 void content_power_off_count_down(State *state) {

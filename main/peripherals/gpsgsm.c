@@ -233,7 +233,7 @@ void process_message(State *state, const char *message) {
     if (strlen(message) == 0) {
         return;
     }
-    printf("[GPS] Processing: '%s' with length: %d\n", message, strlen(message));
+//    printf("[GPS] Processing: '%s' with length: %d\n", message, strlen(message));
 
     if (strcmp(message, "Init...") == 0) {
         connection_state = Initializing;
