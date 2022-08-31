@@ -49,6 +49,10 @@ void data_logger_upload(State *state) {
  */
 void data_logger_log_current(State *state) {
     static int64_t last_log_time = 0;
+
+    // Don't log if car isn't on and on the move, so SD card can be swapped safely
+    if (!state->car.is_ignition_on && state->car.speed <= 1 && state->car.rpm <= 1) return;
+
     if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_LOG_INTERVAL) return;
     last_log_time = esp_timer_get_time_ms();
 
