@@ -16,6 +16,7 @@ void cruise_control_apply_pid(State *state) {
         previous_error = 0;
         previous_integral = 0;
         last_iteration_time = 0;
+        state->cruise_control.virtual_gas_pedal = 0;
         return;
     }
 
