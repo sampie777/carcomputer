@@ -26,4 +26,6 @@ uint8_t starts_with(const char *source, const char *needle);
 
 void string_char_replace(char *source, char needle, char replacement);
 
+void string_escape(const char *input, char **destination);
+
 #endif //APP_TEMPLATE_UTILS_H

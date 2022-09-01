@@ -13,4 +13,6 @@ void gpsgsm_process(State *state);
 
 void gsm_send_sms(const char *number, const char *message);
 
+void gsm_http_post(const char *url, const char *json);
+
 #endif //APP_TEMPLATE_GPSGSM_H

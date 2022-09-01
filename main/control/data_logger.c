@@ -7,12 +7,13 @@
 #include "../return_codes.h"
 #include "../utils.h"
 #include "../peripherals/display/display.h"
+#include "../peripherals/gpsgsm.h"
 
 #if WIFI_ENABLE
 #include "../connectivity/server.h"
 #endif
 
-void data_logger_upload(State *state) {
+void data_logger_upload_all(State *state) {
     static int64_t engine_off_time = 0;
     static uint32_t last_odometer = 0;
 
@@ -43,6 +44,48 @@ void data_logger_upload(State *state) {
     last_odometer = state->car.odometer;
 }
 
+void data_logger_upload_current(State *state) {
+    static int64_t last_log_time = 0;
+
+    if (!state->car.is_ignition_on) {
+        return;
+    }
+
+    if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_SINGLE_UPLOAD_INTERVAL_MS) return;
+    last_log_time = esp_timer_get_time_ms();
+
+    char buffer[512];
+    sprintf(buffer, "{"
+                    "'car': {"
+                    "  'is_connected': %d,"
+                    "  'speed': %.3f,"
+                    "},"
+                    "'location': {"
+                    "  'satellites': %d,"
+                    "  'latitude': %.5f,"
+                    "  'longitude': %.5f,"
+                    "  'ground_speed': %.3f,"
+                    "  'ground_heading': %.2f,"
+                    "  'time': '%d-%02d-%02d'T'%02d:%02d%02d%+d'"
+                    "}"
+                    "}",
+            state->car.is_connected,
+            state->car.speed,
+            state->location.satellites,
+            state->location.latitude,
+            state->location.longitude,
+            state->location.ground_speed,
+            state->location.ground_heading,
+            state->location.time.year,
+            state->location.time.month,
+            state->location.time.day,
+            state->location.time.hours,
+            state->location.time.minutes,
+            state->location.time.seconds,
+            state->location.time.timezone);
+    gsm_http_post(DATA_LOGGER_SINGLE_UPLOAD_URL, buffer);
+}
+
 /**
  * Collect data and write to SD card
  * @param state
@@ -53,7 +96,7 @@ void data_logger_log_current(State *state) {
     // Don't log if car isn't on and on the move, so SD card can be swapped safely
     if (!state->car.is_ignition_on && state->car.speed <= 1 && state->car.rpm <= 1) return;
 
-    if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_LOG_INTERVAL) return;
+    if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_LOG_INTERVAL_MS) return;
     last_log_time = esp_timer_get_time_ms();
 
     char buffer[256];
@@ -153,21 +196,27 @@ void data_logger_log_current(State *state) {
 }
 
 void data_logger_process(State *state) {
+#if SD_ENABLE
     static int64_t last_init_time = 0;
     if (state->storage.is_connected == false) {
         if (esp_timer_get_time_ms() > last_init_time + 3000) {
             data_logger_init(state);
             last_init_time = esp_timer_get_time_ms();
         }
-        return;
     }
+#endif
 
+#if SD_ENABLE
     data_logger_log_current(state);
-    data_logger_upload(state);
+#endif
+    data_logger_upload_current(state);
+    data_logger_upload_all(state);
 }
 
 void data_logger_init(State *state) {
     printf("[DataLogger] Initializing...\n");
+
+#if SD_ENABLE
     if (sd_card_init() != RESULT_OK) {
         state->storage.is_connected = false;
         printf("[DataLogger] Init failed\n");
@@ -183,6 +232,7 @@ void data_logger_init(State *state) {
 
         sd_card_file_append(state->storage.filename, "timestamp;car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;wifi_ssid;wifi_ip.addr;wifi_is_connected;bluetooth_connected;motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;location_is_gps_on;location_quality;location_satellites;location_is_effective_positioning;location_latitude;location_longitude;location_altitude;location_ground_speed;location_ground_heading;location_datetime;\n");
     }
+#endif
 
     printf("[DataLogger] Init done\n");
 }

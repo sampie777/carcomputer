@@ -69,3 +69,30 @@ Then submit your message by sendint a Ctrl+Z (0x1a) character.
 ```
 
 The GSM unit will respond with `+CMGS=<number>` to indicate the message was received, and with `OK` to indicate the message was sent. 
+
+## HTTP requests
+
+First enable internet and connect to the domain (and find its IP).
+```
+AT+CGATT=1
+AT+CIPSTART="TCP","httpbin.org",80
+```
+
+Then query a URL. This will print the response of the server also.
+```
+AT+HTTPGET="http://httpbin.org/get?q=test"
+```
+Or a POST request:
+```
+AT+HTTPPOST="http://httpbin.org/post","application/json","{\"var1\":12}"
+```
+
+Close the connection.
+```
+AT+CIPCLOSE
+```
+
+To check if the connection is open or closed:
+```
+AT+CIPSTATUS
+```

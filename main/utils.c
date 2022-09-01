@@ -45,9 +45,24 @@ uint8_t starts_with(const char *source, const char *needle) {
 }
 
 void string_char_replace(char *source, char needle, char replacement) {
-    for(int i = 0; i < strlen(source); i++) {
+    for (int i = 0; i < strlen(source); i++) {
         if (source[i] != needle) continue;
         source[i] = replacement;
     }
 }
 
+void string_escape(const char *input, char **destination) {
+    size_t escaped_size = 0;
+    size_t input_size = strlen(input);
+    *destination = malloc(input_size + 1);
+
+    for (int i = 0; i < input_size; i++) {
+        if (input[i] == '"') {
+            *destination = realloc(*destination, input_size + escaped_size + 2);
+            (*destination)[i + escaped_size] = '\\';
+            escaped_size++;
+        }
+        (*destination)[i + escaped_size] = input[i];
+    }
+    (*destination)[input_size + escaped_size] = '\0';
+}

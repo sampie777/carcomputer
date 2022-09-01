@@ -173,7 +173,7 @@ void convert_gngga_message(State *state, const char *message) {
     NmeaGNGGAMessage gga_message = {0};
     extract_GNGGA_message(message, &gga_message);
     if (nmea_calculate_checksum(message) != gga_message.checksum) {
-        printf("[GPS] Checksum failed\n");
+        // Checksum failed
         return;
     }
 
@@ -200,7 +200,7 @@ void convert_gnrmc_message(State *state, const char *message) {
     NmeaGNRMCMessage rmc_message = {0};
     extract_GNRMC_message(message, &rmc_message);
     if (nmea_calculate_checksum(message) != rmc_message.checksum) {
-        printf("[GPS] Checksum failed\n");
+        // Checksum failed
         return;
     }
 
@@ -224,9 +224,31 @@ void transmit(const char *data) {
     uart_write_bytes_with_break(GPSGSM_UART_NUMBER, data, strlen(data), 50);
 }
 
+/**
+ * Send the data string in smaller pieces at a time to reduce riskt for lengthy transfers
+ * @param data
+ * @param max_transfer_size
+ */
+void transmit_safe(const char *data, size_t max_transfer_size) {
+    printf("[GPS] Sending safe\n");
+    size_t length = strlen(data);
+    for (size_t i = 0; i < length; i += max_transfer_size) {
+        uart_write_bytes_with_break(GPSGSM_UART_NUMBER, &data[i],
+                                    min(max_transfer_size, length - i), 50);
+    }
+}
+
+void enable_internet() {
+    printf("[GPS] Enable internet\n");
+    transmit("AT+CGATT=1\r");
+    connection_state = GpsEnableRequestSent;
+}
+
 void enable_gps() {
-    printf("[GPS] Enable GPS\n");
+    printf("[GPS] Enable GPS and AGPS\n");
     transmit("AT+GPS=1\r");
+//    transmit("AT+AGPS=0\r");
+//    transmit("AT+AGPS=1\r");
     connection_state = GpsEnableRequestSent;
 }
 
@@ -241,7 +263,10 @@ void process_message(State *state, const char *message) {
     if (strlen(message) == 0) {
         return;
     }
-    printf("[GPS] Processing: '%s' with length: %d\n", message, strlen(message));
+
+    if (!starts_with(message, "$")) {
+        printf("[GPS] Processing: '%s' with length: %d\n", message, strlen(message));
+    }
 
     if (strcmp(message, "Init...") == 0) {
         connection_state = Initializing;
@@ -316,6 +341,7 @@ void gpsgsm_process(State *state) {
         printf("[GPS] Init timeout\n");
         connection_state = Initialized;
     } else if (connection_state == Initialized) {
+        enable_internet();
         enable_gps();
     } else if (connection_state == GpsEnableRequestApproved
                || (connection_state == GpsEnableRequestSent && esp_timer_get_time_ms() > state_start_time + 500)) {
@@ -374,7 +400,6 @@ void gpsgsm_init() {
 }
 
 void gsm_send_sms(const char *number, const char *message) {
-#if GSM_ENABLE
     printf("[GSM] Sending SMS to %s with content: '%s'\n", number, message);
 
     char buffer[32];
@@ -388,16 +413,7 @@ void gsm_send_sms(const char *number, const char *message) {
     delay_ms(500);
 
     // Insert SMS message
-    // Send message in smaller parts to GSM unit to ensure that most of the data will be received correctly
-    char temp_message[strlen(message) + 1];
-    strcpy(temp_message, message);
-    temp_message[strlen(message)] = '\0';
-    char *part = strtok(temp_message, " ");
-    while (part != NULL) {
-        transmit(part);
-        transmit(" ");
-        part = strtok(NULL, " ");
-    }
+    transmit_safe(message, 8);
     transmit("\r");
     delay_ms(500);
 
@@ -405,5 +421,32 @@ void gsm_send_sms(const char *number, const char *message) {
     sprintf(buffer, "%c\r", 0x1a);
     transmit(buffer);
     sms_state = Sending;
-#endif
+}
+
+void gsm_http_post(const char *url, const char *json) {
+    printf("[GSM] Sending data to %s\n", url);
+
+    // Strip domain from url
+    char url_copy[strlen(url)];
+    strcpy(url_copy, url);
+    strtok(url_copy, "://");
+    char *domain = strtok(NULL, "/");
+
+    char *json_escaped;
+    string_escape(json, &json_escaped);
+    printf("[GSM] JSON %s\n", json_escaped);
+
+    transmit("AT+CGATT=1\r");
+    transmit_safe("AT+CIPSTART=\"TCP\",\"", 8);
+    transmit_safe(domain, 8);
+    transmit("\",80\r");
+    delay_ms(5000);
+
+    transmit("AT+HTTPPOST=\"");
+    transmit_safe(url, 8);
+    transmit("\",\"application/json\",\"");
+    transmit_safe(json, 8);
+    transmit("\"\r");
+
+    free(json_escaped);
 }
