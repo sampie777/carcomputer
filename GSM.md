@@ -96,3 +96,20 @@ To check if the connection is open or closed:
 ```
 AT+CIPSTATUS
 ```
+
+## Interact with USSD
+
+Start the USSD to number `*135*502#` (text mode needs to be disabled):
+```
+AT+CMGF=0
+AT+CUSD=1,"*135*502#",15
+```
+
+Catch the output and convert the data between the `"` to hex. Parse this data on http://smstools3.kekekasvi.com/topic.php?id=288 in the _USSD Entry/Display_ field as _GSM 7bit packed_.
+
+To select an option of the message, use the same command again but this time with the option you want to select. To select option 2:
+```
+AT+CUSD=1,"2",15
+```
+
+If an SMS is sent, it will be received in PDU format. Pare this data on https://www.diafaan.com/sms-tutorials/gsm-modem-tutorial/online-sms-pdu-decoder/.
