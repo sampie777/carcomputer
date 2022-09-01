@@ -219,9 +219,13 @@ void convert_gnrmc_message(State *state, const char *message) {
     }
 }
 
-void transmit(const char *data) {
+void transmit(const char *data, uint8_t with_break) {
     printf("[GPS] Sending\n");
-    uart_write_bytes_with_break(GPSGSM_UART_NUMBER, data, strlen(data), 50);
+    if (with_break) {
+        uart_write_bytes_with_break(GPSGSM_UART_NUMBER, data, strlen(data), 50);
+    } else {
+        uart_write_bytes(GPSGSM_UART_NUMBER, data, strlen(data));
+    }
 }
 
 /**
@@ -229,24 +233,27 @@ void transmit(const char *data) {
  * @param data
  * @param max_transfer_size
  */
-void transmit_safe(const char *data, size_t max_transfer_size) {
+void transmit_safe(const char *data, size_t max_transfer_size, uint8_t with_break) {
     printf("[GPS] Sending safe\n");
     size_t length = strlen(data);
     for (size_t i = 0; i < length; i += max_transfer_size) {
-        uart_write_bytes_with_break(GPSGSM_UART_NUMBER, &data[i],
-                                    min(max_transfer_size, length - i), 50);
+        if (with_break && i + max_transfer_size > length) {
+            uart_write_bytes_with_break(GPSGSM_UART_NUMBER, &data[i], min(max_transfer_size, length - i), 50);
+        } else {
+            uart_write_bytes(GPSGSM_UART_NUMBER, &data[i], min(max_transfer_size, length - i));
+        }
     }
 }
 
 void enable_internet() {
     printf("[GPS] Enable internet\n");
-    transmit("AT+CGATT=1\r");
+    transmit("AT+CGATT=1\r", true);
     connection_state = GpsEnableRequestSent;
 }
 
 void enable_gps() {
     printf("[GPS] Enable GPS and AGPS\n");
-    transmit("AT+GPS=1\r");
+    transmit("AT+GPS=1\r", true);
 //    transmit("AT+AGPS=0\r");
 //    transmit("AT+AGPS=1\r");
     connection_state = GpsEnableRequestSent;
@@ -255,7 +262,7 @@ void enable_gps() {
 void enable_gps_logging() {
     printf("[GPS] Enable GPS logging\n");
     delay_ms(10);
-    transmit("AT+GPSRD=1\r");
+    transmit("AT+GPSRD=1\r", true);
     connection_state = GpsEnableNmeaLoggingRequestSent;
 }
 
@@ -404,22 +411,22 @@ void gsm_send_sms(const char *number, const char *message) {
 
     char buffer[32];
     // Enable text mode
-    transmit("AT+CMGF=1\r");
+    transmit("AT+CMGF=1\r", true);
     delay_ms(100);
 
     // Start SMS to number
     sprintf(buffer, "AT+CMGS=%s\r", number);
-    transmit(buffer);
+    transmit(buffer, true);
     delay_ms(500);
 
     // Insert SMS message
-    transmit_safe(message, 8);
-    transmit("\r");
+    transmit_safe(message, 8, false);
+    transmit("\r", true);
     delay_ms(500);
 
     // Send SMS
     sprintf(buffer, "%c\r", 0x1a);
-    transmit(buffer);
+    transmit(buffer, true);
     sms_state = Sending;
 }
 
@@ -436,17 +443,20 @@ void gsm_http_post(const char *url, const char *json) {
     string_escape(json, &json_escaped);
     printf("[GSM] JSON %s\n", json_escaped);
 
-    transmit("AT+CGATT=1\r");
-    transmit_safe("AT+CIPSTART=\"TCP\",\"", 8);
-    transmit_safe(domain, 8);
-    transmit("\",80\r");
-    delay_ms(5000);
+    transmit("AT+CGATT=1\r", false);
+    transmit_safe("AT+CIPSTART=\"TCP\",\"", 8, false);
+    transmit_safe(domain, 8, false);
+    transmit("\",80\r", true);
 
-    transmit("AT+HTTPPOST=\"");
-    transmit_safe(url, 8);
-    transmit("\",\"application/json\",\"");
-    transmit_safe(json, 8);
-    transmit("\"\r");
+    // Cave man way to wait for the connection to be established
+    delay_ms(5000);
+    uart_flush(GPSGSM_UART_NUMBER);
+
+    transmit("AT+HTTPPOST=\"", false);
+    transmit_safe(url, 8, false);
+    transmit("\",\"application/json\",\"", false);
+    transmit_safe(json, 8, false);
+    transmit("\"\r", true);
 
     free(json_escaped);
 }

@@ -47,10 +47,6 @@ void data_logger_upload_all(State *state) {
 void data_logger_upload_current(State *state) {
     static int64_t last_log_time = 0;
 
-    if (!state->car.is_ignition_on) {
-        return;
-    }
-
     if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_SINGLE_UPLOAD_INTERVAL_MS) return;
     last_log_time = esp_timer_get_time_ms();
 
