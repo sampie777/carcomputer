@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 #include "../../config.h"
 #include "display.h"
 #include "../../utils.h"
@@ -167,8 +168,12 @@ void content_motion_sensors_data(const State *state) {
     offset_x += 7 * 5;
     offset_y += 10;
 
-    sprintf(buffer, "Temp: %6.3f", state->motion.temperature);
+    offset_y += 12;
+    sprintf(buffer, "G: %6.2f", sqrt(state->motion.accel_x * state->motion.accel_x + state->motion.accel_y * state->motion.accel_y + state->motion.accel_z * state->motion.accel_z));
     sh1106_draw_string(&sh1106, 0, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    sprintf(buffer, "Temp: %5.2f", state->motion.temperature);
+    sh1106_draw_string(&sh1106, 11 * 5, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y = STATUS_BAR_HEIGHT + 5;
 
     sh1106_draw_string(&sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, "Gyro");

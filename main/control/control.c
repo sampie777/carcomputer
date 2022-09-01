@@ -2,6 +2,7 @@
 // Created by samuel on 19-7-22.
 //
 
+#include <math.h>
 #include "control.h"
 #include "../peripherals/canbus.h"
 #include "../peripherals/gas_pedal.h"
@@ -11,6 +12,7 @@
 #include "../peripherals/buttons.h"
 #include "../utils.h"
 #include "../peripherals/mpu9250.h"
+#include "../peripherals/gpsgsm.h"
 
 #if WIFI_ENABLE
 #include "../connectivity/server.h"
@@ -157,4 +159,43 @@ void control_trip_logger(State *state) {
     // Track this value in case ignition turns on after trip ended (for closing windows or something).
     state->car.odometer_start = state->car.odometer;
     state->trip_has_been_uploaded = true;
+}
+
+void control_crash_detection(State *state) {
+    static int64_t last_sent = 0;
+    double total_force = sqrt(state->motion.accel_x * state->motion.accel_x + state->motion.accel_y * state->motion.accel_y + state->motion.accel_z * state->motion.accel_z);
+    if (total_force < CRASH_DETECTION_CRASH_MIN_G) return;
+
+    if (esp_timer_get_time_ms() < last_sent + CRASH_DETECTION_CRASH_MAX_DURATION_MS) return;
+    last_sent = esp_timer_get_time_ms();
+
+#ifdef ICE_CONTACT_NUMBER
+    char message[158];   // Max SMS length
+
+    sprintf(message, "CRASH! (%.1f g)", total_force);
+    display_set_error_message(state, message);
+
+    sprintf(message, "CRASH! Location: %.5f,%.5f at %02d:%02d:%02d %02d-%02d-%d (accuracy: %d%%). Force: %.1f g.",
+            state->location.latitude,
+            state->location.longitude,
+            state->location.time.hours,
+            state->location.time.minutes,
+            state->location.time.seconds,
+            state->location.time.day,
+            state->location.time.month,
+            state->location.time.year,
+            state->location.satellites / 4 * 100,
+            total_force
+    );
+
+    // Loop over all specified numbers and send them
+    char numbers[] = ICE_CONTACT_NUMBER;
+    char *number = strtok(numbers, ";");
+    while (number != NULL) {
+        gsm_send_sms(number, message);
+        number = strtok(NULL, ";");
+    }
+#else
+    display_set_error_message(state, "CRASH, no ICE!");
+#endif
 }

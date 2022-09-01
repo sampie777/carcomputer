@@ -23,4 +23,6 @@ void control_trip_logger(State *state);
 
 void control_cruise_control(State *state);
 
+void control_crash_detection(State *state);
+
 #endif //APP_TEMPLATE_CONTROL_H

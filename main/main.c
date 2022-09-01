@@ -61,6 +61,7 @@ _Noreturn void process_main(State *state) {
         control_trip_logger(state);
         control_door_lock(state);
         control_cruise_control(state);
+        control_crash_detection(state);
 
 #if SD_ENABLE
         data_logger_process(state);

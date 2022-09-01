@@ -11,4 +11,6 @@ void gpsgsm_init();
 
 void gpsgsm_process(State *state);
 
+void gsm_send_sms(const char *number, const char *message);
+
 #endif //APP_TEMPLATE_GPSGSM_H

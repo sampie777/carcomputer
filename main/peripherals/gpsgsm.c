@@ -58,6 +58,14 @@ enum ConnectionState {
 };
 static enum ConnectionState connection_state = Initializing;
 
+enum SmsState {
+    Idle = 0,
+    Sending,
+    SentSuccess,
+    SentFailed
+};
+static enum SmsState sms_state = Idle;
+
 void extract_int(char **source, int *destination, char *delimiter) {
     char *match = strsep(source, delimiter);
     if (match == NULL) return;
@@ -218,14 +226,14 @@ void transmit(const char *data) {
 
 void enable_gps() {
     printf("[GPS] Enable GPS\n");
-    transmit("AT+GPS=1\r\n");
+    transmit("AT+GPS=1\r");
     connection_state = GpsEnableRequestSent;
 }
 
 void enable_gps_logging() {
     printf("[GPS] Enable GPS logging\n");
     delay_ms(10);
-    transmit("AT+GPSRD=1\r\n");
+    transmit("AT+GPSRD=1\r");
     connection_state = GpsEnableNmeaLoggingRequestSent;
 }
 
@@ -233,7 +241,7 @@ void process_message(State *state, const char *message) {
     if (strlen(message) == 0) {
         return;
     }
-//    printf("[GPS] Processing: '%s' with length: %d\n", message, strlen(message));
+    printf("[GPS] Processing: '%s' with length: %d\n", message, strlen(message));
 
     if (strcmp(message, "Init...") == 0) {
         connection_state = Initializing;
@@ -243,12 +251,14 @@ void process_message(State *state, const char *message) {
         connection_state = GpsEnableRequestApproved;
     } else if (connection_state == GpsEnableNmeaLoggingRequestSent && strcmp(message, "OK") == 0) {
         connection_state = GpsEnableNmeaLoggingRequestApproved;
+    } else if (starts_with(message, "+CMGS=")) {
+        sms_state = SentSuccess;
     }
 
     if (strstr(message, "$GNGGA") != NULL) {
         connection_state = GpsNmeaLoggingStarted;
         convert_gngga_message(state, message);
-    }else if (strstr(message, "$GNRMC") != NULL) {
+    } else if (strstr(message, "$GNRMC") != NULL) {
         convert_gnrmc_message(state, message);
     }
 }
@@ -294,6 +304,7 @@ void read_messages(State *state) {
 
 void gpsgsm_process(State *state) {
     static int64_t state_start_time = 0;
+    static int64_t sms_sent_time = 0;
     static enum ConnectionState previous_state = 0xff;
 
     if (connection_state != previous_state) {
@@ -314,6 +325,21 @@ void gpsgsm_process(State *state) {
         display_set_error_message(state, "GPS timeout");
         // Retry GPS enabling
         connection_state = Initialized;
+    }
+
+    if (sms_state == Sending) {
+        if (sms_sent_time == 0) {
+            sms_sent_time = esp_timer_get_time_ms();
+        } else if (esp_timer_get_time_ms() > sms_sent_time + GPSGSM_SMS_SENT_MAX_TIMEOUT_MS) {
+            sms_state = SentFailed;
+        }
+    } else if (sms_state == SentSuccess) {
+        sms_state = Idle;
+        sms_sent_time = 0;
+    } else if (sms_state == SentFailed) {
+        display_set_error_message(state, "SMS failed");
+        sms_state = Idle;
+        sms_sent_time = 0;
     }
 
     read_messages(state);
@@ -345,4 +371,39 @@ void gpsgsm_init() {
                                         uart_buffer_size, 10, &uart_queue, 0));
 
     printf("[GPS] Init done\n");
+}
+
+void gsm_send_sms(const char *number, const char *message) {
+#if !GSM_ENABLE
+    printf("[GSM] Sending SMS to %s with content: '%s'\n", number, message);
+
+    char buffer[32];
+    // Enable text mode
+    transmit("AT+CMGF=1\r");
+    delay_ms(100);
+
+    // Start SMS to number
+    sprintf(buffer, "AT+CMGS=%s\r", number);
+    transmit(buffer);
+    delay_ms(500);
+
+    // Insert SMS message
+    // Send message in smaller parts to GSM unit to ensure that most of the data will be received correctly
+    char temp_message[strlen(message) + 1];
+    strcpy(temp_message, message);
+    temp_message[strlen(message)] = '\0';
+    char *part = strtok(temp_message, " ");
+    while (part != NULL) {
+        transmit(part);
+        transmit(" ");
+        part = strtok(NULL, " ");
+    }
+    transmit("\r");
+    delay_ms(500);
+
+    // Send SMS
+    sprintf(buffer, "%c\r", 0x1a);
+    transmit(buffer);
+    sms_state = Sending;
+#endif
 }
