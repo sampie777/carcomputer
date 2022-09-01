@@ -374,7 +374,7 @@ void gpsgsm_init() {
 }
 
 void gsm_send_sms(const char *number, const char *message) {
-#if !GSM_ENABLE
+#if GSM_ENABLE
     printf("[GSM] Sending SMS to %s with content: '%s'\n", number, message);
 
     char buffer[32];
