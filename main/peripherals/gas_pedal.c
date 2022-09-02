@@ -20,7 +20,6 @@ int is_pedal_connected(double reading_0, double reading_1) {
 }
 
 int gas_pedal_init_minimums(State *state) {
-//    printf("[GasPedal] Calibrating minimums\n");
     double reading_0 = average_read_channel(CAR_GAS_PEDAL_ADC_CHANNEL_0, 5 * CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
     double reading_1 = average_read_channel(CAR_GAS_PEDAL_ADC_CHANNEL_1, 5 * CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
 
@@ -31,8 +30,8 @@ int gas_pedal_init_minimums(State *state) {
         return RESULT_DISCONNECTED;
     }
     state->car.gas_pedal_connected = true;
-    state->car.gas_pedal_0_min_value = (int) reading_0;
-    state->car.gas_pedal_1_min_value = (int) reading_1;
+    state->car.gas_pedal_0_min_value = (uint16_t) reading_0;
+    state->car.gas_pedal_1_min_value = (uint16_t) reading_1;
     return RESULT_OK;
 }
 
@@ -66,19 +65,19 @@ void gas_pedal_write(State *state) {
         gas_pedal_init_minimums(state);
     }
 
-    uint32_t duty_cycle_0, duty_cycle_1;
+    uint16_t duty_cycle_0, duty_cycle_1;
 
     // Convert relative gas pedal value to absolute (10 bit, see config) duty cycle values for each sensor.
     if (state->car.gas_pedal_0_min_value > state->car.gas_pedal_1_min_value) {
         int difference = CAR_GAS_PEDAL_MAX_VALUE - state->car.gas_pedal_0_min_value;
-        double factor = (double) state->car.gas_pedal_1_min_value / state->car.gas_pedal_0_min_value;
-        duty_cycle_0 = (int) (state->car.gas_pedal_0_min_value + difference * state->cruise_control.virtual_gas_pedal);
-        duty_cycle_1 = (int) (factor * duty_cycle_0);
+        double factor = state->car.gas_pedal_0_min_value == 0 ? 0 : (double) state->car.gas_pedal_1_min_value / state->car.gas_pedal_0_min_value;
+        duty_cycle_0 = (uint16_t) (state->car.gas_pedal_0_min_value + difference * state->cruise_control.virtual_gas_pedal);
+        duty_cycle_1 = (uint16_t) (factor * duty_cycle_0);
     } else {
         int difference = CAR_GAS_PEDAL_MAX_VALUE - state->car.gas_pedal_1_min_value;
-        double factor = (double) state->car.gas_pedal_0_min_value / state->car.gas_pedal_1_min_value;
-        duty_cycle_1 = (int) (state->car.gas_pedal_1_min_value + difference * state->cruise_control.virtual_gas_pedal);
-        duty_cycle_0 = (int) (factor * duty_cycle_1);
+        double factor = state->car.gas_pedal_1_min_value == 0 ? 0 : (double) state->car.gas_pedal_0_min_value / state->car.gas_pedal_1_min_value;
+        duty_cycle_1 = (uint16_t) (state->car.gas_pedal_1_min_value + difference * state->cruise_control.virtual_gas_pedal);
+        duty_cycle_0 = (uint16_t) (factor * duty_cycle_1);
     }
 
     // Set PWM output

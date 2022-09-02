@@ -30,8 +30,8 @@ typedef struct {
 
     uint8_t gas_pedal_connected;
     double gas_pedal;               // Relative value between 0.0 and 1.0
-    int gas_pedal_0_min_value;      // Absolute value between 0 and ADC max
-    int gas_pedal_1_min_value;      // Absolute value between 0 and ADC max
+    uint16_t gas_pedal_0_min_value;      // Absolute value between 0 and ADC max
+    uint16_t gas_pedal_1_min_value;      // Absolute value between 0 and ADC max
 } CarState;
 
 typedef struct {
