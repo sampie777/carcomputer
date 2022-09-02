@@ -9,5 +9,6 @@
 
 int server_send_trip_end(State *state);
 int server_send_data_log_record(State *state);
+int server_send_data(State *state, const char *json);
 
 #endif //APP_TEMPLATE_SERVER_H

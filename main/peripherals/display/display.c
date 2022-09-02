@@ -74,13 +74,13 @@ void show_statusbar(State *state) {
         sh1106_draw_icon(&sh1106, offset_right, 1,
                          icon_wifi, sizeof(icon_wifi), icon_wifi_width, FONT_WHITE);
     }
+#endif
 
     offset_right -= 3 + icon_data_width;
     if (state->server_is_uploading) {
         sh1106_draw_icon(&sh1106, offset_right, 1,
                          icon_data, sizeof(icon_data), icon_data_width, FONT_WHITE);
     }
-#endif
 
 #if BLUETOOTH_ENABLE
     offset_right -= 3 + icon_bluetooth_width;

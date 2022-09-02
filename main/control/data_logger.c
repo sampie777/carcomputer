@@ -79,7 +79,12 @@ void data_logger_upload_current(State *state) {
             state->location.time.minutes,
             state->location.time.seconds,
             state->location.time.timezone);
-    gsm_http_post(DATA_LOGGER_SINGLE_UPLOAD_URL, buffer);
+
+#if WIFI_ENABLE
+    server_send_data(state, buffer);
+#else
+    gsm_http_post(state, DATA_LOGGER_SINGLE_UPLOAD_URL, buffer);
+#endif
 }
 
 /**
@@ -228,6 +233,8 @@ void data_logger_init(State *state) {
 
         sd_card_file_append(state->storage.filename, "timestamp;car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;wifi_ssid;wifi_ip.addr;wifi_is_connected;bluetooth_connected;motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;location_is_gps_on;location_quality;location_satellites;location_is_effective_positioning;location_latitude;location_longitude;location_altitude;location_ground_speed;location_ground_heading;location_datetime;\n");
     }
+#else
+    state->storage.is_connected = false;
 #endif
 
     printf("[DataLogger] Init done\n");

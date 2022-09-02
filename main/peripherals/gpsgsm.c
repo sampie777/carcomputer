@@ -431,8 +431,9 @@ void gsm_send_sms(const char *number, const char *message) {
     sms_state = Sending;
 }
 
-void gsm_http_post(const char *url, const char *json) {
+void gsm_http_post(State *state, const char *url, const char *json) {
     printf("[GSM] Sending data to %s\n", url);
+    state->server_is_uploading = true;
 
     // Strip domain from url
     char url_copy[strlen(url)];
@@ -444,6 +445,7 @@ void gsm_http_post(const char *url, const char *json) {
     string_escape(json, &json_escaped);
     printf("[GSM] JSON %s\n", json_escaped);
 
+    // Open connection to the server
     transmit("AT+CGATT=1\r", false);
     transmit_safe("AT+CIPSTART=\"TCP\",\"", 8, false);
     transmit_safe(domain, 8, false);
@@ -453,6 +455,7 @@ void gsm_http_post(const char *url, const char *json) {
     delay_ms(5000);
     uart_flush(GPSGSM_UART_NUMBER);
 
+    // Send data to the server
     transmit("AT+HTTPPOST=\"", false);
     transmit_safe(url, 8, false);
     transmit("\",\"application/json\",\"", false);
@@ -460,4 +463,5 @@ void gsm_http_post(const char *url, const char *json) {
     transmit("\"\r", true);
 
     free(json_escaped);
+    state->server_is_uploading = false;
 }

@@ -83,7 +83,7 @@ esp_err_t server_http_event_handler(esp_http_client_event_t *evt) {
     return ESP_OK;
 }
 
-int server_send_data(const char *data) {
+int send_data(const char *data) {
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
     esp_http_client_config_t config = {
             .url = SERVER_POST_URL,
@@ -159,7 +159,7 @@ int server_send_trip_end(State *state) {
             state->location.time.minutes,
             state->location.time.seconds,
             state->location.time.timezone);
-    int result = server_send_data(buffer);
+    int result = send_data(buffer);
     state->server_is_uploading = false;
     return result;
 }
@@ -273,7 +273,15 @@ int server_send_data_log_record(State *state) {
             state->location.time.seconds,
             state->location.time.timezone
     );
-    int result = server_send_data(buffer);
+    int result = send_data(buffer);
+    state->server_is_uploading = false;
+    return result;
+}
+
+int server_send_data(State *state, const char *json) {
+    printf("[Server] Logging data...\n");
+    state->server_is_uploading = true;
+    int result = send_data(json);
     state->server_is_uploading = false;
     return result;
 }
