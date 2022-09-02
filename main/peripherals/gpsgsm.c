@@ -248,6 +248,7 @@ void transmit_safe(const char *data, size_t max_transfer_size, uint8_t with_brea
 void enable_internet() {
     printf("[GPS] Enable internet\n");
     transmit("AT+CGATT=1\r", true);
+    transmit("T+CGDCONT=1,\"IP\",\"internet\",\"0.0.0.0\",0,0\r", true);
     connection_state = GpsEnableRequestSent;
 }
 
