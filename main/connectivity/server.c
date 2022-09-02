@@ -83,17 +83,17 @@ esp_err_t server_http_event_handler(esp_http_client_event_t *evt) {
     return ESP_OK;
 }
 
-int send_data(const char *data) {
+int send_data(const char *url, const char *data) {
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
     esp_http_client_config_t config = {
-            .url = SERVER_POST_URL,
+            .url = url,
             .event_handler = server_http_event_handler,
             .user_data = local_response_buffer,
             .disable_auto_redirect = true,
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
-    esp_http_client_set_url(client, SERVER_POST_URL);
+    esp_http_client_set_url(client, url);
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
     esp_http_client_set_post_field(client, data, (int) strlen(data));
@@ -159,7 +159,7 @@ int server_send_trip_end(State *state) {
             state->location.time.minutes,
             state->location.time.seconds,
             state->location.time.timezone);
-    int result = send_data(buffer);
+    int result = send_data(TRIP_LOGGER_UPLOAD_URL, buffer);
     state->server_is_uploading = false;
     return result;
 }
@@ -273,15 +273,15 @@ int server_send_data_log_record(State *state) {
             state->location.time.seconds,
             state->location.time.timezone
     );
-    int result = send_data(buffer);
+    int result = send_data(DATA_LOGGER_ALL_UPLOAD_URL, buffer);
     state->server_is_uploading = false;
     return result;
 }
 
-int server_send_data(State *state, const char *json) {
+int server_send_data(State *state, const char *url, const char *json) {
     printf("[Server] Logging data...\n");
     state->server_is_uploading = true;
-    int result = send_data(json);
+    int result = send_data(url, json);
     state->server_is_uploading = false;
     return result;
 }

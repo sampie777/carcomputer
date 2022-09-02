@@ -45,6 +45,7 @@ void data_logger_upload_all(State *state) {
 }
 
 void data_logger_upload_current(State *state) {
+#ifdef DATA_LOGGER_SINGLE_UPLOAD_URL
     static int64_t last_log_time = 0;
 
     if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_SINGLE_UPLOAD_INTERVAL_MS) return;
@@ -81,9 +82,10 @@ void data_logger_upload_current(State *state) {
             state->location.time.timezone);
 
 #if WIFI_ENABLE
-    server_send_data(state, buffer);
+    server_send_data(state, DATA_LOGGER_SINGLE_UPLOAD_URL, buffer);
 #else
     gsm_http_post(state, DATA_LOGGER_SINGLE_UPLOAD_URL, buffer);
+#endif
 #endif
 }
 

@@ -8,7 +8,9 @@
 #include "../state.h"
 
 int server_send_trip_end(State *state);
+
 int server_send_data_log_record(State *state);
-int server_send_data(State *state, const char *json);
+
+int server_send_data(State *state, const char *url, const char *json);
 
 #endif //APP_TEMPLATE_SERVER_H

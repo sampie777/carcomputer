@@ -220,7 +220,6 @@ void convert_gnrmc_message(State *state, const char *message) {
 }
 
 void transmit(const char *data, uint8_t with_break) {
-    printf("[GPS] Sending\n");
     if (with_break) {
         uart_write_bytes_with_break(GPSGSM_UART_NUMBER, data, strlen(data), 50);
     } else {
@@ -234,7 +233,6 @@ void transmit(const char *data, uint8_t with_break) {
  * @param max_transfer_size
  */
 void transmit_safe(const char *data, size_t max_transfer_size, uint8_t with_break) {
-    printf("[GPS] Sending safe\n");
     size_t length = strlen(data);
     for (size_t i = 0; i < length; i += max_transfer_size) {
         if (with_break && i + max_transfer_size > length) {
