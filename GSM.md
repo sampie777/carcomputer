@@ -112,4 +112,9 @@ To select an option of the message, use the same command again but this time wit
 AT+CUSD=1,"2",15
 ```
 
-If an SMS is sent, it will be received in PDU format. Pare this data on https://www.diafaan.com/sms-tutorials/gsm-modem-tutorial/online-sms-pdu-decoder/.
+If an SMS is sent, it will be received in PDU format. Parse this data on https://www.diafaan.com/sms-tutorials/gsm-modem-tutorial/online-sms-pdu-decoder/.
+
+## Sources
+
+For more information, check one of the following sources:
+- [https://github.com/akarsh98/A9G-Supporting-material](https://github.com/akarsh98/A9G-Supporting-material)
