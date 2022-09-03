@@ -17,6 +17,8 @@ void control_read_user_input(State *state);
 
 void control_door_lock(State *state);
 
+void control_engine_shutoff(State *state);
+
 void control_mpu_power(State *state);
 
 void control_trip_logger(State *state);

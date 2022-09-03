@@ -54,8 +54,9 @@ _Noreturn void process_main(State *state) {
 
         // Process data
         control_mpu_power(state);
-        control_trip_logger(state);
+        control_engine_shutoff(state);
         control_door_lock(state);
+        control_trip_logger(state);
         control_cruise_control(state);
         control_crash_detection(state);
 

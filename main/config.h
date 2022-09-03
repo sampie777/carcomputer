@@ -11,7 +11,7 @@ extern "C" {
 
 #include "secrets.h"
 
-// Unused GPIOs: 22, 25, 26 (GPIO15 will/must be HIGH on device reset: strapping pin)
+// Unused GPIOs: 22 (GPIO15 will/must be HIGH on device reset: strapping pin)
 // GPIO16-17 are usually connected to the SPI flash and PSRAM integrated on the module
 // and therefore should not be used for other purposes (https://docs.espressif.com/projects/esp-idf/en/v4.4.1/esp32/api-reference/peripherals/gpio.html)
 
@@ -88,7 +88,10 @@ extern "C" {
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER_SPEED_MODE LEDC_HIGH_SPEED_MODE
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_0 LEDC_CHANNEL_0
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_1 LEDC_CHANNEL_0
-#define CAR_VIRTUAL_GAS_PEDAL_RISE_TIME_MS 100  // Time to wait before switching gas pedal to virtual gas pedalr
+#define CAR_VIRTUAL_GAS_PEDAL_RISE_TIME_MS 100  // Time to wait before switching gas pedal to virtual gas pedal
+
+#define CAR_CLAXON_PIN GPIO_NUM_25
+#define CAR_ENGINE_SHUTOFF_DISABLE_PIN GPIO_NUM_26
 
 #define BUTTONS_ADC_CHANNEL_0 ADC1_CHANNEL_0    // Mapped to PIN 36
 #define BUTTONS_ADC_CHANNEL_1 ADC1_CHANNEL_3    // Mapped to PIN 39
