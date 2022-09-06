@@ -122,8 +122,6 @@ void control_cruise_control(State *state) {
 
 void control_init(State *state) {
     gpio_set_direction(POWER_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_direction(CAR_CLAXON_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_direction(CAR_ENGINE_SHUTOFF_DISABLE_PIN, GPIO_MODE_OUTPUT);
 
     canbus_init(state);
     gas_pedal_init(state);
@@ -204,8 +202,4 @@ void control_crash_detection(State *state) {
 #else
     display_set_error_message(state, "CRASH, no ICE!");
 #endif
-}
-
-void control_engine_shutoff(State *state) {
-    gpio_set_level(CAR_ENGINE_SHUTOFF_DISABLE_PIN, 1);
 }

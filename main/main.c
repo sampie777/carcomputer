@@ -11,6 +11,8 @@
 #include "peripherals/display/display.h"
 #include "peripherals/gpsgsm.h"
 #include "control/data_logger.h"
+#include "control/security.h"
+
 #if WIFI_ENABLE
 #include "connectivity/wifi.h"
 #endif
@@ -33,6 +35,7 @@ _Noreturn void process_main(State *state) {
     adc1_config_width(ADC_RESOLUTION - 9);
     i2c_init();
     spi_init(state);
+    security_init();
     control_init(state);
     data_logger_init(state);
     gpsgsm_init();
@@ -53,8 +56,8 @@ _Noreturn void process_main(State *state) {
         gpsgsm_process(state);
 
         // Process data
+        security_step(state);
         control_mpu_power(state);
-        control_engine_shutoff(state);
         control_door_lock(state);
         control_trip_logger(state);
         control_cruise_control(state);
