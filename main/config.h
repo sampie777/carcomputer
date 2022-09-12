@@ -22,6 +22,7 @@ extern "C" {
 
 #define BLUETOOTH_ENABLE false
 #define WIFI_ENABLE false
+#define GSM_ENABLE false
 #define SD_ENABLE false
 
 #define WIFI_SCAN_INTERVAL_MS 2500
@@ -33,7 +34,7 @@ extern "C" {
 #define TRIP_LOGGER_UPLOAD_URL "http://httpbin.org/post"
 #define DATA_LOGGER_LOG_INTERVAL_MS 500
 #define DATA_LOGGER_SINGLE_UPLOAD_INTERVAL_MS 20000
-//#define DATA_LOGGER_SINGLE_UPLOAD_URL "http://httpbin.org/post"   // Comment to disable interval upload
+#define DATA_LOGGER_SINGLE_UPLOAD_URL "http://httpbin.org/post"   // Comment to disable interval upload
 #define DATA_LOGGER_ALL_UPLOAD_URL "http://httpbin.org/post"
 
 #define SPI_MOSI_PIN GPIO_NUM_12

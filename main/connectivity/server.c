@@ -9,6 +9,10 @@
 #include "../utils.h"
 #include "../return_codes.h"
 
+#if GSM_ENABLE
+#include "../peripherals/gpsgsm.h"
+#endif
+
 // Source: https://github.com/espressif/esp-idf/blob/36f49f361c001b49c538364056bc5d2d04c6f321/examples/protocols/esp_http_client/main/esp_http_client_example.c
 
 #define MAX_HTTP_OUTPUT_BUFFER 1024
@@ -83,8 +87,10 @@ esp_err_t server_http_event_handler(esp_http_client_event_t *evt) {
     return ESP_OK;
 }
 
-int send_data(const char *url, const char *data) {
+int send_data_over_wifi(const char *url, const char *data) {
+#if WIFI_ENABLE
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
+
     esp_http_client_config_t config = {
             .url = url,
             .event_handler = server_http_event_handler,
@@ -120,11 +126,29 @@ int send_data(const char *url, const char *data) {
         return RESULT_OK;
     }
     return RESULT_FAILED;
+#else
+    return RESULT_FAILED;
+#endif
+}
+
+int send_data_over_gsm(State *state, const char *url, const char *data) {
+#if GSM_ENABLE
+    gsm_http_post(state, url, data);
+#endif
+    return RESULT_OK;
+}
+
+int send_data(State *state, const char *url, const char *data, uint8_t wifi_only) {
+    if (wifi_only && !state->wifi.is_connected)
+        return RESULT_DISCONNECTED;
+
+    if (state->wifi.is_connected)
+        return send_data_over_wifi(url, data);
+    return send_data_over_gsm(state, url, data);
 }
 
 int server_send_trip_end(State *state) {
     printf("[Server] Logging trip end...\n");
-    state->server_is_uploading = true;
     char buffer[512];
     sprintf(buffer, "{"
                     "\"uptimeMs\": \"%lld\","
@@ -159,14 +183,11 @@ int server_send_trip_end(State *state) {
             state->location.time.minutes,
             state->location.time.seconds,
             state->location.time.timezone);
-    int result = send_data(TRIP_LOGGER_UPLOAD_URL, buffer);
-    state->server_is_uploading = false;
-    return result;
+    return server_send_data(state, TRIP_LOGGER_UPLOAD_URL, buffer, false);
 }
 
 int server_send_data_log_record(State *state) {
     printf("[Server] Logging data record...\n");
-    state->server_is_uploading = true;
     char buffer[1200];
     sprintf(buffer, "{"
                     "\"uptimeMs\": %lld,"
@@ -273,15 +294,12 @@ int server_send_data_log_record(State *state) {
             state->location.time.seconds,
             state->location.time.timezone
     );
-    int result = send_data(DATA_LOGGER_ALL_UPLOAD_URL, buffer);
-    state->server_is_uploading = false;
-    return result;
+    return server_send_data(state, DATA_LOGGER_ALL_UPLOAD_URL, buffer, true);
 }
 
-int server_send_data(State *state, const char *url, const char *json) {
-    printf("[Server] Logging data...\n");
+int server_send_data(State *state, const char *url, const char *json, uint8_t wifi_only) {
     state->server_is_uploading = true;
-    int result = send_data(url, json);
+    int result = send_data(state, url, json, wifi_only);
     state->server_is_uploading = false;
     return result;
 }

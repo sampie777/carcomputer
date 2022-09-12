@@ -11,6 +11,6 @@ int server_send_trip_end(State *state);
 
 int server_send_data_log_record(State *state);
 
-int server_send_data(State *state, const char *url, const char *json);
+int server_send_data(State *state, const char *url, const char *json, uint8_t wifi_only);
 
 #endif //APP_TEMPLATE_SERVER_H

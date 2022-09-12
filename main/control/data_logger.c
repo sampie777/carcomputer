@@ -6,12 +6,7 @@
 #include "../peripherals/sd_card.h"
 #include "../return_codes.h"
 #include "../utils.h"
-#include "../peripherals/display/display.h"
-#include "../peripherals/gpsgsm.h"
-
-#if WIFI_ENABLE
 #include "../connectivity/server.h"
-#endif
 
 void data_logger_upload_all(State *state) {
     static int64_t engine_off_time = 0;
@@ -33,7 +28,7 @@ void data_logger_upload_all(State *state) {
     // Can't upload data if WiFi is disconnected
     if (!state->wifi.is_connected) return;
 
-#if WIFI_ENABLE
+#ifdef DATA_LOGGER_ALL_UPLOAD_URL
     if (server_send_data_log_record(state) != RESULT_OK) {
         // Retry again in X seconds
         engine_off_time = esp_timer_get_time_ms() + TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS - TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS;
@@ -45,7 +40,6 @@ void data_logger_upload_all(State *state) {
 }
 
 void data_logger_upload_current(State *state) {
-#ifdef DATA_LOGGER_SINGLE_UPLOAD_URL
     static int64_t last_log_time = 0;
 
     if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_SINGLE_UPLOAD_INTERVAL_MS) return;
@@ -81,11 +75,8 @@ void data_logger_upload_current(State *state) {
             state->location.time.seconds,
             state->location.time.timezone);
 
-#if WIFI_ENABLE
-    server_send_data(state, DATA_LOGGER_SINGLE_UPLOAD_URL, buffer);
-#else
-    gsm_http_post(state, DATA_LOGGER_SINGLE_UPLOAD_URL, buffer);
-#endif
+#ifdef DATA_LOGGER_SINGLE_UPLOAD_URL
+    server_send_data(state, DATA_LOGGER_SINGLE_UPLOAD_URL, buffer, false);
 #endif
 }
 
