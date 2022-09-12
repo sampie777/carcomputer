@@ -66,6 +66,9 @@ enum SmsState {
 };
 static enum SmsState sms_state = Idle;
 
+static char *post_url;
+static char *post_body;
+
 void extract_int(char **source, int *destination, char *delimiter) {
     char *match = strsep(source, delimiter);
     if (match == NULL) return;
@@ -377,6 +380,19 @@ void gpsgsm_process(State *state) {
     read_messages(state);
 
     state->location.is_gps_on = connection_state == GpsNmeaLoggingStarted;
+
+    if (state->gsm.is_uploading && esp_timer_get_time_ms() > state->gsm.upload_start_time + 5000) {
+        // Send data to the server
+        transmit("AT+HTTPPOST=\"", false);
+        transmit_safe(post_url, 8, false);
+        transmit("\",\"application/json\",\"", false);
+        transmit_safe(post_body, 8, false);
+        transmit("\"\r", true);
+
+        free(post_url);
+        free(post_body);
+        state->gsm.is_uploading = false;
+    }
 }
 
 void gpsgsm_init() {
@@ -431,7 +447,8 @@ void gsm_send_sms(const char *number, const char *message) {
 
 void gsm_http_post(State *state, const char *url, const char *json) {
     printf("[GSM] Sending data to %s\n", url);
-    state->server_is_uploading = true;
+    state->gsm.is_uploading = true;
+    state->gsm.upload_start_time = esp_timer_get_time_ms();
 
     // Strip domain from url
     char url_copy[strlen(url)];
@@ -439,9 +456,28 @@ void gsm_http_post(State *state, const char *url, const char *json) {
     strtok(url_copy, "://");
     char *domain = strtok(NULL, "/");
 
+    // Store url for upload
+    if (post_url) free(post_url);
+    post_url = malloc(strlen(url) + 1);
+    strcpy(post_url, url);
+    post_url[strlen(url)] = '0';
+
     char *json_escaped;
     string_escape(json, &json_escaped);
     printf("[GSM] JSON %s\n", json_escaped);
+
+    if (!json_escaped) {
+        printf("[GSM] JSON string points to null\n");
+        state->gsm.is_uploading = false;
+        return;
+    }
+
+    // Store body for upload
+    if (post_body) free(post_body);
+    post_body = malloc(strlen(json_escaped) + 1);
+    strcpy(post_body, json_escaped);
+    post_body[strlen(json_escaped)] = '0';
+    free(json_escaped);
 
     // Open connection to the server
     transmit("AT+CGATT=1\r", false);
@@ -449,17 +485,5 @@ void gsm_http_post(State *state, const char *url, const char *json) {
     transmit_safe(domain, 8, false);
     transmit("\",80\r", true);
 
-    // Cave man way to wait for the connection to be established
-    delay_ms(5000);
-    uart_flush(GPSGSM_UART_NUMBER);
-
-    // Send data to the server
-    transmit("AT+HTTPPOST=\"", false);
-    transmit_safe(url, 8, false);
-    transmit("\",\"application/json\",\"", false);
-    transmit_safe(json, 8, false);
-    transmit("\"\r", true);
-
-    free(json_escaped);
-    state->server_is_uploading = false;
+    // Wait in process() for connection to establish
 }

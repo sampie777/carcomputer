@@ -94,6 +94,11 @@ typedef struct {
 } GpsState;
 
 typedef struct {
+    uint8_t is_uploading;
+    int64_t upload_start_time;
+} GsmState;
+
+typedef struct {
     CarState car;
     WiFiState wifi;
     BluetoothState bluetooth;
@@ -102,6 +107,7 @@ typedef struct {
     MotionState motion;
     SDState storage;
     GpsState location;
+    GsmState gsm;
     uint8_t is_booting;
     uint8_t is_rebooting;
     int16_t power_off_count_down_sec;
