@@ -248,16 +248,24 @@ void transmit_safe(const char *data, size_t max_transfer_size, uint8_t with_brea
 
 void enable_internet() {
     printf("[GPS] Enable internet\n");
+    // Attach to the network
     transmit("AT+CGATT=1\r", true);
-    transmit("T+CGDCONT=1,\"IP\",\"internet\",\"0.0.0.0\",0,0\r", true);
-    connection_state = GpsEnableRequestSent;
+    delay_ms(50);
+    // Set PDP parameters
+    transmit("AT+CGDCONT=1,\"IP\",\"internet\",\"0.0.0.0\",0,0\r", true);
+    delay_ms(50);
+    // Activate PDP
+    transmit("AT+CGATT=1,1", true);
+    delay_ms(50);
 }
 
 void enable_gps() {
-    printf("[GPS] Enable GPS and AGPS\n");
-    transmit("AT+GPS=1\r", true);
-//    transmit("AT+AGPS=0\r");
-//    transmit("AT+AGPS=1\r");
+    printf("[GPS] Enable GPS\n");
+    // Disable auxiliary GPS
+    transmit("AT+AGPS=0\r", true);
+    delay_ms(10);
+    // Enable auxiliary GPS (which is faster by using mobile data)
+    transmit("AT+AGPS=1\r", true);
     connection_state = GpsEnableRequestSent;
 }
 

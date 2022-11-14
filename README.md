@@ -6,7 +6,7 @@ This is project uses [Espressif IoT Development Framework](https://github.com/es
 # Workspace setup
 
 1. Install [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/v4.4.1/esp32/get-started/index.html#get-started).
-2. Clone project using `git clone` command.
+2. Clone this project (carcomputer) using `git clone` command.
 3. Open project with CLion.
 4. Tell CLion to open the project as CMake project.
 5. Setup CMake profile enviroment varables as in [the video](https://www.youtube.com/watch?v=M6fa7tzZdLw&t=162s).

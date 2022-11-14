@@ -63,7 +63,7 @@ This is the SMS content\r\n
 And a new line like so.
 ```
 
-Then submit your message by sendint a Ctrl+Z (0x1a) character.
+Then submit your message by sending a Ctrl+Z (0x1a) character.
 ```
 
 ```
