@@ -11,6 +11,7 @@
 #include "../../utils.h"
 #include "sh1106.h"
 #include "icons.h"
+#include "../../version.h"
 
 #define STATUS_BAR_HEIGHT 9
 
@@ -250,8 +251,10 @@ void show_content(State *state) {
         return;
     }
     if (state->is_booting) {
-        sh1106_draw_string(&sh1106, (sh1106.width - 5 * 10) / 2, STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2,
+        sh1106_draw_string(&sh1106, (sh1106.width - 5 * 10) / 2, STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2 - 4,
                            FONT_SMALL, FONT_WHITE, "Booting...");
+        sh1106_draw_string(&sh1106, (sh1106.width - 5 * (int) strlen(APP_VERSION)) / 2, STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
+                           FONT_SMALL, FONT_WHITE, APP_VERSION);
         return;
     }
 
@@ -260,7 +263,7 @@ void show_content(State *state) {
         return;
     }
 
-    if (state->location.is_gps_on) {
+    if (state->location.is_gps_on && state->location.quality > 0) {
         content_location_data(state);
         return;
     }
