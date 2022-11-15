@@ -9,7 +9,7 @@
 #include "connectivity/i2c.h"
 #include "connectivity/spi.h"
 #include "peripherals/display/display.h"
-#include "peripherals/gpsgsm.h"
+#include "peripherals/gpsgsm/gpsgsm.h"
 #include "control/data_logger.h"
 #include "control/security.h"
 

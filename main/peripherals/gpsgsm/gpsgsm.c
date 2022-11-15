@@ -8,171 +8,22 @@
 #include <hal/gpio_types.h>
 #include <string.h>
 #include "gpsgsm.h"
-#include "../utils.h"
-#include "display/display.h"
+#include "../../utils.h"
+#include "../display/display.h"
+#include "definitions.h"
+#include "utils.h"
 
 #define MESSAGE_MAX_LENGTH 128
 
-typedef struct {
-    double timestamp;
-    double latitude;
-    char latitude_direction;
-    double longitude;
-    char longitude_direction;
-    int quality;
-    int satellites;
-    double hdop;
-    double altitude;
-    char unit;
-    double geoidal_separation;
-    char geoidal_separation_unit;
-    double correction_age;
-    int station_id;
-    unsigned int checksum;
-} NmeaGNGGAMessage;
-
-typedef struct {
-    double timestamp;
-    char status;
-    double latitude;
-    char latitude_direction;
-    double longitude;
-    char longitude_direction;
-    double ground_speed;    // knots
-    double ground_heading;
-    int date;
-    double declination;
-    char declination_direction;
-    char mode;
-    unsigned int checksum;
-} NmeaGNRMCMessage;
-
-enum ConnectionState {
-    Initializing = 0,
-    Initialized,
-    GpsEnableRequestSent,
-    GpsEnableRequestApproved,
-    GpsEnableNmeaLoggingRequestSent,
-    GpsEnableNmeaLoggingRequestApproved,
-    GpsNmeaLoggingStarted,
-};
-static enum ConnectionState connection_state = Initializing;
-
-enum SmsState {
-    Idle = 0,
-    Sending,
-    SentSuccess,
-    SentFailed
-};
+static A9GState a9g_state = {};
 static enum SmsState sms_state = Idle;
+
+static enum A9GCommand last_command_send = A9GCommand_Skip;
 
 static char *post_url;
 static char *post_body;
 
-void extract_int(char **source, int *destination, char *delimiter) {
-    char *match = strsep(source, delimiter);
-    if (match == NULL) return;
-    *destination = (int) strtol(match, NULL, 10);
-}
-
-void extract_double(char **source, double *destination, char *delimiter) {
-    char *match = strsep(source, delimiter);
-    if (match == NULL) return;
-    *destination = strtod(match, NULL);
-}
-
-void extract_char(char **source, char *destination, char *delimiter) {
-    char *match = strsep(source, delimiter);
-    if (match == NULL) return;
-    sscanf(match, "%c", destination);
-}
-
-void extract_string(char **source, char **destination, char *delimiter) {
-    char *match = strsep(source, delimiter);
-    if (match == NULL) return;
-    char *result = malloc(strlen(*source));
-    sscanf(match, "%s", result);
-    if (destination != NULL) {
-        *destination = malloc(strlen(result));
-        strcpy(*destination, result);
-    }
-    free(result);
-}
-
-void extract_hex(char **source, unsigned int *destination, char *delimiter) {
-    char *match = strsep(source, delimiter);
-    if (match == NULL) return;
-    *destination = strtoul(match, NULL, 16);
-}
-
-void extract_GNGGA_message(const char *string, NmeaGNGGAMessage *message) {
-    char *search_string = malloc(strlen(string) + 1);
-    char *search_string_pointer = search_string;
-    strcpy(search_string, string);
-
-    extract_string(&search_string, NULL, ",");
-    extract_double(&search_string, &message->timestamp, ",");
-    extract_double(&search_string, &message->latitude, ",");
-    extract_char(&search_string, &message->latitude_direction, ",");
-    extract_double(&search_string, &message->longitude, ",");
-    extract_char(&search_string, &message->longitude_direction, ",");
-    extract_int(&search_string, &message->quality, ",");
-    extract_int(&search_string, &message->satellites, ",");
-    extract_double(&search_string, &message->hdop, ",");
-    extract_double(&search_string, &message->altitude, ",");
-    extract_char(&search_string, &message->unit, ",");
-    extract_double(&search_string, &message->geoidal_separation, ",");
-    extract_char(&search_string, &message->geoidal_separation_unit, ",");
-    extract_double(&search_string, &message->correction_age, ",");
-    extract_int(&search_string, &message->station_id, "*");
-    extract_hex(&search_string, &message->checksum, "*");
-
-    free(search_string_pointer);
-}
-
-void extract_GNRMC_message(const char *string, NmeaGNRMCMessage *message) {
-    char *search_string = malloc(strlen(string) + 1);
-    char *search_string_pointer = search_string;
-    strcpy(search_string, string);
-
-    extract_string(&search_string, NULL, ",");
-    extract_double(&search_string, &message->timestamp, ",");
-    extract_char(&search_string, &message->status, ",");
-    extract_double(&search_string, &message->latitude, ",");
-    extract_char(&search_string, &message->latitude_direction, ",");
-    extract_double(&search_string, &message->longitude, ",");
-    extract_char(&search_string, &message->longitude_direction, ",");
-    extract_double(&search_string, &message->ground_speed, ",");
-    extract_double(&search_string, &message->ground_heading, ",");
-    extract_int(&search_string, &message->date, ",");
-    extract_double(&search_string, &message->declination, ",");
-    extract_char(&search_string, &message->declination_direction, ",");
-    extract_char(&search_string, &message->mode, "*");
-    extract_hex(&search_string, &message->checksum, "*");
-
-    free(search_string_pointer);
-}
-
-int nmea_calculate_checksum(const char *message) {
-    int crc = 0;
-    char *next = strstr(message, "$") + 1;
-    while (*next != '*' && *next != '\0') {
-        crc ^= *next;
-        next++;
-    }
-    return crc;
-}
-
-double nmea_coordinates_to_degrees(double coordinates, char direction) {
-    int degrees = (int) (coordinates / 100);
-    double minutes = coordinates - degrees * 100;
-    double result = degrees + minutes / 60.0;
-    if (direction == 'S' || direction == 'W')
-        result *= -1;
-    return result;
-}
-
-void convert_gngga_message(State *state, const char *message) {
+void process_gngga_message(State *state, const char *message) {
     NmeaGNGGAMessage gga_message = {0};
     extract_GNGGA_message(message, &gga_message);
     if (nmea_calculate_checksum(message) != gga_message.checksum) {
@@ -199,7 +50,7 @@ void convert_gngga_message(State *state, const char *message) {
     state->location.time.hours = hours;
 }
 
-void convert_gnrmc_message(State *state, const char *message) {
+void process_gnrmc_message(State *state, const char *message) {
     NmeaGNRMCMessage rmc_message = {0};
     extract_GNRMC_message(message, &rmc_message);
     if (nmea_calculate_checksum(message) != rmc_message.checksum) {
@@ -246,34 +97,42 @@ void transmit_safe(const char *data, size_t max_transfer_size, uint8_t with_brea
     }
 }
 
-void enable_internet() {
-    printf("[GPS] Enable internet\n");
-    // Attach to the network
-    transmit("AT+CGATT=1\r", true);
-    delay_ms(50);
-    // Set PDP parameters
-    transmit("AT+CGDCONT=1,\"IP\",\"internet\",\"0.0.0.0\",0,0\r", true);
-    delay_ms(50);
-    // Activate PDP
-    transmit("AT+CGATT=1,1", true);
-    delay_ms(50);
-}
-
-void enable_gps() {
-    printf("[GPS] Enable GPS\n");
-    // Disable auxiliary GPS
-    transmit("AT+AGPS=0\r", true);
-    delay_ms(10);
-    // Enable auxiliary GPS (which is faster by using mobile data)
-    transmit("AT+AGPS=1\r", true);
-    connection_state = GpsEnableRequestSent;
-}
-
-void enable_gps_logging() {
-    printf("[GPS] Enable GPS logging\n");
-    delay_ms(10);
-    transmit("AT+GPSRD=1\r", true);
-    connection_state = GpsEnableNmeaLoggingRequestSent;
+void send_command(enum A9GCommand command) {
+    last_command_send = command;
+    switch (command) {
+        case A9GCommand_CGATT_Enable:
+            printf("[GPS] Attach to network\n");
+            transmit(A9G_CGATT_ENABLE, true);
+            a9g_state.network_attached = A9Status_Requested;
+            break;
+        case A9GCommand_CGACT_PNP_Enable:
+            printf("[GPS] Activate PNP\n");
+            transmit(A9G_CGACT_PNP_ENABLE, true);
+            a9g_state.pnp_activated = A9Status_Requested;
+            break;
+        case A9GCommand_CGDCONT_Enable:
+            printf("[GPS] Set PNP parameters\n");
+            transmit(A9G_CGDCONT_ENABLE, true);
+            a9g_state.pnp_parameters_set = A9Status_Requested;
+            break;
+        case A9GCommand_AGPS_Disable:
+            printf("[GPS] Disable AGPS\n");
+            transmit(A9G_AGPS_DISABLE, true);
+            a9g_state.agps_enabled = A9Status_Requested;
+            break;
+        case A9GCommand_AGPS_Enable:
+            printf("[GPS] Enable AGPS\n");
+            transmit(A9G_AGPS_ENABLE, true);
+            a9g_state.agps_enabled = A9Status_Requested;
+            break;
+        case A9GCommand_GPSRD_Enable:
+            printf("[GPS] Enable GPS logging\n");
+            transmit(A9G_GPSRD_ENABLE, true);
+            a9g_state.gps_logging_enabled = A9Status_Requested;
+            break;
+        default:
+            break;
+    }
 }
 
 void process_message(State *state, const char *message) {
@@ -286,22 +145,46 @@ void process_message(State *state, const char *message) {
     }
 
     if (strcmp(message, "Init...") == 0) {
-        connection_state = Initializing;
-    } else if (starts_with(message, "+CIEV") || starts_with(message, "+CREG")) {
-        connection_state = Initialized;
-    } else if (connection_state == GpsEnableRequestSent && strcmp(message, "OK") == 0) {
-        connection_state = GpsEnableRequestApproved;
-    } else if (connection_state == GpsEnableNmeaLoggingRequestSent && strcmp(message, "OK") == 0) {
-        connection_state = GpsEnableNmeaLoggingRequestApproved;
+        a9g_state_reset(&a9g_state);
+        a9g_state.initialized = A9Status_Requested;
+    } else if (starts_with(message, "READY") || starts_with(message, "Ai_Thinker_Co")) {
+        a9g_state_reset(&a9g_state);
+        a9g_state.initialized = A9Status_Ok;
     } else if (starts_with(message, "+CMGS=")) {
         sms_state = SentSuccess;
     }
 
+    if (strcmp(message, "OK") == 0 || strstr(message, " OK") != NULL) {
+        switch (last_command_send) {
+            case A9GCommand_CGATT_Enable:
+                a9g_state.network_attached = A9Status_Ok;
+                break;
+            case A9GCommand_CGACT_PNP_Enable:
+                a9g_state.pnp_activated = A9Status_Ok;
+                break;
+            case A9GCommand_CGDCONT_Enable:
+                a9g_state.pnp_parameters_set = A9Status_Ok;
+                break;
+            case A9GCommand_AGPS_Disable:
+                a9g_state.agps_enabled = A9Status_Disabled;
+                break;
+            case A9GCommand_AGPS_Enable:
+                a9g_state.agps_enabled = A9Status_Ok;
+                break;
+            case A9GCommand_GPSRD_Enable:
+                a9g_state.gps_logging_enabled = A9Status_Ok;
+                break;
+            default:
+                break;
+        }
+    }
+
     if (strstr(message, "$GNGGA") != NULL) {
-        connection_state = GpsNmeaLoggingStarted;
-        convert_gngga_message(state, message);
+        a9g_state.gps_logging_started = true;
+        a9g_state.gps_logging_enabled = A9Status_Ok;
+        process_gngga_message(state, message);
     } else if (strstr(message, "$GNRMC") != NULL) {
-        convert_gnrmc_message(state, message);
+        process_gnrmc_message(state, message);
     }
 }
 
@@ -344,31 +227,58 @@ void read_messages(State *state) {
     }
 }
 
-void gpsgsm_process(State *state) {
+void proceed_device_init(State *state) {
     static int64_t state_start_time = 0;
-    static int64_t sms_sent_time = 0;
-    static enum ConnectionState previous_state = 0xff;
+    static A9GState previous_state = {};
 
-    if (connection_state != previous_state) {
+    if (!a9g_state_compare(&a9g_state, &previous_state)) {
         state_start_time = esp_timer_get_time_ms();
-        previous_state = connection_state;
+        a9g_state_clone(&a9g_state, &previous_state);
     }
 
-    if (connection_state == Initializing && esp_timer_get_time_ms() > state_start_time + GPSGSM_INIT_MAX_TIMEOUT_MS) {
-        printf("[GPS] Init timeout\n");
-        connection_state = Initialized;
-    } else if (connection_state == Initialized) {
-        enable_internet();
-        enable_gps();
-    } else if (connection_state == GpsEnableRequestApproved
-               || (connection_state == GpsEnableRequestSent && esp_timer_get_time_ms() > state_start_time + 500)) {
-        enable_gps_logging();
-    } else if (connection_state != GpsNmeaLoggingStarted && esp_timer_get_time_ms() > state_start_time + GPSGSM_MESSAGE_MAX_TIMEOUT_MS) {
-        printf("[GPS] Initial NMEA message timeout\n");
+    if (a9g_state.initialized == A9Status_Unknown || a9g_state.initialized == A9Status_Requested) {
+        if (esp_timer_get_time_ms() > state_start_time + GPSGSM_INIT_MAX_TIMEOUT_MS) {
+            printf("[GPS] WARNING: Init timeout\n");
+            a9g_state.initialized = A9Status_Ok;
+        }
+    } else if (a9g_state.network_attached != A9Status_Ok) {
+        if (a9g_state.network_attached != A9Status_Requested) {
+            send_command(A9GCommand_CGATT_Enable);
+        }
+    } else if (a9g_state.pnp_parameters_set != A9Status_Ok) {
+        if (a9g_state.pnp_parameters_set != A9Status_Requested) {
+            send_command(A9GCommand_CGDCONT_Enable);
+        }
+    } else if (a9g_state.pnp_activated != A9Status_Ok) {
+        if (a9g_state.pnp_activated != A9Status_Requested) {
+            send_command(A9GCommand_CGACT_PNP_Enable);
+        }
+    } else if (a9g_state.agps_enabled == A9Status_Unknown || a9g_state.agps_enabled == A9Status_Error) {
+        if (a9g_state.agps_enabled != A9Status_Requested) {
+            send_command(A9GCommand_AGPS_Disable);
+        }
+    } else if (a9g_state.agps_enabled != A9Status_Ok) {
+        if (a9g_state.agps_enabled != A9Status_Requested) {
+            send_command(A9GCommand_AGPS_Enable);
+        }
+    } else if (a9g_state.gps_logging_enabled != A9Status_Ok) {
+        if (a9g_state.gps_logging_enabled != A9Status_Requested) {
+            send_command(A9GCommand_GPSRD_Enable);
+        }
+    } else if (!a9g_state.gps_logging_started && esp_timer_get_time_ms() > state_start_time + GPSGSM_MESSAGE_MAX_TIMEOUT_MS) {
+        printf("[GPS] ERROR: Initial NMEA message timeout\n");
         display_set_error_message(state, "GPS timeout");
-        // Retry GPS enabling
-        connection_state = Initialized;
+
+        // Retry GPS initiation
+        a9g_state_reset(&a9g_state);
+        a9g_state.initialized = A9Status_Error;
     }
+}
+
+void gpsgsm_process(State *state) {
+    static int64_t sms_sent_time = 0;
+
+    proceed_device_init(state);
 
     if (sms_state == Sending) {
         if (sms_sent_time == 0) {
@@ -387,7 +297,7 @@ void gpsgsm_process(State *state) {
 
     read_messages(state);
 
-    state->location.is_gps_on = connection_state == GpsNmeaLoggingStarted;
+    state->location.is_gps_on = a9g_state.gps_logging_started;
 
     if (state->gsm.is_uploading && esp_timer_get_time_ms() > state->gsm.upload_start_time + 5000) {
         // Send data to the server
@@ -405,7 +315,7 @@ void gpsgsm_process(State *state) {
 
 void gpsgsm_init() {
     printf("[GPS] Initializing...\n");
-    connection_state = Initializing;
+    a9g_state.initialized = A9Status_Unknown;
 
     uart_config_t uart_config = {
             .baud_rate = GPSGSM_UART_BAUD_RATE,
@@ -426,6 +336,7 @@ void gpsgsm_init() {
     ESP_ERROR_CHECK(uart_driver_install(GPSGSM_UART_NUMBER, uart_buffer_size, \
                                         uart_buffer_size, 10, &uart_queue, 0));
 
+    a9g_state.initialized = A9Status_Requested;
     printf("[GPS] Init done\n");
 }
 

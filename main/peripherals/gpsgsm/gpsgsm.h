@@ -5,7 +5,7 @@
 #ifndef APP_TEMPLATE_GPSGSM_H
 #define APP_TEMPLATE_GPSGSM_H
 
-#include "../state.h"
+#include "../../state.h"
 
 void gpsgsm_init();
 
