@@ -109,7 +109,7 @@ typedef struct {
     SDState storage;
     GpsState location;
     GsmState gsm;
-    A9GState *a9g;
+    A9GState a9g;
     uint8_t is_booting;
     uint8_t is_rebooting;
     int16_t power_off_count_down_sec;
