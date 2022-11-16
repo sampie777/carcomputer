@@ -8,6 +8,7 @@
 #include <esp_netif_ip_addr.h>
 #include <stdbool.h>
 #include "config.h"
+#include "peripherals/gpsgsm/definitions.h"
 
 typedef struct {
     uint8_t enabled;
@@ -108,6 +109,7 @@ typedef struct {
     SDState storage;
     GpsState location;
     GsmState gsm;
+    A9GState *a9g;
     uint8_t is_booting;
     uint8_t is_rebooting;
     int16_t power_off_count_down_sec;

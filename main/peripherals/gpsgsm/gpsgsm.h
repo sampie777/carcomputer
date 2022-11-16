@@ -7,7 +7,7 @@
 
 #include "../../state.h"
 
-void gpsgsm_init();
+void gpsgsm_init(A9GState *a9g_state);
 
 void gpsgsm_process(State *state);
 
