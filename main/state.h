@@ -49,11 +49,6 @@ typedef struct {
 } BluetoothState;
 
 typedef struct {
-    char error_message[DISPLAY_ERROR_MESSAGE_MAX_LENGTH + 1];
-    int64_t last_error_message_time;
-} DisplayState;
-
-typedef struct {
     uint8_t connected;
     double accel_x;
     double accel_y;
@@ -103,7 +98,6 @@ typedef struct {
     CarState car;
     WiFiState wifi;
     BluetoothState bluetooth;
-    DisplayState display;
     CruiseControlState cruise_control;
     MotionState motion;
     SDState storage;
@@ -115,6 +109,7 @@ typedef struct {
     int16_t power_off_count_down_sec;
     uint8_t server_is_uploading;
     uint8_t trip_has_been_uploaded;
+    uint32_t errors;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

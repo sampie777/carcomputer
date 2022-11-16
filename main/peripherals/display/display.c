@@ -12,6 +12,7 @@
 #include "sh1106.h"
 #include "icons.h"
 #include "../../version.h"
+#include "../../error_codes.h"
 
 #define STATUS_BAR_HEIGHT 9
 
@@ -29,9 +30,59 @@ void display_init() {
 }
 
 void show_error_message(State *state) {
+    static uint32_t current_error_to_show = 0;
+    static int64_t last_error_message_time = 0;
+
+    // If no new errors, return
+    if (state->errors == 0) return;
+
+    // After a timeout to show the previous error, determine the next error to show
+    if (last_error_message_time == 0 || esp_timer_get_time_ms() > last_error_message_time + DISPLAY_ERROR_MESSAGE_TIME_MS) {
+        // Get first error
+        uint32_t new_error = 0;
+        for (int i = 0; i < sizeof(state->errors) * 8; i++) {
+            if (state->errors >> i == 1) {
+                new_error = 1 << i;
+                break;
+            }
+        }
+
+        // Reset error
+        state->errors &= ~new_error;
+
+        if (new_error == 0 || new_error == current_error_to_show) {
+            last_error_message_time = 0;
+            return;
+        }
+        last_error_message_time = esp_timer_get_time_ms();
+        current_error_to_show = new_error;
+    }
+
+    char *buffer;
+    switch (current_error_to_show) {
+        case ERROR_PEDAL_DISCONNECTED:
+            buffer = "Pedal disconnected";
+            break;
+        case ERROR_SPI_FAILED:
+            buffer = "SPI failed";
+            break;
+        case ERROR_CRASH_NO_ICE:
+            buffer = "CRASH, no ICE!";
+            break;
+        case ERROR_GPS_TIMEOUT:
+            buffer = "GPS timeout";
+            break;
+        case ERROR_SMS_FAILED:
+            buffer = "SMS failed";
+            break;
+        default:
+            buffer = malloc(32);
+            sprintf(buffer, "Code: %u", state->errors);
+    }
+
     sh1106_draw_filled_rectangle(&sh1106, 5, 5, sh1106.width - 10, sh1106.height - 10);
     sh1106_draw_string(&sh1106, sh1106.width / 2 - 5 * 2, 7, FONT_SMALL, FONT_BLACK, "ERROR");
-    sh1106_draw_string(&sh1106, 10, 18, FONT_SMALL, FONT_BLACK, state->display.error_message);
+    sh1106_draw_string(&sh1106, 10, 18, FONT_SMALL, FONT_BLACK, buffer);
 }
 
 void show_statusbar(State *state) {
@@ -238,10 +289,7 @@ void show_content_overlay(State *state) {
         return;
     }
 
-    if (state->display.last_error_message_time != 0 && esp_timer_get_time_ms() < state->display.last_error_message_time + DISPLAY_ERROR_MESSAGE_TIME_MS) {
-        show_error_message(state);
-        return;
-    }
+    show_error_message(state);
 }
 
 void show_content(State *state) {
@@ -283,24 +331,4 @@ void display_update(State *state) {
     show_content_overlay(state);
 
     sh1106_display(&sh1106);
-}
-
-void display_set_error_message(State *state, const char *message) {
-    int is_new_message = false;
-    for (int i = 0; i < DISPLAY_ERROR_MESSAGE_MAX_LENGTH; i++) {
-        if (message[i] != state->display.error_message[i]) {
-            is_new_message = true;
-            break;
-        }
-
-        if (message[i] == '\0') {
-            break;
-        }
-    }
-    if (!is_new_message) return;
-
-    printf("[Display] Set error message: %s\n", message);
-    strncpy(state->display.error_message, message, DISPLAY_ERROR_MESSAGE_MAX_LENGTH);
-    state->display.error_message[DISPLAY_ERROR_MESSAGE_MAX_LENGTH] = '\0';
-    state->display.last_error_message_time = esp_timer_get_time_ms();
 }

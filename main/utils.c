@@ -66,3 +66,8 @@ void string_escape(const char *input, char **destination) {
     }
     (*destination)[input_size + escaped_size] = '\0';
 }
+
+void set_error(State *state, uint32_t error_code) {
+    printf("Set error code: %u\n", error_code);
+    state->errors |= error_code;
+}

@@ -13,6 +13,7 @@
 #include "../utils.h"
 #include "../peripherals/mpu9250.h"
 #include "../connectivity/server.h"
+#include "../error_codes.h"
 
 void control_read_can_bus(State *state) {
     canbus_check_controller_connection(state);
@@ -27,7 +28,7 @@ void control_read_can_bus(State *state) {
 
 void control_read_analog_sensors(State *state) {
     if (gas_pedal_read(state) == RESULT_DISCONNECTED) {
-        display_set_error_message(state, "Pedal disconnected");
+        set_error(state, ERROR_PEDAL_DISCONNECTED);
     }
 
     mpu9250_read(state);
@@ -194,6 +195,6 @@ void control_crash_detection(State *state) {
         number = strtok(NULL, ";");
     }
 #else
-    display_set_error_message(state, "CRASH, no ICE!");
+    set_error(state, ERROR_CRASH_NO_ICE);
 #endif
 }

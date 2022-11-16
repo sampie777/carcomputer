@@ -289,7 +289,7 @@ void gpsgsm_process(State *state) {
         sms_state = Idle;
         sms_sent_time = 0;
     } else if (sms_state == SentFailed) {
-        display_set_error_message(state, "SMS failed");
+        set_error(state, ERROR_SMS_FAILED);
         sms_state = Idle;
         sms_sent_time = 0;
     }

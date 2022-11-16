@@ -28,4 +28,6 @@ void string_char_replace(char *source, char needle, char replacement);
 
 void string_escape(const char *input, char **destination);
 
+void set_error(State *state, uint32_t error_code);
+
 #endif //APP_TEMPLATE_UTILS_H

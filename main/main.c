@@ -38,7 +38,7 @@ _Noreturn void process_main(State *state) {
     security_init();
     control_init(state);
     data_logger_init(state);
-    gpsgsm_init(state->a9g);
+    gpsgsm_init(&state->a9g);
 #if BLUETOOTH_ENABLE
     bluetooth_init(state);
 #endif

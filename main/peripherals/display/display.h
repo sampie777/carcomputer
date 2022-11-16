@@ -11,6 +11,4 @@ void display_init();
 
 void display_update(State *state);
 
-void display_set_error_message(State *state, const char *message);
-
 #endif //APP_TEMPLATE_DISPLAY_H
