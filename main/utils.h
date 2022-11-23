@@ -26,6 +26,8 @@ uint8_t starts_with(const char *source, const char *needle);
 
 void string_char_replace(char *source, char needle, char replacement);
 
+void string_char_remove(char **source, char needle);
+
 void string_escape(const char *input, char **destination);
 
 void set_error(State *state, uint32_t error_code);

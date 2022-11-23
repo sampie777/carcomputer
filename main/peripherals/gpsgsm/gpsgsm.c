@@ -9,18 +9,19 @@
 #include <string.h>
 #include "gpsgsm.h"
 #include "../../utils.h"
-#include "../display/display.h"
 #include "utils.h"
 #include "../../error_codes.h"
 
-#define MESSAGE_MAX_LENGTH 128
+#define MESSAGE_MAX_LENGTH 256
 
 static enum SmsState sms_state = Idle;
 
 static enum A9GCommand last_command_send = A9GCommand_Skip;
 
-static char *post_url;
-static char *post_body;
+static char *http_request_url = NULL;
+static char *http_request_body = NULL;
+
+static void (*http_request_callback)(State *state, const HttpResponseMessage *response) = NULL;
 
 void process_gngga_message(State *state, const char *message) {
     NmeaGNGGAMessage gga_message = {0};
@@ -100,17 +101,17 @@ void send_command(A9GState *a9g_state, enum A9GCommand command) {
     last_command_send = command;
     switch (command) {
         case A9GCommand_CGATT_Enable:
-            printf("[GPS] Attach to network\n");
+            printf("[GSM] Attach to network\n");
             transmit(A9G_CGATT_ENABLE, true);
             a9g_state->network_attached = A9Status_Requested;
             break;
         case A9GCommand_CGACT_PNP_Enable:
-            printf("[GPS] Activate PNP\n");
+            printf("[GSM] Activate PNP\n");
             transmit(A9G_CGACT_PNP_ENABLE, true);
             a9g_state->pnp_activated = A9Status_Requested;
             break;
         case A9GCommand_CGDCONT_Enable:
-            printf("[GPS] Set PNP parameters\n");
+            printf("[GSM] Set PNP parameters\n");
             transmit(A9G_CGDCONT_ENABLE, true);
             a9g_state->pnp_parameters_set = A9Status_Requested;
             break;
@@ -134,26 +135,99 @@ void send_command(A9GState *a9g_state, enum A9GCommand command) {
     }
 }
 
+void process_http_response(State *state, const char *message, const char *stripped_message) {
+    static int http_code = -1;
+    static int content_length = -1;
+    static int messages_since_http_start = 0;
+    if (http_request_callback == NULL) return;
+
+    if (http_code < 0 && starts_with(stripped_message, "HTTP/1.1  ")) {
+        messages_since_http_start = 0;
+        int result = sscanf(message, "HTTP/1.1  %d", &http_code);
+        if (result == 0) {
+            return;
+        }
+    }
+
+    if (http_code > 0) {
+        if (messages_since_http_start++ > 30) {
+            printf("[GSM] HTTP response message time out");
+            http_code = -1;
+            content_length = -1;
+            return;
+        }
+    }
+
+    if (content_length < 0 && starts_with(stripped_message, "Content-Length: ")) {
+        // Get length
+        int result = sscanf(message, "Content-Length: %d", &content_length);
+        printf("[GSM] HTTP Content length will be %d\n", content_length);
+        if (result == 0) {
+            return;
+        }
+    }
+
+    if (content_length <= 0) return;
+
+    if (strlen(message) != content_length) return;
+
+    printf("[GSM] Processing HTTP: '%s' with length: %d\n", message, strlen(message));
+
+    // Filter out header fields
+    if (starts_with(stripped_message, "Date: ") ||
+        starts_with(stripped_message, "Content-Type: ") ||
+        starts_with(stripped_message, "Content-Length: ") ||
+        starts_with(stripped_message, "Server: ") ||
+        starts_with(stripped_message, "Access-Control-Allow-Origin: ") ||
+        starts_with(stripped_message, "Access-Control-Allow-Credentials: ") ||
+        starts_with(stripped_message, "X-Frame-Options: ") ||
+        starts_with(stripped_message, "X-Content-Type-Options: ") ||
+        starts_with(stripped_message, "X-XSS-Protection: ") ||
+        starts_with(stripped_message, "Connection: "))
+        return;
+
+    HttpResponseMessage response = {
+            .code = http_code,
+            .content_length = content_length,
+            .message = malloc(strlen(message) + 1),
+    };
+    strcpy(response.message, message);
+
+    http_request_callback(state, &response);
+    http_request_callback = NULL;
+
+    http_code = -1;
+    content_length = -1;
+    free(response.message);
+}
+
 void process_message(State *state, const char *message) {
-    if (strlen(message) == 0) {
+    char *stripped_message = malloc(strlen(message) + 1);
+    strcpy(stripped_message, message);
+    string_char_remove(&stripped_message, '\n');
+
+    if (strlen(stripped_message) == 0) {
+        free(stripped_message);
         return;
     }
 
-    if (!starts_with(message, "$")) {
-        printf("[GPS] Processing: '%s' with length: %d\n", message, strlen(message));
+    process_http_response(state, message, stripped_message);
+
+    if (!starts_with(stripped_message, "$")) {
+        printf("[GPS] Processing: '%s' with length: %d\n", stripped_message, strlen(stripped_message));
     }
 
-    if (strcmp(message, "Init...") == 0) {
+    if (strcmp(stripped_message, "Init...") == 0) {
         a9g_state_reset(&state->a9g);
         state->a9g.initialized = A9Status_Requested;
-    } else if (starts_with(message, "READY") || starts_with(message, "Ai_Thinker_Co")) {
+    } else if (starts_with(stripped_message, "READY") || starts_with(stripped_message, "Ai_Thinker_Co")) {
         a9g_state_reset(&state->a9g);
         state->a9g.initialized = A9Status_Ok;
-    } else if (starts_with(message, "+CMGS=")) {
+    } else if (starts_with(stripped_message, "+CMGS=")) {
         sms_state = SentSuccess;
     }
 
-    if (strcmp(message, "OK") == 0 || strstr(message, " OK") != NULL) {
+    if (strcmp(stripped_message, "OK") == 0 || strstr(stripped_message, "GPD OK") != NULL) {
         switch (last_command_send) {
             case A9GCommand_CGATT_Enable:
                 state->a9g.network_attached = A9Status_Ok;
@@ -178,19 +252,23 @@ void process_message(State *state, const char *message) {
         }
     }
 
-    if (strstr(message, "$GNGGA") != NULL) {
+    if (strstr(stripped_message, "$GNGGA") != NULL) {
         state->a9g.gps_logging_started = true;
         state->a9g.gps_logging_enabled = A9Status_Ok;
-        process_gngga_message(state, message);
-    } else if (strstr(message, "$GNRMC") != NULL) {
-        process_gnrmc_message(state, message);
+        process_gngga_message(state, stripped_message);
+    } else if (strstr(stripped_message, "$GNRMC") != NULL) {
+        process_gnrmc_message(state, stripped_message);
     }
+
+    free(stripped_message);
 }
 
 void read_messages(State *state) {
-    static char *last_message;
+    static char *last_message = NULL;
     static int last_message_index = 0;
+    static bool line_end_new_line_removed = false;
 
+    // Initialize static pointer
     if (last_message == NULL) {
         last_message = malloc(MESSAGE_MAX_LENGTH);
     }
@@ -214,11 +292,16 @@ void read_messages(State *state) {
             continue;
         }
 
-        if (data[i] == '\n') continue;
+        if (data[i] == '\n' && !line_end_new_line_removed) {
+            line_end_new_line_removed = true;
+            continue;
+        }
+
         if (data[i] == '\r') {
             last_message[last_message_index] = '\0';
             process_message(state, last_message);
             last_message_index = 0;
+            line_end_new_line_removed = false;
             continue;
         }
 
@@ -300,14 +383,28 @@ void gpsgsm_process(State *state) {
 
     if (state->gsm.is_uploading && esp_timer_get_time_ms() > state->gsm.upload_start_time + 5000) {
         // Send data to the server
-        transmit("AT+HTTPPOST=\"", false);
-        transmit_safe(post_url, 8, false);
-        transmit("\",\"application/json\",\"", false);
-        transmit_safe(post_body, 8, false);
-        transmit("\"\r", true);
+        switch (state->gsm.request_type) {
+            case HTTP_METHOD_GET:
+                transmit("AT+HTTPGET=\"", false);
+                transmit_safe(http_request_url, 8, false);
+                transmit("\"\r", true);
+                break;
+            case HTTP_METHOD_POST: {
+                transmit("AT+HTTPPOST=\"", false);
+                transmit_safe(http_request_url, 8, false);
+                transmit("\",\"application/json\",\"", false);
+                transmit_safe(http_request_body, 8, false);
+                transmit("\"\r", true);
+                break;
+            }
+            default:
+                printf("[GSM] Unhandled HTTP request type: %d\n", state->gsm.request_type);
+        }
 
-        free(post_url);
-        free(post_body);
+        if (http_request_url != NULL) free(http_request_url);
+        http_request_url = NULL;
+        if (http_request_body != NULL) free(http_request_body);
+        http_request_body = NULL;
         state->gsm.is_uploading = false;
     }
 }
@@ -363,10 +460,39 @@ void gsm_send_sms(const char *number, const char *message) {
     sms_state = Sending;
 }
 
-void gsm_http_post(State *state, const char *url, const char *json) {
-    printf("[GSM] Sending data to %s\n", url);
+void gsm_http_get(State *state, const char *url, void (*callback)(State *state, const HttpResponseMessage *response)) {
+    printf("[GSM] HTTP GET request to %s\n", url);
     state->gsm.is_uploading = true;
     state->gsm.upload_start_time = esp_timer_get_time_ms();
+    state->gsm.request_type = HTTP_METHOD_GET;
+    http_request_callback = callback;
+
+    // Strip domain from url
+    char url_copy[strlen(url) + 1];
+    strcpy(url_copy, url);
+    strtok(url_copy, "://");
+    char *domain = strtok(NULL, "/");
+
+    // Store url for upload
+    http_request_url = realloc(http_request_url, strlen(url) + 1);
+    strcpy(http_request_url, url);
+
+    // Open connection to the server
+    printf("[GSM] Open connection\n");
+    transmit("AT+CGATT=1\r", false);
+    transmit_safe("AT+CIPSTART=\"TCP\",\"", 8, false);
+    transmit_safe(domain, 8, false);
+    transmit("\",80\r", true);
+
+    // Wait in process() for connection to establish
+    printf("[GSM] Wait for response\n");
+}
+
+void gsm_http_post(State *state, const char *url, const char *json) {
+    printf("[GSM] HTTP POST request to %s\n", url);
+    state->gsm.is_uploading = true;
+    state->gsm.upload_start_time = esp_timer_get_time_ms();
+    state->gsm.request_type = HTTP_METHOD_POST;
 
     // Strip domain from url
     char url_copy[strlen(url)];
@@ -375,10 +501,12 @@ void gsm_http_post(State *state, const char *url, const char *json) {
     char *domain = strtok(NULL, "/");
 
     // Store url for upload
-    if (post_url) free(post_url);
-    post_url = malloc(strlen(url) + 1);
-    strcpy(post_url, url);
-    post_url[strlen(url)] = '0';
+    char authorization_header_value[strlen(state->server.access_code) + 10];
+    sprintf(authorization_header_value, "Bearer %s", state->server.access_code);
+
+    http_request_url = realloc(http_request_url, strlen(url) + strlen(state->server.access_code) + 16);
+    sprintf(http_request_url, "%s%caccess_token=%s", url, strstr(url, "?") == NULL ? '?' : '&', state->server.access_code);
+    http_request_url[strlen(url)] = '0';
 
     char *json_escaped;
     string_escape(json, &json_escaped);
@@ -391,10 +519,8 @@ void gsm_http_post(State *state, const char *url, const char *json) {
     }
 
     // Store body for upload
-    if (post_body) free(post_body);
-    post_body = malloc(strlen(json_escaped) + 1);
-    strcpy(post_body, json_escaped);
-    post_body[strlen(json_escaped)] = '0';
+    http_request_body = realloc(http_request_body, strlen(json_escaped) + 1);
+    strcpy(http_request_body, json_escaped);
     free(json_escaped);
 
     // Open connection to the server

@@ -7,6 +7,7 @@
 
 #include <esp_netif_ip_addr.h>
 #include <stdbool.h>
+#include <esp_http_client.h>
 #include "config.h"
 #include "peripherals/gpsgsm/definitions.h"
 
@@ -91,8 +92,17 @@ typedef struct {
 
 typedef struct {
     uint8_t is_uploading;
+    esp_http_client_method_t request_type;
     int64_t upload_start_time;
 } GsmState;
+
+typedef struct {
+    uint8_t is_authenticated;
+    uint8_t should_authenticate;
+    int64_t is_registration_status_check_in_process;
+    char *registration_token;
+    char *access_code;
+} ServerState;
 
 typedef struct {
     CarState car;
@@ -104,6 +114,7 @@ typedef struct {
     GpsState location;
     GsmState gsm;
     A9GState a9g;
+    ServerState server;
     uint8_t is_booting;
     uint8_t is_rebooting;
     int16_t power_off_count_down_sec;

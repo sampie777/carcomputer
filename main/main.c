@@ -12,6 +12,7 @@
 #include "peripherals/gpsgsm/gpsgsm.h"
 #include "control/data_logger.h"
 #include "control/security.h"
+#include "backend/server.h"
 
 #if WIFI_ENABLE
 #include "connectivity/wifi.h"
@@ -45,6 +46,7 @@ _Noreturn void process_main(State *state) {
 #if WIFI_ENABLE
     wifi_init(state);
 #endif
+    server_init(state);
 
     state->is_booting = false;
 
@@ -68,6 +70,7 @@ _Noreturn void process_main(State *state) {
 #if WIFI_ENABLE
         wifi_scan(state);
 #endif
+        server_process(state);
     }
 }
 

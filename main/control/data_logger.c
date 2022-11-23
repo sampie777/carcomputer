@@ -6,7 +6,7 @@
 #include "../peripherals/sd_card.h"
 #include "../return_codes.h"
 #include "../utils.h"
-#include "../connectivity/server.h"
+#include "../backend/server.h"
 
 void data_logger_upload_all(State *state) {
     static int64_t engine_off_time = 0;

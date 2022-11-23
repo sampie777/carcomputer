@@ -2,22 +2,26 @@
 // Created by samuel on 4-8-22.
 //
 
+#include <esp_err.h>
+#include <string.h>
 #include <esp_http_client.h>
 #include <esp_log.h>
 #include <esp_tls.h>
 #include "server.h"
-#include "../utils.h"
 #include "../return_codes.h"
+#include "../utils.h"
+#include "auth.h"
 
 #if GSM_ENABLE
-#include "../peripherals/gpsgsm.h"
+
+#include "../peripherals/gpsgsm/gpsgsm.h"
+
 #endif
 
-// Source: https://github.com/espressif/esp-idf/blob/36f49f361c001b49c538364056bc5d2d04c6f321/examples/protocols/esp_http_client/main/esp_http_client_example.c
-
-#define MAX_HTTP_OUTPUT_BUFFER 1024
+#define MAX_HTTP_OUTPUT_BUFFER 512
 static const char *TAG = "Server";
 
+// Source: https://github.com/espressif/esp-idf/blob/36f49f361c001b49c538364056bc5d2d04c6f321/examples/protocols/esp_http_client/main/esp_http_client_example.c
 esp_err_t server_http_event_handler(esp_http_client_event_t *evt) {
     static char *output_buffer;  // Buffer to store response of http request from event handler
     static int output_len;       // Stores number of bytes read
@@ -87,24 +91,30 @@ esp_err_t server_http_event_handler(esp_http_client_event_t *evt) {
     return ESP_OK;
 }
 
-int send_data_over_wifi(const char *url, const char *data) {
+int send_data_over_wifi(State *state, const char *url, const char *data) {
 #if WIFI_ENABLE
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
 
+    char *http_request_url = malloc(strlen(url) + strlen(state->server.access_code) + 16);
+    sprintf(http_request_url, "%s%caccess_token=%s", url, strstr(url, "?") == NULL ? '?' : '&', state->server.access_code);
+
     esp_http_client_config_t config = {
-            .url = url,
+            .url = http_request_url,
             .event_handler = server_http_event_handler,
             .user_data = local_response_buffer,
             .disable_auto_redirect = true,
     };
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
-    esp_http_client_set_url(client, url);
+    char authorization_header_value[strlen(state->server.access_code) + 10];
+    sprintf(authorization_header_value, "Bearer %s", state->server.access_code);
+
+    esp_http_client_set_url(client, config.url);
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
     esp_http_client_set_post_field(client, data, (int) strlen(data));
 
-    printf("[Server] Performing request to %s...\n", config.url);
+    printf("[Server] Performing POST request to %s...\n", config.url);
     int result = esp_http_client_perform(client);
     if (result != ESP_OK) {
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(result));
@@ -131,9 +141,68 @@ int send_data_over_wifi(const char *url, const char *data) {
 #endif
 }
 
+int receive_data_over_wifi(State *state, const char *url, void (*callback)(State *state, const HttpResponseMessage *response)) {
+#if WIFI_ENABLE
+    char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
+
+    esp_http_client_config_t config = {
+            .url = url,
+            .event_handler = server_http_event_handler,
+            .user_data = local_response_buffer,
+            .disable_auto_redirect = true,
+    };
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+
+    esp_http_client_set_url(client, url);
+    esp_http_client_set_method(client, HTTP_METHOD_GET);
+
+    printf("[Server] Performing GET request to %s...\n", config.url);
+    int result = esp_http_client_perform(client);
+    if (result != ESP_OK) {
+        ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(result));
+    } else {
+        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %d",
+                 esp_http_client_get_status_code(client),
+                 esp_http_client_get_content_length(client));
+    }
+
+    printf("[Server] Output: '");
+    for (int i = 0; i < strlen(local_response_buffer); i++) {
+        printf("%c", local_response_buffer[i]);
+    }
+    printf("'\n");
+
+    esp_http_client_cleanup(client);
+
+    if (result != ESP_OK) return RESULT_FAILED;
+    if (callback != NULL) {
+        HttpResponseMessage response = {
+                .code = esp_http_client_get_status_code(client),
+                .content_length = esp_http_client_get_content_length(client),
+                .message = malloc(strlen(local_response_buffer) + 1),
+        };
+        strcpy(response.message, local_response_buffer);
+
+        callback(state, &response);
+        free(response.message);
+    };
+
+    return RESULT_OK;
+#else
+    return RESULT_FAILED;
+#endif
+}
+
 int send_data_over_gsm(State *state, const char *url, const char *data) {
 #if GSM_ENABLE
     gsm_http_post(state, url, data);
+#endif
+    return RESULT_OK;
+}
+
+int receive_data_over_gsm(State *state, const char *url, void (*callback)(State *state, const HttpResponseMessage *response)) {
+#if GSM_ENABLE
+    gsm_http_get(state, url, callback);
 #endif
     return RESULT_OK;
 }
@@ -143,8 +212,17 @@ int send_data(State *state, const char *url, const char *data, uint8_t wifi_only
         return RESULT_DISCONNECTED;
 
     if (state->wifi.is_connected)
-        return send_data_over_wifi(url, data);
+        return send_data_over_wifi(state, url, data);
     return send_data_over_gsm(state, url, data);
+}
+
+int receive_data(State *state, const char *url, uint8_t wifi_only, void (*callback)(State *state, const HttpResponseMessage *response)) {
+    if (wifi_only && !state->wifi.is_connected)
+        return RESULT_DISCONNECTED;
+
+    if (state->wifi.is_connected)
+        return receive_data_over_wifi(state, url, callback);
+    return receive_data_over_gsm(state, url, callback);
 }
 
 int server_send_trip_end(State *state) {
@@ -298,8 +376,32 @@ int server_send_data_log_record(State *state) {
 }
 
 int server_send_data(State *state, const char *url, const char *json, uint8_t wifi_only) {
+    if (!state->server.is_authenticated) {
+        printf("[Server] Cannot perform request: not authenticated\n");
+        return RESULT_UNAUTHORIZED;
+    }
+
     state->server_is_uploading = true;
     int result = send_data(state, url, json, wifi_only);
     state->server_is_uploading = false;
     return result;
+}
+
+int server_receive_data(State *state, const char *url, uint8_t wifi_only, void (*callback)(State *state, const HttpResponseMessage *response)) {
+    state->server_is_uploading = true;
+    int result = receive_data(state, url, wifi_only, callback);
+    state->server_is_uploading = false;
+    return result;
+}
+
+bool server_is_ready_for_connections(State *state) {
+    return state->wifi.is_connected || state->a9g.pnp_activated == A9Status_Ok;
+}
+
+void server_process(State *state) {
+    auth_process(state);
+}
+
+void server_init(State *state) {
+    auth_init(state);
 }

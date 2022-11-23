@@ -7,12 +7,11 @@
 #include "../peripherals/canbus.h"
 #include "../peripherals/gas_pedal.h"
 #include "../return_codes.h"
-#include "../peripherals/display/display.h"
 #include "cruise_control.h"
 #include "../peripherals/buttons.h"
 #include "../utils.h"
 #include "../peripherals/mpu9250.h"
-#include "../connectivity/server.h"
+#include "../backend/server.h"
 #include "../error_codes.h"
 
 void control_read_can_bus(State *state) {
@@ -85,6 +84,7 @@ void control_door_lock(State *state) {
 }
 
 void control_mpu_power(State *state) {
+#if POWER_OF_ENABLE
     static int64_t ignition_off_time = 0;
     if (state->car.is_ignition_on) {
         gpio_set_level(POWER_PIN, 1);
@@ -111,6 +111,7 @@ void control_mpu_power(State *state) {
     gpio_set_level(POWER_PIN, 0);
     delay_ms(1000);
     ignition_off_time = 0;
+#endif
 }
 
 void control_cruise_control(State *state) {

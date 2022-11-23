@@ -58,25 +58,24 @@ void show_error_message(State *state) {
         current_error_to_show = new_error;
     }
 
-    char *buffer;
+    char buffer[32];
     switch (current_error_to_show) {
         case ERROR_PEDAL_DISCONNECTED:
-            buffer = "Pedal disconnected";
+            strcpy(buffer, "Pedal disconnected");
             break;
         case ERROR_SPI_FAILED:
-            buffer = "SPI failed";
+            strcpy(buffer, "SPI failed");
             break;
         case ERROR_CRASH_NO_ICE:
-            buffer = "CRASH, no ICE!";
+            strcpy(buffer, "CRASH, no ICE!");
             break;
         case ERROR_GPS_TIMEOUT:
-            buffer = "GPS timeout";
+            strcpy(buffer, "GPS timeout");
             break;
         case ERROR_SMS_FAILED:
-            buffer = "SMS failed";
+            strcpy(buffer, "SMS failed");
             break;
         default:
-            buffer = malloc(32);
             sprintf(buffer, "Code: %u", state->errors);
     }
 
@@ -143,6 +142,22 @@ void show_statusbar(State *state) {
 #endif
 
     sh1106_draw_horizontal_line(&sh1106, 0, STATUS_BAR_HEIGHT, sh1106.width);
+}
+
+void content_server_registration(State *state) {
+    int offset_x = 5;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "Please visit:");
+    offset_y += 10;
+
+    char *buffer = "car.sajansen.nl";
+    sh1106_draw_string(&sh1106, (int) (sh1106.width - strlen(buffer) * 5) / 2, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 14;
+
+    sh1106_draw_string(&sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "Token:");
+    offset_y += 11;
+    sh1106_draw_string(&sh1106, (int) (sh1106.width - strlen(state->server.registration_token) * 5 * FONT_MEDIUM) / 2, offset_y, FONT_MEDIUM, FONT_WHITE, state->server.registration_token);
 }
 
 void content_cruise_control(State *state) {
@@ -303,6 +318,11 @@ void show_content(State *state) {
                            FONT_SMALL, FONT_WHITE, "Booting...");
         sh1106_draw_string(&sh1106, (sh1106.width - 5 * (int) strlen(APP_VERSION)) / 2, STATUS_BAR_HEIGHT + (sh1106.height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
                            FONT_SMALL, FONT_WHITE, APP_VERSION);
+        return;
+    }
+
+    if (state->server.should_authenticate && state->server.registration_token != NULL && strlen(state->server.registration_token) > 0) {
+        content_server_registration(state);
         return;
     }
 

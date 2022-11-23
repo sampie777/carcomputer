@@ -17,25 +17,29 @@ extern "C" {
 
 #define DEVICE_NAME "Nissan Micra"
 
+#define POWER_OF_ENABLE false
 #define POWER_OFF_MAX_TIMEOUT_MS 90000
 #define POWER_PIN GPIO_NUM_23
 
 #define BLUETOOTH_ENABLE false
 #define WIFI_ENABLE false
-#define GSM_ENABLE false
+#define GSM_ENABLE true
 #define SD_ENABLE false
 
 #define WIFI_SCAN_INTERVAL_MS 2500
 #define WIFI_SCAN_MAX_DURATION 8000
 #define WIFI_SCAN_MAX_APS 16
 
+#define BACKEND_REGISTRATION_TOKEN_URL "https://car.sajansen.nl/api/v1/device/registration/init"
+#define BACKEND_REGISTRATION_STATUS_URL "https://car.sajansen.nl/api/v1/device/registration/status"
+
 #define TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS 15000
 #define TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS 3000
 #define TRIP_LOGGER_UPLOAD_URL "http://httpbin.org/post"
 #define DATA_LOGGER_LOG_INTERVAL_MS 500
 #define DATA_LOGGER_SINGLE_UPLOAD_INTERVAL_MS 20000
-#define DATA_LOGGER_SINGLE_UPLOAD_URL "http://httpbin.org/post"   // Comment to disable interval upload
-#define DATA_LOGGER_ALL_UPLOAD_URL "http://httpbin.org/post"
+#define DATA_LOGGER_SINGLE_UPLOAD_URL "https://car.sajansen.nl"   // Comment to disable interval upload
+#define DATA_LOGGER_ALL_UPLOAD_URL "https://car.sajansen.nl"
 
 #define SPI_MOSI_PIN GPIO_NUM_12
 #define SPI_MISO_PIN GPIO_NUM_13
@@ -118,7 +122,7 @@ extern "C" {
 #define GPSGSM_UART_RX_PIN GPIO_NUM_16
 #define GPSGSM_UART_BAUD_RATE 115200
 #define GPSGSM_INIT_MAX_TIMEOUT_MS 20000
-#define GPSGSM_MESSAGE_MAX_TIMEOUT_MS 10000
+#define GPSGSM_MESSAGE_MAX_TIMEOUT_MS 20000
 #define GPSGSM_SMS_SENT_MAX_TIMEOUT_MS 20000
 
 #define CRASH_DETECTION_CRASH_MIN_G 30
