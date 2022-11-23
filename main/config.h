@@ -30,7 +30,7 @@ extern "C" {
 #define WIFI_SCAN_MAX_DURATION 8000
 #define WIFI_SCAN_MAX_APS 16
 
-#define BACKEND_REGISTRATION_TOKEN_URL "https://car.sajansen.nl/api/v1/device/registration/init"
+#define BACKEND_REGISTRATION_TOKEN_LENGTH 7
 #define BACKEND_REGISTRATION_STATUS_URL "https://car.sajansen.nl/api/v1/device/registration/status"
 
 #define TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS 15000
@@ -70,6 +70,7 @@ extern "C" {
 #define DISPLAY_ERROR_MESSAGE_MAX_LENGTH ((DISPLAY_WIDTH - 12) / 5)
 #define DISPLAY_LONG_BLINK_INTERVAL 1000
 
+#define CRUISE_CONTROL_ENABLE false
 #define CRUISE_CONTROL_MAX_RPM_LIMIT 4500
 #define CRUISE_CONTROL_PID_ITERATION_TIME 100
 #define CRUISE_CONTROL_PID_Kp 0.03

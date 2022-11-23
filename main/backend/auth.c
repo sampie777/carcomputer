@@ -8,6 +8,7 @@
 #include "../return_codes.h"
 #include "server.h"
 #include "../utils.h"
+#include "utils.h"
 
 #define NVS_ACCESS_TOKEN_KEY "access_token"
 
@@ -69,19 +70,6 @@ int read_access_token(char **result, size_t *length) {
     return RESULT_OK;
 }
 
-void on_registration_token_received(State *state, const HttpResponseMessage *response) {
-    printf("[Auth] Processing registration token response\n");
-    printf("RESPONSE (token): '%s' (HTTP %d)\n", response->message, response->code);
-
-    if (response->code != 200) return;
-    char *token = response->message;
-
-    if (strlen(token) == 0) return;
-
-    state->server.registration_token = malloc(strlen(token) + 1);
-    strcpy(state->server.registration_token, token);
-}
-
 void on_registration_status_received(State *state, const HttpResponseMessage *response) {
     printf("[Auth] Processing access token response\n");
     printf("RESPONSE (status): '%s' (HTTP %d)\n", response->message, response->code);
@@ -102,26 +90,6 @@ void on_registration_status_received(State *state, const HttpResponseMessage *re
     printf("[Auth] Authentication successful\n");
 }
 
-void request_registration_token(State *state) {
-    static bool is_requested = false;
-    if (is_requested) return;
-
-    printf("[Auth] Requesting registration token...\n");
-
-    char *http_request_url = malloc(strlen(BACKEND_REGISTRATION_TOKEN_URL) + strlen(SERVER_API_KEY) + 16);
-    sprintf(http_request_url, "%s%capi_key=%s",
-            BACKEND_REGISTRATION_TOKEN_URL,
-            strstr(BACKEND_REGISTRATION_TOKEN_URL, "?") == NULL ? '?' : '&',
-            SERVER_API_KEY);
-
-    int result = server_receive_data(state, http_request_url, false, on_registration_token_received);
-    free(http_request_url);
-
-    if (result == RESULT_FAILED) {
-        state->server.should_authenticate = false;
-    }
-    is_requested = result == RESULT_OK;
-}
 
 void poll_registration_status(State *state) {
     static int64_t last_poll_time = 0;
@@ -157,12 +125,15 @@ void auth_process(State *state) {
     if (state->server.is_authenticated) return;
     if (!state->server.should_authenticate) return;
 
-    if (!server_is_ready_for_connections(state)) return;
-
     if (state->server.registration_token == NULL || strlen(state->server.registration_token) == 0) {
-        request_registration_token(state);
+        printf("[Auth] Generating registration token... ");
+        state->server.registration_token = malloc(BACKEND_REGISTRATION_TOKEN_LENGTH + 1);
+        generate_registration_token(state->server.registration_token, BACKEND_REGISTRATION_TOKEN_LENGTH);
+        printf("%s\n", state->server.registration_token);
         return;
     }
+
+    if (!server_is_ready_for_connections(state)) return;
 
     if (state->server.access_token == NULL || strlen(state->server.access_token) == 0) {
         poll_registration_status(state);
