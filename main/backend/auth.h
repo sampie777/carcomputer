@@ -7,7 +7,7 @@
 
 #include "../state.h"
 
-void store_access_code(const char *value);
+void store_access_token(const char *value);
 
 void request_registration_token(State *state);
 

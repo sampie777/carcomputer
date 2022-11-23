@@ -9,24 +9,24 @@
 #include "server.h"
 #include "../utils.h"
 
-#define NVS_ACCESS_CODE_KEY "access_code"
+#define NVS_ACCESS_TOKEN_KEY "access_token"
 
 static nvs_handle_t handle;
 
-void erase_access_code() {
-    printf("Erasing access code value in NVS... ");
-    esp_err_t err = nvs_erase_key(handle, NVS_ACCESS_CODE_KEY);
+void erase_access_token() {
+    printf("Erasing access token value in NVS... ");
+    esp_err_t err = nvs_erase_key(handle, NVS_ACCESS_TOKEN_KEY);
     printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
-    nvs_erase_key(handle, NVS_ACCESS_CODE_KEY);
+    nvs_erase_key(handle, NVS_ACCESS_TOKEN_KEY);
 
     printf("Committing updates in NVS... ");
     err = nvs_commit(handle);
     printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
 }
 
-void store_access_code(const char *value) {
-    printf("Updating access code value in NVS to: '%s'... ", value);
-    esp_err_t err = nvs_set_str(handle, NVS_ACCESS_CODE_KEY, value);
+void store_access_token(const char *value) {
+    printf("Updating access token value in NVS to: '%s'... ", value);
+    esp_err_t err = nvs_set_str(handle, NVS_ACCESS_TOKEN_KEY, value);
     printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
 
     // Commit written value.
@@ -38,9 +38,9 @@ void store_access_code(const char *value) {
     printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
 }
 
-int read_access_code(char **result, size_t *length) {
-    printf("Reading access code from NVS... ");
-    esp_err_t err = nvs_get_str(handle, NVS_ACCESS_CODE_KEY, NULL, length);
+int read_access_token(char **result, size_t *length) {
+    printf("Reading access token from NVS... ");
+    esp_err_t err = nvs_get_str(handle, NVS_ACCESS_TOKEN_KEY, NULL, length);
 
     if (err == ESP_ERR_NVS_NOT_FOUND) {
         printf("The value is not initialized yet\n");
@@ -53,7 +53,7 @@ int read_access_code(char **result, size_t *length) {
     }
 
     *result = malloc(*length + 1);
-    err = nvs_get_str(handle, NVS_ACCESS_CODE_KEY, *result, length);
+    err = nvs_get_str(handle, NVS_ACCESS_TOKEN_KEY, *result, length);
 
     if (err == ESP_ERR_NVS_NOT_FOUND) {
         printf("The value is not initialized yet\n");
@@ -83,18 +83,18 @@ void on_registration_token_received(State *state, const HttpResponseMessage *res
 }
 
 void on_registration_status_received(State *state, const HttpResponseMessage *response) {
-    printf("[Auth] Processing access code response\n");
+    printf("[Auth] Processing access token response\n");
     printf("RESPONSE (status): '%s' (HTTP %d)\n", response->message, response->code);
     state->server.is_registration_status_check_in_process = false;
 
     if (response->code != 200) return;
-    char *code = response->message;
+    char *token = response->message;
 
-    if (strlen(code) == 0) return;
+    if (strlen(token) == 0) return;
 
-    store_access_code(code);
-    state->server.access_code = malloc(strlen(code) + 1);
-    strcpy(state->server.access_code, code);
+    store_access_token(token);
+    state->server.access_token = malloc(strlen(token) + 1);
+    strcpy(state->server.access_token, token);
 
     state->server.is_authenticated = true;
     state->server.should_authenticate = false;
@@ -134,7 +134,7 @@ void poll_registration_status(State *state) {
         return;
     last_poll_time = esp_timer_get_time_ms();
 
-    printf("[Auth] Checking access code status...\n");
+    printf("[Auth] Checking access token status...\n");
 
     char *http_request_url = malloc(strlen(BACKEND_REGISTRATION_STATUS_URL) + strlen(SERVER_API_KEY) + strlen(state->server.registration_token) + 32);
     sprintf(http_request_url, "%s%capi_key=%s&token=%s",
@@ -164,7 +164,7 @@ void auth_process(State *state) {
         return;
     }
 
-    if (state->server.access_code == NULL || strlen(state->server.access_code) == 0) {
+    if (state->server.access_token == NULL || strlen(state->server.access_token) == 0) {
         poll_registration_status(state);
         return;
     }
@@ -191,7 +191,7 @@ void auth_init(State *state) {
     }
 
     size_t length;
-    int result = read_access_code(&(state->server.access_code), &length);
+    int result = read_access_token(&(state->server.access_token), &length);
     state->server.is_authenticated = result == RESULT_OK && length > 0;
     state->server.should_authenticate = result == RESULT_EMPTY || length <= 0;
 

@@ -501,11 +501,11 @@ void gsm_http_post(State *state, const char *url, const char *json) {
     char *domain = strtok(NULL, "/");
 
     // Store url for upload
-    char authorization_header_value[strlen(state->server.access_code) + 10];
-    sprintf(authorization_header_value, "Bearer %s", state->server.access_code);
+    char authorization_header_value[strlen(state->server.access_token) + 10];
+    sprintf(authorization_header_value, "Bearer %s", state->server.access_token);
 
-    http_request_url = realloc(http_request_url, strlen(url) + strlen(state->server.access_code) + 16);
-    sprintf(http_request_url, "%s%caccess_token=%s", url, strstr(url, "?") == NULL ? '?' : '&', state->server.access_code);
+    http_request_url = realloc(http_request_url, strlen(url) + strlen(state->server.access_token) + 16);
+    sprintf(http_request_url, "%s%caccess_token=%s", url, strstr(url, "?") == NULL ? '?' : '&', state->server.access_token);
 
     char *json_escaped;
     string_escape(json, &json_escaped);

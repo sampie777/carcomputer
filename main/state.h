@@ -101,7 +101,7 @@ typedef struct {
     uint8_t should_authenticate;
     int64_t is_registration_status_check_in_process;
     char *registration_token;
-    char *access_code;
+    char *access_token;
 } ServerState;
 
 typedef struct {
