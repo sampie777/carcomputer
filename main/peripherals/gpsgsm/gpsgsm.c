@@ -506,7 +506,6 @@ void gsm_http_post(State *state, const char *url, const char *json) {
 
     http_request_url = realloc(http_request_url, strlen(url) + strlen(state->server.access_code) + 16);
     sprintf(http_request_url, "%s%caccess_token=%s", url, strstr(url, "?") == NULL ? '?' : '&', state->server.access_code);
-    http_request_url[strlen(url)] = '0';
 
     char *json_escaped;
     string_escape(json, &json_escaped);

@@ -13,8 +13,19 @@
 
 static nvs_handle_t handle;
 
+void erase_access_code() {
+    printf("Erasing access code value in NVS... ");
+    esp_err_t err = nvs_erase_key(handle, NVS_ACCESS_CODE_KEY);
+    printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
+    nvs_erase_key(handle, NVS_ACCESS_CODE_KEY);
+
+    printf("Committing updates in NVS... ");
+    err = nvs_commit(handle);
+    printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
+}
+
 void store_access_code(const char *value) {
-    printf("Updating access code value in NVS... ");
+    printf("Updating access code value in NVS to: '%s'... ", value);
     esp_err_t err = nvs_set_str(handle, NVS_ACCESS_CODE_KEY, value);
     printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
 
@@ -125,7 +136,7 @@ void poll_registration_status(State *state) {
 
     printf("[Auth] Checking access code status...\n");
 
-    char *http_request_url = malloc(strlen(BACKEND_REGISTRATION_STATUS_URL) + strlen(SERVER_API_KEY) + strlen(state->server.registration_token) + 16);
+    char *http_request_url = malloc(strlen(BACKEND_REGISTRATION_STATUS_URL) + strlen(SERVER_API_KEY) + strlen(state->server.registration_token) + 32);
     sprintf(http_request_url, "%s%capi_key=%s&token=%s",
             BACKEND_REGISTRATION_STATUS_URL,
             strstr(BACKEND_REGISTRATION_STATUS_URL, "?") == NULL ? '?' : '&',
