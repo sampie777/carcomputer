@@ -564,7 +564,7 @@ void bluetooth_init(State *state) {
     assert(rc == 0);
 
     /* Set the default device name. */
-    rc = ble_svc_gap_device_name_set(DEVICE_NAME);
+    rc = ble_svc_gap_device_name_set(state->device_name);
     assert(rc == 0);
 
     /* XXX Need to have template for store */

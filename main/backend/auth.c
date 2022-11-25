@@ -3,72 +3,13 @@
 //
 
 #include <string.h>
-#include <nvs_flash.h>
 #include "auth.h"
 #include "../return_codes.h"
 #include "server.h"
 #include "../utils.h"
 #include "utils.h"
-
-#define NVS_ACCESS_TOKEN_KEY "access_token"
-
-static nvs_handle_t handle;
-
-void erase_access_token() {
-    printf("Erasing access token value in NVS... ");
-    esp_err_t err = nvs_erase_key(handle, NVS_ACCESS_TOKEN_KEY);
-    printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
-    nvs_erase_key(handle, NVS_ACCESS_TOKEN_KEY);
-
-    printf("Committing updates in NVS... ");
-    err = nvs_commit(handle);
-    printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
-}
-
-void store_access_token(const char *value) {
-    printf("Updating access token value in NVS to: '%s'... ", value);
-    esp_err_t err = nvs_set_str(handle, NVS_ACCESS_TOKEN_KEY, value);
-    printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
-
-    // Commit written value.
-    // After setting any values, nvs_commit() must be called to ensure changes are written
-    // to flash storage. Implementations may write to storage at other times,
-    // but this is not guaranteed.
-    printf("Committing updates in NVS... ");
-    err = nvs_commit(handle);
-    printf((err != ESP_OK) ? "Failed!\n" : "Done\n");
-}
-
-int read_access_token(char **result, size_t *length) {
-    printf("Reading access token from NVS... ");
-    esp_err_t err = nvs_get_str(handle, NVS_ACCESS_TOKEN_KEY, NULL, length);
-
-    if (err == ESP_ERR_NVS_NOT_FOUND) {
-        printf("The value is not initialized yet\n");
-        return RESULT_EMPTY;
-    }
-
-    if (err != ESP_OK) {
-        printf("Error (%s) reading!\n", esp_err_to_name(err));
-        return RESULT_FAILED;
-    }
-
-    *result = malloc(*length + 1);
-    err = nvs_get_str(handle, NVS_ACCESS_TOKEN_KEY, *result, length);
-
-    if (err == ESP_ERR_NVS_NOT_FOUND) {
-        printf("The value is not initialized yet\n");
-        return RESULT_EMPTY;
-    }
-
-    if (err != ESP_OK) {
-        printf("Error (%s) reading!\n", esp_err_to_name(err));
-        return RESULT_FAILED;
-    }
-
-    printf("OK\n");
-    return RESULT_OK;
-}
+#include "json.h"
+#include "../utils/nvs.h"
 
 void on_registration_status_received(State *state, const HttpResponseMessage *response) {
     printf("[Auth] Processing access token response\n");
@@ -76,20 +17,25 @@ void on_registration_status_received(State *state, const HttpResponseMessage *re
     state->server.is_registration_status_check_in_process = false;
 
     if (response->code != 200) return;
-    char *token = response->message;
 
-    if (strlen(token) == 0) return;
+    if (strlen(response->message) == 0) return;
 
-    store_access_token(token);
-    state->server.access_token = malloc(strlen(token) + 1);
-    strcpy(state->server.access_token, token);
+    RegistrationResponse response_struct = {};
+    parse_json_to_registration_response(response->message, &response_struct);
+
+    nvs_store_access_token(response_struct.access_token);
+    state->server.access_token = malloc(strlen(response_struct.access_token) + 1);
+    strcpy(state->server.access_token, response_struct.access_token);
+
+    nvs_store_device_name(response_struct.device_name);
+    state->device_name = malloc(strlen(response_struct.device_name) + 1);
+    strcpy(state->device_name, response_struct.device_name);
 
     state->server.is_authenticated = true;
     state->server.should_authenticate = false;
     free(state->server.registration_token);
     printf("[Auth] Authentication successful\n");
 }
-
 
 void poll_registration_status(State *state) {
     static int64_t last_poll_time = 0;
@@ -144,25 +90,8 @@ void auth_process(State *state) {
 void auth_init(State *state) {
     printf("[Auth] Initializing...\n");
 
-    // Initialize NVS
-    esp_err_t err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        // NVS partition was truncated and needs to be erased
-        // Retry nvs_flash_init
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(err);
-
-    printf("Opening Non-Volatile Storage (NVS) handle... \n");
-    err = nvs_open("storage", NVS_READWRITE, &handle);
-    if (err != ESP_OK) {
-        printf("Error (%s) opening NVS handle!\n", esp_err_to_name(err));
-        return;
-    }
-
     size_t length;
-    int result = read_access_token(&(state->server.access_token), &length);
+    int result = nvs_read_access_token(&(state->server.access_token), &length);
     state->server.is_authenticated = result == RESULT_OK && length > 0;
     state->server.should_authenticate = result == RESULT_EMPTY || length <= 0;
 

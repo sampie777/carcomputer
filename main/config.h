@@ -15,8 +15,6 @@ extern "C" {
 // GPIO16-17 are usually connected to the SPI flash and PSRAM integrated on the module
 // and therefore should not be used for other purposes (https://docs.espressif.com/projects/esp-idf/en/v4.4.1/esp32/api-reference/peripherals/gpio.html)
 
-#define DEVICE_NAME "Nissan Micra"
-
 #define POWER_OF_ENABLE false
 #define POWER_OFF_MAX_TIMEOUT_MS 90000
 #define POWER_PIN GPIO_NUM_23

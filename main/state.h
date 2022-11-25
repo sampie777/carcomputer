@@ -121,6 +121,7 @@ typedef struct {
     uint8_t server_is_uploading;
     uint8_t trip_has_been_uploaded;
     uint32_t errors;
+    char *device_name;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

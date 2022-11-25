@@ -194,7 +194,7 @@ void wifi_init(State *state) {
 
     // Initialize default station as network interface instance (esp-netif)
     esp_netif_t *sta_netif = esp_netif_create_default_wifi_sta();
-    esp_netif_set_hostname(sta_netif, DEVICE_NAME);
+    esp_netif_set_hostname(sta_netif, state->device_name);
     assert(sta_netif);
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();

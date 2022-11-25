@@ -12,8 +12,6 @@
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 
-void nvs_init();
-
 int64_t esp_timer_get_time_ms();
 
 void delay_ms(unsigned long ms);
