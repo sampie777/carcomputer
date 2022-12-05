@@ -230,9 +230,13 @@ int server_send_trip_end(State *state) {
     char buffer[512];
     sprintf(buffer, "{"
                     "\"uptimeMs\": \"%lld\","
-                    "\"wifiSsid\": \"%s\","
-                    "\"odometerStart\": %d,"
-                    "\"odometerEnd\": %d,"
+                    "\"wifi\": {"
+                    "  \"ssid\": \"%s\""
+                    "},"
+                    "\"car\": {"
+                    "  \"odometer_start\": %d,"
+                    "  \"odometer\": %d"
+                    "},"
                     "\"location\": {"
                     "  \"is_gps_on\": %d,"
                     "  \"quality\": %d,"
@@ -241,7 +245,7 @@ int server_send_trip_end(State *state) {
                     "  \"latitude\": %.5f,"
                     "  \"longitude\": %.5f,"
                     "  \"altitude\": %.1f,"
-                    "  \"time\": \"%d-%02d-%02d'T'%02d:%02d%02d%+d\""
+                    "  \"time\": \"%d-%02d-%02d'T'%02d:%02d:%02d.000%+d\""
                     "}"
                     "}", esp_timer_get_time_ms(),
             state->wifi.ssid,
@@ -317,7 +321,7 @@ int server_send_data_log_record(State *state) {
                     "  \"altitude\": %.1f,"
                     "  \"ground_speed\": %.3f,"
                     "  \"ground_heading\": %.2f,"
-                    "  \"time\": \"%d-%02d-%02d'T'%02d:%02d%02d%+d\""
+                    "  \"time\": \"%d-%02d-%02d'T'%02d:%02d:%02d.000%+d\""
                     "}"
                     "}\n",
             esp_timer_get_time_ms(),

@@ -5,7 +5,6 @@
 #include <driver/i2c.h>
 #include "mpu9250.h"
 #include "../utils.h"
-#include "display/display.h"
 
 
 #define MPU9250_REGISTER_SELF_TEST_X_GYRO 0x00
