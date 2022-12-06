@@ -29,15 +29,15 @@ extern "C" {
 #define WIFI_SCAN_MAX_APS 16
 
 #define BACKEND_REGISTRATION_TOKEN_LENGTH 7
-#define BACKEND_REGISTRATION_STATUS_URL "https://car.sajansen.nl/api/v1/device/registration/status"
+#define BACKEND_REGISTRATION_STATUS_URL "https://car.sajansen.nl/api/v1/devices/register"
 
 #define TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS 15000
 #define TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS 3000
 #define TRIP_LOGGER_UPLOAD_URL "http://httpbin.org/post"
 #define DATA_LOGGER_LOG_INTERVAL_MS 500
-#define DATA_LOGGER_SINGLE_UPLOAD_INTERVAL_MS 20000
-#define DATA_LOGGER_SINGLE_UPLOAD_URL "https://car.sajansen.nl"   // Comment to disable interval upload
-#define DATA_LOGGER_ALL_UPLOAD_URL "https://car.sajansen.nl"
+#define DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS 15000
+#define DATA_LOGGER_UPLOAD_URL_MINIMAL_DATA "https://car.sajansen.nl/api/v1/cars/logs"   // Comment to disable interval upload
+#define DATA_LOGGER_UPLOAD_URL_FULL_DATA "https://car.sajansen.nl/api/v1/cars/logs"
 
 #define SPI_MOSI_PIN GPIO_NUM_12
 #define SPI_MISO_PIN GPIO_NUM_13
@@ -65,7 +65,6 @@ extern "C" {
 #define DISPLAY_UPSIDE_DOWN false
 #define DISPLAY_UPDATE_MIN_INTERVAL 40  // 25 fps
 #define DISPLAY_ERROR_MESSAGE_TIME_MS 2000
-#define DISPLAY_ERROR_MESSAGE_MAX_LENGTH ((DISPLAY_WIDTH - 12) / 5)
 #define DISPLAY_LONG_BLINK_INTERVAL 1000
 
 #define CRUISE_CONTROL_ENABLE false

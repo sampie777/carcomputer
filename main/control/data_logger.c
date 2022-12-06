@@ -25,10 +25,7 @@ void data_logger_upload_all(State *state) {
 
     if (state->car.odometer == last_odometer) return;
 
-    // Can't upload data if WiFi is disconnected
-    if (!state->wifi.is_connected) return;
-
-#ifdef DATA_LOGGER_ALL_UPLOAD_URL
+#ifdef DATA_LOGGER_UPLOAD_URL_FULL_DATA
     if (server_send_data_log_record(state) != RESULT_OK) {
         // Retry again in X seconds
         engine_off_time = esp_timer_get_time_ms() + TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS - TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS;
@@ -42,7 +39,7 @@ void data_logger_upload_all(State *state) {
 void data_logger_upload_current(State *state) {
     static int64_t last_log_time = 0;
 
-    if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_SINGLE_UPLOAD_INTERVAL_MS) return;
+    if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS) return;
     last_log_time = esp_timer_get_time_ms();
 
     char buffer[512];
@@ -75,8 +72,8 @@ void data_logger_upload_current(State *state) {
             state->location.time.seconds,
             state->location.time.timezone);
 
-#ifdef DATA_LOGGER_SINGLE_UPLOAD_URL
-    server_send_data(state, DATA_LOGGER_SINGLE_UPLOAD_URL, buffer, false);
+#ifdef DATA_LOGGER_UPLOAD_URL_MINIMAL_DATA
+    server_send_data(state, DATA_LOGGER_UPLOAD_URL_MINIMAL_DATA, buffer, false);
 #endif
 }
 

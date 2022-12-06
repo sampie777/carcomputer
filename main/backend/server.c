@@ -376,7 +376,7 @@ int server_send_data_log_record(State *state) {
             state->location.time.seconds,
             state->location.time.timezone
     );
-    return server_send_data(state, DATA_LOGGER_ALL_UPLOAD_URL, buffer, true);
+    return server_send_data(state, DATA_LOGGER_UPLOAD_URL_FULL_DATA, buffer, false);
 }
 
 int server_send_data(State *state, const char *url, const char *json, uint8_t wifi_only) {
