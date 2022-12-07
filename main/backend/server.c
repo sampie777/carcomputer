@@ -95,8 +95,8 @@ int send_data_over_wifi(State *state, const char *url, const char *data) {
 #if WIFI_ENABLE
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
 
-    char *http_request_url = malloc(strlen(url) + strlen(state->server.access_code) + 16);
-    sprintf(http_request_url, "%s%caccess_token=%s", url, strstr(url, "?") == NULL ? '?' : '&', state->server.access_code);
+    char *http_request_url = malloc(strlen(url) + strlen(state->server.access_code)+ strlen(SERVER_API_KEY) + 32);
+    sprintf(http_request_url, "%s%capi_key=%s&access_token=%s", url, strstr(url, "?") == NULL ? '?' : '&', SERVER_API_KEY, state->server.access_token);
 
     esp_http_client_config_t config = {
             .url = http_request_url,
@@ -227,6 +227,21 @@ int receive_data(State *state, const char *url, uint8_t wifi_only, void (*callba
 
 int server_send_trip_end(State *state) {
     printf("[Server] Logging trip end...\n");
+
+    char timestamp[64];
+    if (state->location.time.year < 2000) {
+        timestamp[0] = '\0';
+    } else {
+        sprintf(timestamp, ",\"time\": \"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
+                state->location.time.year,
+                state->location.time.month,
+                state->location.time.day,
+                state->location.time.hours,
+                state->location.time.minutes,
+                state->location.time.seconds,
+                state->location.time.timezone);
+    }
+
     char buffer[512];
     sprintf(buffer, "{"
                     "\"uptimeMs\": \"%lld\","
@@ -244,8 +259,8 @@ int server_send_trip_end(State *state) {
                     "  \"is_effective_positioning\": %d,"
                     "  \"latitude\": %.5f,"
                     "  \"longitude\": %.5f,"
-                    "  \"altitude\": %.1f,"
-                    "  \"time\": \"%d-%02d-%02d'T'%02d:%02d:%02d.000%+d\""
+                    "  \"altitude\": %.1f"
+                    "%s"
                     "}"
                     "}", esp_timer_get_time_ms(),
             state->wifi.ssid,
@@ -258,18 +273,27 @@ int server_send_trip_end(State *state) {
             state->location.latitude,
             state->location.longitude,
             state->location.altitude,
-            state->location.time.year,
-            state->location.time.month,
-            state->location.time.day,
-            state->location.time.hours,
-            state->location.time.minutes,
-            state->location.time.seconds,
-            state->location.time.timezone);
-    return server_send_data(state, TRIP_LOGGER_UPLOAD_URL, buffer, false);
+            timestamp);
+    return server_send_data(state, TRIP_LOGGER_UPLOAD_URL_TRIP_END, buffer, false);
 }
 
 int server_send_data_log_record(State *state) {
     printf("[Server] Logging data record...\n");
+
+    char timestamp[64];
+    if (state->location.time.year < 2000) {
+        timestamp[0] = '\0';
+    } else {
+        sprintf(timestamp, ",\"time\": \"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
+                state->location.time.year,
+                state->location.time.month,
+                state->location.time.day,
+                state->location.time.hours,
+                state->location.time.minutes,
+                state->location.time.seconds,
+                state->location.time.timezone);
+    }
+
     char buffer[1200];
     sprintf(buffer, "{"
                     "\"uptimeMs\": %lld,"
@@ -320,8 +344,8 @@ int server_send_data_log_record(State *state) {
                     "  \"longitude\": %.5f,"
                     "  \"altitude\": %.1f,"
                     "  \"ground_speed\": %.3f,"
-                    "  \"ground_heading\": %.2f,"
-                    "  \"time\": \"%d-%02d-%02d'T'%02d:%02d:%02d.000%+d\""
+                    "  \"ground_heading\": %.2f"
+                    "%s"
                     "}"
                     "}\n",
             esp_timer_get_time_ms(),
@@ -368,13 +392,7 @@ int server_send_data_log_record(State *state) {
             state->location.altitude,
             state->location.ground_speed,
             state->location.ground_heading,
-            state->location.time.year,
-            state->location.time.month,
-            state->location.time.day,
-            state->location.time.hours,
-            state->location.time.minutes,
-            state->location.time.seconds,
-            state->location.time.timezone
+            timestamp
     );
     return server_send_data(state, DATA_LOGGER_UPLOAD_URL_FULL_DATA, buffer, false);
 }

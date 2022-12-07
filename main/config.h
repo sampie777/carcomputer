@@ -31,13 +31,14 @@ extern "C" {
 #define BACKEND_REGISTRATION_TOKEN_LENGTH 7
 #define BACKEND_REGISTRATION_STATUS_URL "https://car.sajansen.nl/api/v1/devices/register"
 
+#define DATA_UPLOAD_URL "https://car.sajansen.nl/api/v1/cars/logs"
 #define TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS 15000
 #define TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS 3000
-#define TRIP_LOGGER_UPLOAD_URL "http://httpbin.org/post"
+#define TRIP_LOGGER_UPLOAD_URL_TRIP_END DATA_UPLOAD_URL
 #define DATA_LOGGER_LOG_INTERVAL_MS 500
-#define DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS 15000
-#define DATA_LOGGER_UPLOAD_URL_MINIMAL_DATA "https://car.sajansen.nl/api/v1/cars/logs"   // Comment to disable interval upload
-#define DATA_LOGGER_UPLOAD_URL_FULL_DATA "https://car.sajansen.nl/api/v1/cars/logs"
+#define DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS 30000
+#define DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL DATA_UPLOAD_URL   // Comment to disable interval upload
+#define DATA_LOGGER_UPLOAD_URL_FULL_DATA DATA_UPLOAD_URL
 
 #define SPI_MOSI_PIN GPIO_NUM_12
 #define SPI_MISO_PIN GPIO_NUM_13

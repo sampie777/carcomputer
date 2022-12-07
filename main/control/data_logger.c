@@ -42,19 +42,33 @@ void data_logger_upload_current(State *state) {
     if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS) return;
     last_log_time = esp_timer_get_time_ms();
 
+    char timestamp[64];
+    if (state->location.time.year < 2000) {
+        timestamp[0] = '\0';
+    } else {
+        sprintf(timestamp, ",\"time\": \"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
+                state->location.time.year,
+                state->location.time.month,
+                state->location.time.day,
+                state->location.time.hours,
+                state->location.time.minutes,
+                state->location.time.seconds,
+                state->location.time.timezone);
+    }
+
     char buffer[512];
     sprintf(buffer, "{"
-                    "'car': {"
-                    "  'is_connected': %d,"
-                    "  'speed': %.3f,"
+                    "\"car\": {"
+                    "  \"is_connected\": %d,"
+                    "  \"speed\": %.3f"
                     "},"
-                    "'location': {"
-                    "  'satellites': %d,"
-                    "  'latitude': %.5f,"
-                    "  'longitude': %.5f,"
-                    "  'ground_speed': %.3f,"
-                    "  'ground_heading': %.2f,"
-                    "  'time': '%d-%02d-%02d'T'%02d:%02d%02d%+d'"
+                    "\"location\": {"
+                    "  \"satellites\": %d,"
+                    "  \"latitude\": %.5f,"
+                    "  \"longitude\": %.5f,"
+                    "  \"ground_speed\": %.3f,"
+                    "  \"ground_heading\": %.2f"
+                    "%s"
                     "}"
                     "}",
             state->car.is_connected,
@@ -64,16 +78,10 @@ void data_logger_upload_current(State *state) {
             state->location.longitude,
             state->location.ground_speed,
             state->location.ground_heading,
-            state->location.time.year,
-            state->location.time.month,
-            state->location.time.day,
-            state->location.time.hours,
-            state->location.time.minutes,
-            state->location.time.seconds,
-            state->location.time.timezone);
+            timestamp);
 
-#ifdef DATA_LOGGER_UPLOAD_URL_MINIMAL_DATA
-    server_send_data(state, DATA_LOGGER_UPLOAD_URL_MINIMAL_DATA, buffer, false);
+#ifdef DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL
+    server_send_data(state, DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL, buffer, false);
 #endif
 }
 
@@ -130,7 +138,7 @@ void data_logger_log_current(State *state) {
             "%.1f;"         // state->location.altitude
             "%.3f;"         // state->location.ground_speed
             "%.2f;"         // state->location.ground_heading
-            "%d-%02d-%02d'T'%02d:%02d%02d%+d;"         // state->location.time
+            "%d-%02d-%02d'T'%02d:%02d:%02d.000%+d;"         // state->location.time
             "\n",
             esp_timer_get_time_ms(),
             state->car.is_connected,
