@@ -5,15 +5,16 @@
 #include <math.h>
 #include "control.h"
 #include "../peripherals/canbus.h"
-#include "../peripherals/gas_pedal.h"
 #include "../return_codes.h"
-#include "../peripherals/display/display.h"
-#include "cruise_control.h"
 #include "../peripherals/buttons.h"
 #include "../utils.h"
 #include "../peripherals/mpu9250.h"
-#include "../connectivity/server.h"
+#include "../backend/server.h"
 #include "../error_codes.h"
+#if CRUISE_CONTROL_ENABLE
+#include "../peripherals/gas_pedal.h"
+#include "cruise_control.h"
+#endif
 
 void control_read_can_bus(State *state) {
     canbus_check_controller_connection(state);
@@ -27,9 +28,11 @@ void control_read_can_bus(State *state) {
 }
 
 void control_read_analog_sensors(State *state) {
+#if CRUISE_CONTROL_ENABLE
     if (gas_pedal_read(state) == RESULT_DISCONNECTED) {
         set_error(state, ERROR_PEDAL_DISCONNECTED);
     }
+#endif
 
     mpu9250_read(state);
 }
@@ -85,6 +88,7 @@ void control_door_lock(State *state) {
 }
 
 void control_mpu_power(State *state) {
+#if POWER_OF_ENABLE
     static int64_t ignition_off_time = 0;
     if (state->car.is_ignition_on) {
         gpio_set_level(POWER_PIN, 1);
@@ -111,17 +115,22 @@ void control_mpu_power(State *state) {
     gpio_set_level(POWER_PIN, 0);
     delay_ms(1000);
     ignition_off_time = 0;
+#endif
 }
 
 void control_cruise_control(State *state) {
+#if CRUISE_CONTROL_ENABLE
     cruise_control_step(state);
+#endif
 }
 
 void control_init(State *state) {
     gpio_set_direction(POWER_PIN, GPIO_MODE_OUTPUT);
 
     canbus_init(state);
+#if CRUISE_CONTROL_ENABLE
     gas_pedal_init(state);
+#endif
     buttons_init();
     mpu9250_init();
 }

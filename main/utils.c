@@ -7,16 +7,6 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include "utils.h"
-#include "nvs_flash.h"
-
-void nvs_init() {
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-}
 
 int64_t esp_timer_get_time_ms() {
     return esp_timer_get_time() / 1000;
@@ -51,6 +41,22 @@ void string_char_replace(char *source, char needle, char replacement) {
     }
 }
 
+void string_char_remove(char **source, char needle) {
+    char *out = malloc(strlen(*source) + 1);
+    int out_size = 0;
+
+    // Copy over string without needle
+    for (int i = 0; i < strlen(*source) + 1; i++) {
+        if ((*source)[i] == needle) continue;
+        out[out_size++] = (*source)[i];
+    }
+
+    // Put new value back into original string
+    *source = malloc(out_size + 1);
+    strcpy(*source, out);
+    free(out);
+}
+
 void string_escape(const char *input, char **destination) {
     size_t escaped_size = 0;
     size_t input_size = strlen(input);
@@ -68,6 +74,12 @@ void string_escape(const char *input, char **destination) {
 }
 
 void set_error(State *state, uint32_t error_code) {
-    printf("Set error code: %u\n", error_code);
+    static uint32_t previous_errors = 0;
     state->errors |= error_code;
+
+    if (state->errors != previous_errors) {
+        // Only print this once
+        printf("Set error code: %u\n", error_code);
+        previous_errors = state->errors;
+    }
 }

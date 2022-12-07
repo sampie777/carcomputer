@@ -15,27 +15,30 @@ extern "C" {
 // GPIO16-17 are usually connected to the SPI flash and PSRAM integrated on the module
 // and therefore should not be used for other purposes (https://docs.espressif.com/projects/esp-idf/en/v4.4.1/esp32/api-reference/peripherals/gpio.html)
 
-#define DEVICE_NAME "Nissan Micra"
-
+#define POWER_OF_ENABLE false
 #define POWER_OFF_MAX_TIMEOUT_MS 90000
 #define POWER_PIN GPIO_NUM_23
 
 #define BLUETOOTH_ENABLE false
 #define WIFI_ENABLE false
-#define GSM_ENABLE false
+#define GSM_ENABLE true
 #define SD_ENABLE false
 
 #define WIFI_SCAN_INTERVAL_MS 2500
 #define WIFI_SCAN_MAX_DURATION 8000
 #define WIFI_SCAN_MAX_APS 16
 
+#define BACKEND_REGISTRATION_TOKEN_LENGTH 7
+#define BACKEND_REGISTRATION_STATUS_URL "https://car.sajansen.nl/api/v1/devices/register"
+
+#define DATA_UPLOAD_URL "https://car.sajansen.nl/api/v1/cars/logs"
 #define TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS 15000
 #define TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS 3000
-#define TRIP_LOGGER_UPLOAD_URL "http://httpbin.org/post"
+#define TRIP_LOGGER_UPLOAD_URL_TRIP_END DATA_UPLOAD_URL
 #define DATA_LOGGER_LOG_INTERVAL_MS 500
-#define DATA_LOGGER_SINGLE_UPLOAD_INTERVAL_MS 20000
-#define DATA_LOGGER_SINGLE_UPLOAD_URL "http://httpbin.org/post"   // Comment to disable interval upload
-#define DATA_LOGGER_ALL_UPLOAD_URL "http://httpbin.org/post"
+#define DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS 30000
+#define DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL DATA_UPLOAD_URL   // Comment to disable interval upload
+#define DATA_LOGGER_UPLOAD_URL_FULL_DATA DATA_UPLOAD_URL
 
 #define SPI_MOSI_PIN GPIO_NUM_12
 #define SPI_MISO_PIN GPIO_NUM_13
@@ -63,9 +66,9 @@ extern "C" {
 #define DISPLAY_UPSIDE_DOWN false
 #define DISPLAY_UPDATE_MIN_INTERVAL 40  // 25 fps
 #define DISPLAY_ERROR_MESSAGE_TIME_MS 2000
-#define DISPLAY_ERROR_MESSAGE_MAX_LENGTH ((DISPLAY_WIDTH - 12) / 5)
 #define DISPLAY_LONG_BLINK_INTERVAL 1000
 
+#define CRUISE_CONTROL_ENABLE false
 #define CRUISE_CONTROL_MAX_RPM_LIMIT 4500
 #define CRUISE_CONTROL_PID_ITERATION_TIME 100
 #define CRUISE_CONTROL_PID_Kp 0.03
@@ -88,7 +91,7 @@ extern "C" {
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER LEDC_TIMER_0
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER_SPEED_MODE LEDC_HIGH_SPEED_MODE
 #define CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_0 LEDC_CHANNEL_0
-#define CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_1 LEDC_CHANNEL_0
+#define CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_1 LEDC_CHANNEL_1
 #define CAR_VIRTUAL_GAS_PEDAL_RISE_TIME_MS 100  // Time to wait before switching gas pedal to virtual gas pedal
 
 #define CAR_CLAXON_PIN GPIO_NUM_25
@@ -118,7 +121,7 @@ extern "C" {
 #define GPSGSM_UART_RX_PIN GPIO_NUM_16
 #define GPSGSM_UART_BAUD_RATE 115200
 #define GPSGSM_INIT_MAX_TIMEOUT_MS 20000
-#define GPSGSM_MESSAGE_MAX_TIMEOUT_MS 10000
+#define GPSGSM_MESSAGE_MAX_TIMEOUT_MS 20000
 #define GPSGSM_SMS_SENT_MAX_TIMEOUT_MS 20000
 
 #define CRASH_DETECTION_CRASH_MIN_G 30

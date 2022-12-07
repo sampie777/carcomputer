@@ -4,7 +4,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "state.h"
-#include "utils.h"
 #include "control/control.h"
 #include "connectivity/i2c.h"
 #include "connectivity/spi.h"
@@ -12,6 +11,9 @@
 #include "peripherals/gpsgsm/gpsgsm.h"
 #include "control/data_logger.h"
 #include "control/security.h"
+#include "backend/server.h"
+#include "utils/nvs.h"
+#include "return_codes.h"
 
 #if WIFI_ENABLE
 #include "connectivity/wifi.h"
@@ -45,6 +47,7 @@ _Noreturn void process_main(State *state) {
 #if WIFI_ENABLE
     wifi_init(state);
 #endif
+    server_init(state);
 
     state->is_booting = false;
 
@@ -68,22 +71,30 @@ _Noreturn void process_main(State *state) {
 #if WIFI_ENABLE
         wifi_scan(state);
 #endif
+        server_process(state);
     }
 }
 
-void init() {
+void init(State *state) {
     nvs_init();
+
+    size_t length;
+    int result = nvs_read_device_name(&(state->device_name), &length);
+    if (length == 0 || result != RESULT_OK) {
+        state->device_name = "Unregistered";
+    }
 }
 
 // Running on main core
-void app_main(void) {
+__attribute__((unused)) void app_main(void) {
     State state = {
             .is_booting = true,
             .power_off_count_down_sec = -1,
             .location.time.timezone = 2,    // GMT+2
+            .device_name = "Unregistered"
     };
 
-    init();
+    init(&state);
 
     // Init second core
     portBASE_TYPE result = xTaskCreatePinnedToCore(&process_gui, "process_gui",

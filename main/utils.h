@@ -12,8 +12,6 @@
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 
-void nvs_init();
-
 int64_t esp_timer_get_time_ms();
 
 void delay_ms(unsigned long ms);
@@ -25,6 +23,8 @@ double average_read_channel(adc1_channel_t channel, int sample_count);
 uint8_t starts_with(const char *source, const char *needle);
 
 void string_char_replace(char *source, char needle, char replacement);
+
+void string_char_remove(char **source, char needle);
 
 void string_escape(const char *input, char **destination);
 
