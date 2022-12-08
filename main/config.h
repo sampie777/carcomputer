@@ -15,14 +15,14 @@ extern "C" {
 // GPIO16-17 are usually connected to the SPI flash and PSRAM integrated on the module
 // and therefore should not be used for other purposes (https://docs.espressif.com/projects/esp-idf/en/v4.4.1/esp32/api-reference/peripherals/gpio.html)
 
-#define POWER_OF_ENABLE false
+#define POWER_OFF_ENABLE false
 #define POWER_OFF_MAX_TIMEOUT_MS 90000
 #define POWER_PIN GPIO_NUM_23
 
 #define BLUETOOTH_ENABLE false
 #define WIFI_ENABLE false
 #define GSM_ENABLE true
-#define SD_ENABLE false
+#define SD_ENABLE true
 
 #define WIFI_SCAN_INTERVAL_MS 2500
 #define WIFI_SCAN_MAX_DURATION 8000
@@ -36,7 +36,7 @@ extern "C" {
 #define TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS 3000
 #define TRIP_LOGGER_UPLOAD_URL_TRIP_END DATA_UPLOAD_URL
 #define DATA_LOGGER_LOG_INTERVAL_MS 500
-#define DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS 20000
+#define DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS 30000
 #define DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL DATA_UPLOAD_URL   // Comment to disable interval upload
 #define DATA_LOGGER_UPLOAD_URL_FULL_DATA DATA_UPLOAD_URL
 

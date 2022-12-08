@@ -88,7 +88,7 @@ void control_door_lock(State *state) {
 }
 
 void control_mpu_power(State *state) {
-#if POWER_OF_ENABLE
+#if POWER_OFF_ENABLE
     static int64_t ignition_off_time = 0;
     if (state->car.is_ignition_on) {
         gpio_set_level(POWER_PIN, 1);

@@ -519,6 +519,7 @@ void gsm_http_post(State *state, const char *url, const char *json) {
     free(json_escaped);
 
     // Open connection to the server
+    transmit(A9G_CGATT_ENABLE, false);
     transmit_safe("AT+CIPSTART=\"TCP\",\"", 8, false);
     transmit_safe(domain, 8, false);
     transmit("\",80\r", true);
