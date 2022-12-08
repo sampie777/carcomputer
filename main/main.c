@@ -39,7 +39,6 @@ _Noreturn void process_main(State *state) {
     spi_init(state);
     security_init();
     control_init(state);
-    data_logger_init(state);
     gpsgsm_init(&state->a9g);
 #if BLUETOOTH_ENABLE
     bluetooth_init(state);
@@ -48,6 +47,7 @@ _Noreturn void process_main(State *state) {
     wifi_init(state);
 #endif
     server_init(state);
+    data_logger_init(state);
 
     state->is_booting = false;
 

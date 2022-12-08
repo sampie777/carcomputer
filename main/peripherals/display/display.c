@@ -75,6 +75,9 @@ void show_error_message(State *state) {
         case ERROR_SMS_FAILED:
             strcpy(buffer, "SMS failed");
             break;
+        case ERROR_SD_FULL:
+            strcpy(buffer, "SD car full");
+            break;
         default:
             sprintf(buffer, "Code: %u", state->errors);
     }

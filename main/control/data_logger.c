@@ -7,6 +7,7 @@
 #include "../return_codes.h"
 #include "../utils.h"
 #include "../backend/server.h"
+#include "../error_codes.h"
 
 void data_logger_upload_all(State *state) {
     static int64_t engine_off_time = 0;
@@ -224,8 +225,8 @@ void data_logger_init(State *state) {
     state->storage.is_connected = true;
 
     if (state->storage.filename[0] == 0x00) {
-        if (sd_card_create_file_incremental(DEVICE_NAME, "data", "csv", state->storage.filename) == RESULT_OVERFLOW) {
-            display_set_error_message(state, "SD card full");
+        if (sd_card_create_file_incremental(state->device_name, "data", "csv", state->storage.filename) == RESULT_OVERFLOW) {
+            set_error(state, ERROR_SD_FULL);
         }
         printf("[SD] Using file: %s\n", state->storage.filename);
 

@@ -12,5 +12,6 @@
 #define ERROR_CRASH_NO_ICE (1 << 2)
 #define ERROR_GPS_TIMEOUT (1 << 3)
 #define ERROR_SMS_FAILED (1 << 4)
+#define ERROR_SD_FULL (1 << 5)
 
 #endif //CARCOMPUTER_ERROR_CODES_H
