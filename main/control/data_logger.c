@@ -59,6 +59,7 @@ void data_logger_upload_current(State *state) {
 
     char buffer[512];
     sprintf(buffer, "{"
+                    "\"uptimeMs\": %lld,"
                     "\"car\": {"
                     "  \"is_connected\": %d,"
                     "  \"speed\": %.3f"
@@ -72,6 +73,7 @@ void data_logger_upload_current(State *state) {
                     "%s"
                     "}"
                     "}",
+            esp_timer_get_time_ms(),
             state->car.is_connected,
             state->car.speed,
             state->location.satellites,
