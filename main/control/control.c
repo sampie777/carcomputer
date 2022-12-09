@@ -11,6 +11,7 @@
 #include "../peripherals/mpu9250.h"
 #include "../backend/server.h"
 #include "../error_codes.h"
+
 #if CRUISE_CONTROL_ENABLE
 #include "../peripherals/gas_pedal.h"
 #include "cruise_control.h"
@@ -47,19 +48,56 @@ void control_read_user_input(State *state) {
         case BUTTON_NONE:
             break;
         case BUTTON_UP:
-            state->cruise_control.enabled = true;
+            if (state->display.current_screen == Screen_Menu) {
+                switch (state->display.menu_option_selection) {
+                    case ScreenMenuOption_CruiseControl:
+                        state->display.current_screen = Screen_CruiseControl;
+                        break;
+                    case ScreenMenuOption_Sensors:
+                        state->display.current_screen = Screen_Sensors;
+                        break;
+                    case ScreenMenuOption_GPS:
+                        state->display.current_screen = Screen_GPS;
+                        break;
+                    default:
+                        break;
+                }
+            } else if (state->display.current_screen == Screen_CruiseControl) {
+                state->cruise_control.enabled = true;
+            }
             break;
         case BUTTON_VOLUME_UP:
-            state->cruise_control.target_speed++;
+            if (state->display.current_screen == Screen_Menu) {
+                state->display.menu_option_selection++;
+                if (state->display.menu_option_selection >= ScreenMenuOption_MAX_VALUE) {
+                    state->display.menu_option_selection = 0;
+                }
+            } else if (state->display.current_screen == Screen_CruiseControl) {
+                state->cruise_control.target_speed++;
+            }
             break;
         case BUTTON_VOLUME_DOWN:
-            state->cruise_control.target_speed--;
-            if (state->cruise_control.target_speed < 0) {
-                state->cruise_control.target_speed = 0;
+            if (state->display.current_screen == Screen_Menu) {
+                if (state->display.menu_option_selection <= 0) {
+                    state->display.menu_option_selection = ScreenMenuOption_MAX_VALUE;
+                }
+                state->display.menu_option_selection--;
+            } else if (state->display.current_screen == Screen_CruiseControl) {
+                state->cruise_control.target_speed--;
+                if (state->cruise_control.target_speed < 0) {
+                    state->cruise_control.target_speed = 0;
+                }
             }
             break;
         case BUTTON_SOURCE:
-            state->cruise_control.enabled = false;
+            if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl) ||
+                state->display.current_screen == Screen_Sensors ||
+                state->display.current_screen == Screen_GPS ||
+                state->display.current_screen == Screen_Registration) {
+                state->display.current_screen = Screen_Menu;
+            } else if (state->display.current_screen == Screen_CruiseControl) {
+                state->cruise_control.enabled = false;
+            }
             break;
         case BUTTON_SOURCE_LONG_PRESS:
             utils_reboot(state);

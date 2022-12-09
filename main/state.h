@@ -11,6 +11,28 @@
 #include "config.h"
 #include "peripherals/gpsgsm/definitions.h"
 
+typedef enum {
+    Screen_Booting = 0,
+    Screen_Rebooting,
+    Screen_Registration,
+    Screen_Menu,
+    Screen_CruiseControl,
+    Screen_Sensors,
+    Screen_GPS,
+} Screen;
+
+typedef enum {
+    ScreenMenuOption_CruiseControl,
+    ScreenMenuOption_Sensors,
+    ScreenMenuOption_GPS,
+    ScreenMenuOption_MAX_VALUE,
+} ScreenMenuOptions;
+
+typedef struct {
+    Screen current_screen;
+    ScreenMenuOptions menu_option_selection;
+} DisplayState;
+
 typedef struct {
     bool enabled;
     double target_speed;            // Absolute value in km/h
@@ -115,6 +137,7 @@ typedef struct {
     GsmState gsm;
     A9GState a9g;
     ServerState server;
+    DisplayState display;
     bool is_booting;
     bool is_rebooting;
     int16_t power_off_count_down_sec;
