@@ -28,7 +28,7 @@ void content_cruise_control(State *state, SH1106Config *sh1106) {
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 17;
     char buffer[20];
-    sprintf(buffer, "%3.0f/ ", state->car.speed);
+    sprintf(buffer, "%3.0f%s ", state->car.speed, state->cruise_control.enabled ? "/" : " km/h");
     offset_x += sh1106_draw_string(sh1106, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
 
     if (!state->cruise_control.enabled) return;
