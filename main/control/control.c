@@ -93,7 +93,9 @@ void control_read_user_input(State *state) {
             }
             break;
         case BUTTON_SOURCE:
-            if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl) ||
+            if (state->display.current_screen == Screen_Menu) {
+                state->display.menu_option_selection = 0;
+            } if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl) ||
                 state->display.current_screen == Screen_Sensors ||
                 state->display.current_screen == Screen_GPS ||
                 state->display.current_screen == Screen_Config ||
