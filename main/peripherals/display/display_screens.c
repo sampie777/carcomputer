@@ -30,6 +30,8 @@ void content_cruise_control(State *state, SH1106Config *sh1106) {
     sprintf(buffer, "%3.0f/ ", state->car.speed);
     offset_x += sh1106_draw_string(sh1106, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
 
+    if (!state->cruise_control.enabled) return;
+
     sprintf(buffer, "%.0f", state->cruise_control.target_speed);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_LARGE, FONT_WHITE, buffer);
 
