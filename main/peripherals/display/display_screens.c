@@ -5,6 +5,7 @@
 #include <math.h>
 #include "display_screens.h"
 #include "display.h"
+#include "../../utils.h"
 
 
 void content_server_registration(State *state, SH1106Config *sh1106) {
@@ -183,6 +184,54 @@ void content_location_data(const State *state, SH1106Config *sh1106) {
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
+void draw_check_box(SH1106Config *sh1106, int x, int y, int size, bool checked) {
+    sh1106_draw_rectangle(sh1106, x, y, size, size);
+    if (!checked) return;
+    sh1106_draw_filled_rectangle(sh1106, x + 2, y + 2, max(0, size - 2 * 2), max(0, size - 2 * 2));
+}
+
+void content_config(const State *state, SH1106Config *sh1106) {
+    const int offset_x = 12;
+    const int checkbox_size = 7;
+    int offset_y = STATUS_BAR_HEIGHT + 2;
+    char buffer[32];
+
+    draw_check_box(sh1106, 1, offset_y, checkbox_size, WIFI_ENABLE);
+    sprintf(buffer, "WiFi");
+    sh1106_draw_string(sh1106, offset_x, offset_y,
+                       FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+
+    draw_check_box(sh1106, 1, offset_y, checkbox_size, BLUETOOTH_ENABLE);
+    sprintf(buffer, "Bluetooth");
+    sh1106_draw_string(sh1106, offset_x, offset_y,
+                       FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+
+    draw_check_box(sh1106, 1, offset_y, checkbox_size, GSM_ENABLE);
+    sprintf(buffer, "GSM");
+    sh1106_draw_string(sh1106, offset_x, offset_y,
+                       FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+
+    draw_check_box(sh1106, 1, offset_y, checkbox_size, SD_ENABLE);
+    sprintf(buffer, "SD logging");
+    sh1106_draw_string(sh1106, offset_x, offset_y,
+                       FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+
+    draw_check_box(sh1106, 1, offset_y, checkbox_size, POWER_OFF_ENABLE);
+    sprintf(buffer, "Auto power off");
+    sh1106_draw_string(sh1106, offset_x, offset_y,
+                       FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+
+    draw_check_box(sh1106, 1, offset_y, checkbox_size, CRUISE_CONTROL_ENABLE);
+    sprintf(buffer, "Cruise control");
+    sh1106_draw_string(sh1106, offset_x, offset_y,
+                       FONT_SMALL, FONT_WHITE, buffer);
+}
+
 void content_main_menu_option(SH1106Config *sh1106, int y, int height, const char *text, bool highlighted) {
     if (highlighted) {
         sh1106_draw_filled_rectangle(sh1106, 0, y,
@@ -200,6 +249,8 @@ char *content_main_menu_get_option_text(ScreenMenuOptions option_index) {
             return "Sensors";
         case ScreenMenuOption_GPS:
             return "GPS";
+        case ScreenMenuOption_Config:
+            return "Config";
         default:
             return "";
     }

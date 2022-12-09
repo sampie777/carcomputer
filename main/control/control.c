@@ -59,6 +59,9 @@ void control_read_user_input(State *state) {
                     case ScreenMenuOption_GPS:
                         state->display.current_screen = Screen_GPS;
                         break;
+                    case ScreenMenuOption_Config:
+                        state->display.current_screen = Screen_Config;
+                        break;
                     default:
                         break;
                 }
@@ -93,6 +96,7 @@ void control_read_user_input(State *state) {
             if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl) ||
                 state->display.current_screen == Screen_Sensors ||
                 state->display.current_screen == Screen_GPS ||
+                state->display.current_screen == Screen_Config ||
                 state->display.current_screen == Screen_Registration) {
                 state->display.current_screen = Screen_Menu;
             } else if (state->display.current_screen == Screen_CruiseControl) {

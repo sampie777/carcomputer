@@ -181,6 +181,9 @@ void show_screen(State *state, SH1106Config *sh1106) {
         case Screen_GPS:
             content_location_data(state, sh1106);
             break;
+        case Screen_Config:
+            content_config(state, sh1106);
+            break;
     }
 }
 
