@@ -15,14 +15,17 @@ extern "C" {
 // GPIO16-17 are usually connected to the SPI flash and PSRAM integrated on the module
 // and therefore should not be used for other purposes (https://docs.espressif.com/projects/esp-idf/en/v4.4.1/esp32/api-reference/peripherals/gpio.html)
 
+// Features
 #define POWER_OFF_ENABLE false
-#define POWER_OFF_MAX_TIMEOUT_MS 90000
-#define POWER_PIN GPIO_NUM_23
-
 #define BLUETOOTH_ENABLE false
 #define WIFI_ENABLE false
 #define GSM_ENABLE true
 #define SD_ENABLE true
+#define CRUISE_CONTROL_ENABLE false
+
+// Detailed feature settings
+#define POWER_OFF_MAX_TIMEOUT_MS 90000
+#define POWER_PIN GPIO_NUM_23
 
 #define WIFI_SCAN_INTERVAL_MS 2500
 #define WIFI_SCAN_MAX_DURATION 8000
@@ -68,7 +71,6 @@ extern "C" {
 #define DISPLAY_ERROR_MESSAGE_TIME_MS 2000
 #define DISPLAY_LONG_BLINK_INTERVAL 1000
 
-#define CRUISE_CONTROL_ENABLE false
 #define CRUISE_CONTROL_MAX_RPM_LIMIT 4500
 #define CRUISE_CONTROL_PID_ITERATION_TIME 100
 #define CRUISE_CONTROL_PID_Kp 0.03

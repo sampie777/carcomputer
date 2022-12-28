@@ -96,7 +96,7 @@ void data_logger_log_current(State *state) {
     static int64_t last_log_time = 0;
 
     // Don't log if car isn't on and on the move, so SD card can be swapped safely
-    if (!state->car.is_ignition_on && state->car.speed <= 1 && state->car.rpm <= 1) return;
+    if (!state->car.is_ignition_on && state->car.rpm <= 1) return;
 
     if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_LOG_INTERVAL_MS) return;
     last_log_time = esp_timer_get_time_ms();
@@ -141,7 +141,7 @@ void data_logger_log_current(State *state) {
             "%.1f;"         // state->location.altitude
             "%.3f;"         // state->location.ground_speed
             "%.2f;"         // state->location.ground_heading
-            "%d-%02d-%02d'T'%02d:%02d:%02d.000%+d;"         // state->location.time
+            "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d;"         // state->location.time
             "\n",
             esp_timer_get_time_ms(),
             state->car.is_connected,
