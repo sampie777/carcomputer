@@ -4,7 +4,7 @@
 
 #include <math.h>
 #include "control.h"
-#include "../peripherals/canbus.h"
+#include "../peripherals/canbus/canbus.h"
 #include "../return_codes.h"
 #include "../peripherals/buttons.h"
 #include "../utils.h"
@@ -129,7 +129,8 @@ void control_door_lock(State *state) {
     has_been_locked = true;
 
     // Lock doors
-    // ...
+//    printf("[Control] Locking doors...\n");
+//    canbus_send_lock_doors(state, true);  // This CAN message doesn't seem to do anything to the car
 }
 
 void control_mpu_power(State *state) {

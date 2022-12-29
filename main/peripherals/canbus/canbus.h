@@ -5,7 +5,7 @@
 #ifndef APP_TEMPLATE_CANBUS_H
 #define APP_TEMPLATE_CANBUS_H
 
-#include "../state.h"
+#include "../../state.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +22,10 @@ void canbus_init(State *state);
 void canbus_check_messages(State *state);
 
 void canbus_check_controller_connection(State *state);
+
+int canbus_send(const CanMessage *message);
+
+int canbus_send_lock_doors(const State *state, bool lock_doors);
 
 #ifdef __cplusplus
 }

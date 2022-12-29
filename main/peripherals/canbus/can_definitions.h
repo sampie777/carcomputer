@@ -1,0 +1,39 @@
+//
+// Created by samuel on 29-12-22.
+//
+
+#ifndef CARCOMPUTER_CAN_DEFINITIONS_H
+#define CARCOMPUTER_CAN_DEFINITIONS_H
+
+/* Rpm message */
+#define CAN_ID_RPM 385
+#define CAN_LENGTH_RPM 8
+
+/* Ignition message */
+#define CAN_ID_IGNITION 640
+#define CAN_LENGTH_IGNITION 8
+
+/* Speed & brake message */
+#define CAN_ID_SPEED_AND_BRAKE 852
+#define CAN_LENGTH_SPEED 8
+#define CAN_LENGTH_BRAKE CAN_LENGTH_SPEED
+
+/* Door lock message */
+#define CAN_ID_DOOR_LOCKS 856
+#define CAN_LENGTH_DOOR_LOCKS 8
+// Byte 1
+#define CAN_DOOR_LOCKS_BLOWER_BIT 6
+// Byte 3
+#define CAN_DOOR_LOCKS_LOCK_DRIVER_DOOR (0x10)
+#define CAN_DOOR_LOCKS_UNLOCK_DRIVER_DOOR (0x08)
+#define CAN_DOOR_LOCKS_LOCK_OTHER_DOORS (0x04)
+#define CAN_DOOR_LOCKS_UNLOCK_OTHER_DOORS (0x02)
+// Byte 5
+#define CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT 0
+#define CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT 1
+
+/* Odometer message */
+#define CAN_ID_ODOMETER 1477
+#define CAN_LENGTH_ODOMETER 8
+
+#endif //CARCOMPUTER_CAN_DEFINITIONS_H

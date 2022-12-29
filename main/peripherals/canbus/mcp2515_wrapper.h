@@ -14,6 +14,7 @@ extern "C" {
 
 int mcp2515_init();
 int mcp2515_read_message(CanMessage *message);
+int mcp2515_send_message(const CanMessage *message);
 uint8_t mcp2515_get_mode();
 uint8_t mcp2515_get_config3();
 

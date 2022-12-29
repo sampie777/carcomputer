@@ -2,17 +2,26 @@
 // Created by samuel on 19-7-22.
 //
 
-#include "../config.h"
+#include "../../config.h"
 #include "canbus.h"
 #include "mcp2515_wrapper.h"
-#include "../return_codes.h"
-#include "../utils.h"
+#include "../../return_codes.h"
+#include "../../utils.h"
+#include "can_definitions.h"
 #include <stdint.h>
 #include <driver/gpio.h>
 #include <esp_timer.h>
 
+void print_can_message(const CanMessage *message) {
+    printf("CAN id=%lu [ ", message->id);
+    for (int i = 0; i < message->length; i++) {
+        printf("%02x ", message->data[i]);
+    }
+    printf("]\n");
+}
+
 void handle_speed_message(State *state, CanMessage *message) {
-    if (message->length != 8) {
+    if (message->length != CAN_LENGTH_SPEED) {
         return;
     }
 
@@ -21,7 +30,7 @@ void handle_speed_message(State *state, CanMessage *message) {
 }
 
 void handle_rpm_message(State *state, CanMessage *message) {
-    if (message->length != 8) {
+    if (message->length != CAN_LENGTH_RPM) {
         return;
     }
 
@@ -33,7 +42,7 @@ void handle_rpm_message(State *state, CanMessage *message) {
 }
 
 void handle_brake_message(State *state, CanMessage *message) {
-    if (message->length != 8) {
+    if (message->length != CAN_LENGTH_BRAKE) {
         return;
     }
 
@@ -41,7 +50,7 @@ void handle_brake_message(State *state, CanMessage *message) {
 }
 
 void handle_ignition_message(State *state, CanMessage *message) {
-    if (message->length != 8) {
+    if (message->length != CAN_LENGTH_IGNITION) {
         return;
     }
 
@@ -49,7 +58,7 @@ void handle_ignition_message(State *state, CanMessage *message) {
 }
 
 void handle_odometer_message(State *state, CanMessage *message) {
-    if (message->length != 8) {
+    if (message->length != CAN_LENGTH_ODOMETER) {
         return;
     }
 
@@ -60,6 +69,16 @@ void handle_odometer_message(State *state, CanMessage *message) {
     if (state->car.odometer_start == 0) {
         state->car.odometer_start = state->car.odometer;
     }
+}
+
+void handle_door_lock_message(State *state, const CanMessage *message) {
+    if (message->length != CAN_LENGTH_DOOR_LOCKS) {
+        return;
+    }
+
+    state->car.is_blower_on = (message->data[1] >> CAN_DOOR_LOCKS_BLOWER_BIT) & 1;
+    state->car.is_drivers_door_open = (message->data[5] >> CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT) & 1;
+    state->car.is_other_doors_open = (message->data[5] >> CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT) & 1;
 }
 
 int message_available() {
@@ -73,26 +92,25 @@ int read_message(CanMessage *message) {
 
 void handle_message(State *state, CanMessage *message) {
     switch (message->id) {
-        case 385:
-            state->car.last_can_message_time = esp_timer_get_time_ms();
+        case CAN_ID_RPM:
             handle_rpm_message(state, message);
             break;
-        case 640:
-            state->car.last_can_message_time = esp_timer_get_time_ms();
+        case CAN_ID_IGNITION:
             handle_ignition_message(state, message);
             break;
-        case 852:
-            state->car.last_can_message_time = esp_timer_get_time_ms();
+        case CAN_ID_SPEED_AND_BRAKE:
             handle_speed_message(state, message);
             handle_brake_message(state, message);
             break;
-        case 1477:
-            state->car.last_can_message_time = esp_timer_get_time_ms();
+        case CAN_ID_ODOMETER:
             handle_odometer_message(state, message);
             break;
+        case CAN_ID_DOOR_LOCKS:
+            handle_door_lock_message(state, message);
         default:
-            break;
+            return;
     }
+    state->car.last_can_message_time = esp_timer_get_time_ms();
 }
 
 void canbus_check_messages(State *state) {
@@ -103,6 +121,10 @@ void canbus_check_messages(State *state) {
         }
         handle_message(state, &message);
     }
+}
+
+int canbus_send(const CanMessage *message) {
+    return mcp2515_send_message(message);
 }
 
 void canbus_init(State *state) {
@@ -124,4 +146,25 @@ void canbus_check_controller_connection(State *state) {
 
     if (state->car.is_controller_connected) return;
     canbus_init(state);
+}
+
+int canbus_send_lock_doors(const State *state, bool lock_doors) {
+    CanMessage message = {
+            .id = CAN_ID_DOOR_LOCKS,
+            .length = CAN_LENGTH_DOOR_LOCKS,
+            .data = {0,
+                     state->car.is_blower_on << CAN_DOOR_LOCKS_BLOWER_BIT,
+                     0,
+                     lock_doors
+                     ? (CAN_DOOR_LOCKS_LOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_LOCK_OTHER_DOORS)
+                     : (CAN_DOOR_LOCKS_UNLOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_UNLOCK_OTHER_DOORS),
+                     1,
+                     (state->car.is_drivers_door_open << CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT)
+                     | (state->car.is_other_doors_open << CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT),
+                     0,
+                     0}
+    };
+
+    print_can_message(&message);
+    return canbus_send(&message);
 }

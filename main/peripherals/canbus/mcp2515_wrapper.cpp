@@ -4,12 +4,12 @@
 
 #include <cstring>
 #include <hal/gpio_types.h>
-#include "../config.h"
+#include "../../config.h"
 #include "mcp2515_wrapper.h"
 
-#include "../lib/esp32-mcp2515/mcp2515.h"
-#include "../connectivity/spi.h"
-#include "../return_codes.h"
+#include "../../lib/esp32-mcp2515/mcp2515.h"
+#include "../../connectivity/spi.h"
+#include "../../return_codes.h"
 
 static MCP2515 *mcp2515;
 
@@ -44,6 +44,20 @@ int mcp2515_read_message(CanMessage *message) {
     message->id = frame.can_id;
     message->length = frame.can_dlc;
     memcpy(message->data, frame.data, 8);
+    return RESULT_OK;
+}
+
+int mcp2515_send_message(const CanMessage *message) {
+    struct can_frame frame = {
+            .can_id = message->id,
+            .can_dlc = message->length,
+            .data = {0, 0, 0, 0, 0, 0, 0, 0}
+    };
+    memcpy(frame.data, message->data, message->length);
+
+    if (mcp2515->sendMessage(&frame) != MCP2515::ERROR_OK) {
+        return RESULT_FAILED;
+    }
     return RESULT_OK;
 }
 
