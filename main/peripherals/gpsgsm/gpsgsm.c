@@ -83,7 +83,7 @@ void process_ctzv_message(State *state, const char *message) {
 
     free(search_string_pointer);
 
-    printf("Set new GSM time: %04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\n",
+    printf("[GSM] Set new GSM time: %04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\n",
            state->gsm.time.year,
            state->gsm.time.month,
            state->gsm.time.day,
@@ -121,15 +121,30 @@ void transmit_safe(const char *data, size_t max_transfer_size, uint8_t with_brea
 void send_command(A9GState *a9g_state, enum A9GCommand command) {
     last_command_send = command;
     switch (command) {
+        case A9GCommand_CGATT_Disable:
+            printf("[GSM] Detach to network\n");
+            transmit(A9G_CGATT_DISABLE, true);
+            a9g_state->network_attached = A9Status_Disabled;
+            break;
         case A9GCommand_CGATT_Enable:
             printf("[GSM] Attach to network\n");
             transmit(A9G_CGATT_ENABLE, true);
             a9g_state->network_attached = A9Status_Requested;
             break;
+        case A9GCommand_CGACT_PNP_Disable:
+            printf("[GSM] De-activate PNP\n");
+            transmit(A9G_CGACT_PNP_DISABLE, true);
+            a9g_state->pnp_activated = A9Status_Disabled;
+            break;
         case A9GCommand_CGACT_PNP_Enable:
             printf("[GSM] Activate PNP\n");
             transmit(A9G_CGACT_PNP_ENABLE, true);
             a9g_state->pnp_activated = A9Status_Requested;
+            break;
+        case A9GCommand_CGDCONT_Disable:
+            printf("[GSM] Unset PNP parameters\n");
+            transmit(A9G_CGDCONT_DISABLE, true);
+            a9g_state->pnp_parameters_set = A9Status_Disabled;
             break;
         case A9GCommand_CGDCONT_Enable:
             printf("[GSM] Set PNP parameters\n");
@@ -150,6 +165,11 @@ void send_command(A9GState *a9g_state, enum A9GCommand command) {
             printf("[GPS] Enable GPS logging\n");
             transmit(A9G_GPSRD_ENABLE, true);
             a9g_state->gps_logging_enabled = A9Status_Requested;
+            break;
+        case A9GCommand_Reset_Software:
+            printf("[GPS] Reset A9G chip\n");
+            transmit(A9G_RESET, true);
+            a9g_state_reset(a9g_state);
             break;
         default:
             break;
@@ -281,6 +301,11 @@ void process_message(State *state, const char *message) {
         process_gnrmc_message(state, stripped_message);
     } else if (starts_with(stripped_message, "+CTZV:")) {
         process_ctzv_message(state, stripped_message);
+    } else if (strcmp(stripped_message, "failure, pelase check your network or certificate!") == 0) {
+        printf("[GSM] Restarting GSM network\n");
+        // Resetting the whole chip seems like the only solution
+        // Related: https://stackoverflow.com/questions/68612918/https-requests-on-a9g-via-at-commands-fail-after-7-requests-http-works-fine
+        send_command(&state->a9g, A9GCommand_Reset_Software);
     }
 
     free(stripped_message);
