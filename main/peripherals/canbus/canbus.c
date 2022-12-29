@@ -131,7 +131,7 @@ void canbus_init(State *state) {
     printf("[CAN] Initializing CAN bus...\n");
 
     gpio_set_direction(CANBUS_INTERRUPT_PIN, GPIO_MODE_INPUT);
-    mcp2515_init();
+    mcp2515_init(true);
 
     printf("[CAN] Init done\n");
 }

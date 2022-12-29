@@ -10,10 +10,11 @@
 #include "../../lib/esp32-mcp2515/mcp2515.h"
 #include "../../connectivity/spi.h"
 #include "../../return_codes.h"
+#include "can_definitions.h"
 
 static MCP2515 *mcp2515;
 
-int mcp2515_init() {
+int mcp2515_init(bool listen_only) {
     static spi_device_handle_t spi_handle;
     spi_register_device(&spi_handle, CANBUS_CHIP_SELECT_PIN);
 
@@ -22,16 +23,40 @@ int mcp2515_init() {
         printf("[mcp2515] Failed to reset\n");
     if (mcp2515->setBitrate(CAN_500KBPS, MCP_8MHZ) != MCP2515::ERROR_OK)
         printf("[mcp2515] Failed to set bitrate\n");
-    if (mcp2515->setListenOnlyMode() != MCP2515::ERROR_OK)
-        printf("[mcp2515] Failed to set setListenOnlyMode\n");
+
+    if (listen_only) {
+        if (mcp2515->setListenOnlyMode() != MCP2515::ERROR_OK)
+            printf("[mcp2515] Failed to set setListenOnlyMode\n");
+    } else {
+        if (mcp2515->setNormalMode() != MCP2515::ERROR_OK)
+            printf("[mcp2515] Failed to set setNormalMode\n");
+    }
+
+    // High priority buffer
     if (mcp2515->setFilterMask(MCP2515::MASK0, false, 0x07ff) != MCP2515::ERROR_OK)
-        printf("[mcp2515] Failed to set filter mask\n");
-    if (mcp2515->setFilter(MCP2515::RXF0, false, 385) != MCP2515::ERROR_OK)
-        printf("[mcp2515] Failed to set filter 0\n"); // RPM filter
-    if (mcp2515->setFilter(MCP2515::RXF1, false, 852) != MCP2515::ERROR_OK)
-        printf("[mcp2515] Failed to set filter 1\n"); // Speed & brake filter
-    if (mcp2515->setListenOnlyMode() != MCP2515::ERROR_OK)
-        printf("[mcp2515] Failed to set listen only mode\n");
+        printf("[mcp2515] Failed to set filter mask 0\n");
+    if (mcp2515->setFilter(MCP2515::RXF0, false, CAN_ID_SPEED_AND_BRAKE) != MCP2515::ERROR_OK)
+        printf("[mcp2515] Failed to set filter 0\n");
+    if (mcp2515->setFilter(MCP2515::RXF1, false, CAN_ID_RPM) != MCP2515::ERROR_OK)
+        printf("[mcp2515] Failed to set filter 1\n");
+
+    // Low priority buffer (which is also used as rollover)
+    if (mcp2515->setFilterMask(MCP2515::MASK1, false, 0x07ff) != MCP2515::ERROR_OK)
+        printf("[mcp2515] Failed to set filter mask 1\n");
+    if (mcp2515->setFilter(MCP2515::RXF2, false, CAN_ID_IGNITION) != MCP2515::ERROR_OK)
+        printf("[mcp2515] Failed to set filter 2\n");
+    if (mcp2515->setFilter(MCP2515::RXF3, false, CAN_ID_DOOR_LOCKS) != MCP2515::ERROR_OK)
+        printf("[mcp2515] Failed to set filter 3\n");
+    if (mcp2515->setFilter(MCP2515::RXF4, false, CAN_ID_ODOMETER) != MCP2515::ERROR_OK)
+        printf("[mcp2515] Failed to set filter 4\n");
+
+    if (listen_only) {
+        if (mcp2515->setListenOnlyMode() != MCP2515::ERROR_OK)
+            printf("[mcp2515] Failed to set setListenOnlyMode\n");
+    } else {
+        if (mcp2515->setNormalMode() != MCP2515::ERROR_OK)
+            printf("[mcp2515] Failed to set setNormalMode\n");
+    }
 
     return RESULT_OK;
 }
