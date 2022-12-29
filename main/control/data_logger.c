@@ -58,6 +58,21 @@ void data_logger_upload_current(State *state) {
                 state->location.time.timezone);
     }
 
+    char location[128];
+    if (state->location.satellites == 0) {
+        location[0] = '\0';
+    } else {
+        sprintf(location, ",\"latitude\":%.5f,"
+                          "\"longitude\":%.5f,"
+                          "\"ground_speed\":%.3f,"
+                          "\"ground_heading\":%.2f",
+                state->location.latitude,
+                state->location.longitude,
+                state->location.ground_speed,
+                state->location.ground_heading
+        );
+    }
+
     char buffer[512];
     sprintf(buffer, "{"
                     "\"uptimeMs\":%lld,"
@@ -67,12 +82,9 @@ void data_logger_upload_current(State *state) {
                     """\"speed\":%.3f"
                     "},"
                     "\"location\":{"
-                    """\"satellites\":%d,"
-                    """\"latitude\":%.5f,"
-                    """\"longitude\":%.5f,"
-                    """\"ground_speed\":%.3f,"
-                    """\"ground_heading\":%.2f"
-                    "%s"
+                    """\"satellites\":%d"
+                    """%s"
+                    """%s"
                     "}"
                     "}",
             esp_timer_get_time_ms(),
@@ -80,10 +92,7 @@ void data_logger_upload_current(State *state) {
             state->car.is_connected,
             state->car.speed,
             state->location.satellites,
-            state->location.latitude,
-            state->location.longitude,
-            state->location.ground_speed,
-            state->location.ground_heading,
+            location,
             timestamp);
 
 #ifdef DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL

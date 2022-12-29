@@ -242,6 +242,23 @@ int server_send_trip_end(State *state) {
                 state->location.time.timezone);
     }
 
+    char location[128];
+    if (state->location.satellites == 0) {
+        location[0] = '\0';
+    } else {
+        sprintf(location, ",\"quality\":%d,"
+                          "\"is_effective_positioning\":%d,"
+                          "\"latitude\":%.5f,"
+                          "\"longitude\":%.5f,"
+                          "\"altitude\":%.1f",
+                state->location.quality,
+                state->location.is_effective_positioning,
+                state->location.latitude,
+                state->location.longitude,
+                state->location.altitude
+        );
+    }
+
     char buffer[512];
     sprintf(buffer, "{"
                     "\"uptimeMs\":%lld,"
@@ -257,13 +274,9 @@ int server_send_trip_end(State *state) {
                     "},"
                     "\"location\":{"
                     """\"is_gps_on\":%d,"
-                    """\"quality\":%d,"
-                    """\"satellites\":%d,"
-                    """\"is_effective_positioning\":%d,"
-                    """\"latitude\":%.5f,"
-                    """\"longitude\":%.5f,"
-                    """\"altitude\":%.1f"
-                    "%s"
+                    """\"satellites\":%d"
+                    """%s"
+                    """%s"
                     "}"
                     "}",
             esp_timer_get_time_ms(),
@@ -275,12 +288,8 @@ int server_send_trip_end(State *state) {
             state->car.odometer_start,
             state->car.odometer,
             state->location.is_gps_on,
-            state->location.quality,
             state->location.satellites,
-            state->location.is_effective_positioning,
-            state->location.latitude,
-            state->location.longitude,
-            state->location.altitude,
+            location,
             timestamp);
     return server_send_data(state, TRIP_LOGGER_UPLOAD_URL_TRIP_END, buffer, false);
 }
