@@ -113,14 +113,20 @@ void data_logger_log_current(State *state) {
             "%d;"           // state->car.odometer
             "%d;"           // state->car.gas_pedal_connected
             "%.5f;"         // state->car.gas_pedal
+            #if CRUISE_CONTROL_ENABLE
             "%d;"           // state->cruise_control.enabled
             "%.3f;"         // state->cruise_control.target_speed
             "%.5f;"         // state->cruise_control.virtual_gas_pedal
             "%.5f;"         // state->cruise_control.control_value
+            #endif
+            #if WIFI_ENABLE
             "\"%s\";"       // state->wifi.ssid
             "%d;"           // state->wifi.ip.addr
             "%d;"           // state->wifi.is_connected
+            #endif
+            #if BLUETOOTH_ENABLE
             "%d;"           // state->bluetooth.connected
+            #endif
             "%d;"           // state->motion.connected
             "%.3f;"         // state->motion.accel_x
             "%.3f;"         // state->motion.accel_y
@@ -153,14 +159,20 @@ void data_logger_log_current(State *state) {
             state->car.odometer,
             state->car.gas_pedal_connected,
             state->car.gas_pedal,
+#if CRUISE_CONTROL_ENABLE
             state->cruise_control.enabled,
             state->cruise_control.target_speed,
             state->cruise_control.virtual_gas_pedal,
             state->cruise_control.control_value,
+#endif
+#if WIFI_ENABLE
             state->wifi.ssid,
             state->wifi.ip.addr,
             state->wifi.is_connected,
+#endif
+#if BLUETOOTH_ENABLE
             state->bluetooth.connected,
+#endif
             state->motion.connected,
             state->motion.accel_x,
             state->motion.accel_y,
@@ -232,7 +244,19 @@ void data_logger_init(State *state) {
         }
         printf("[SD] Using file: %s\n", state->storage.filename);
 
-        sd_card_file_append(state->storage.filename, "timestamp;car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;wifi_ssid;wifi_ip.addr;wifi_is_connected;bluetooth_connected;motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;location_is_gps_on;location_quality;location_satellites;location_is_effective_positioning;location_latitude;location_longitude;location_altitude;location_ground_speed;location_ground_heading;location_datetime;\n");
+        sd_card_file_append(state->storage.filename, "timestamp;"
+                                                     "car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;"
+                                                     #if CRUISE_CONTROL_ENABLE
+                                                     "cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;"
+                                                     #endif
+                                                     #if WIFI_ENABLE
+                                                     "wifi_ssid;wifi_ip.addr;wifi_is_connected;"
+                                                     #endif
+                                                     #if BLUETOOTH_ENABLE
+                                                     "bluetooth_connected;"
+                                                     #endif
+                                                     "motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;"
+                                                     "location_is_gps_on;location_quality;location_satellites;location_is_effective_positioning;location_latitude;location_longitude;location_altitude;location_ground_speed;location_ground_heading;location_datetime;\n");
     }
 #else
     state->storage.is_connected = false;

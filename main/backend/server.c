@@ -245,9 +245,11 @@ int server_send_trip_end(State *state) {
     char buffer[512];
     sprintf(buffer, "{"
                     "\"uptimeMs\": \"%lld\","
+#if WIFI_ENABLE
                     "\"wifi\": {"
                     "  \"ssid\": \"%s\""
                     "},"
+#endif
                     "\"car\": {"
                     "  \"odometer_start\": %d,"
                     "  \"odometer\": %d"
@@ -263,7 +265,9 @@ int server_send_trip_end(State *state) {
                     "%s"
                     "}"
                     "}", esp_timer_get_time_ms(),
+#if WIFI_ENABLE
             state->wifi.ssid,
+#endif
             state->car.odometer_start,
             state->car.odometer,
             state->location.is_gps_on,
@@ -308,20 +312,26 @@ int server_send_data_log_record(State *state) {
                     "  \"gas_pedal_connected\": %d,"
                     "  \"gas_pedal\": %.5f"
                     "},"
+#if CRUISE_CONTROL_ENABLE
                     "\"cruiseControl\": {"
                     "  \"enabled\": %d,"
                     "  \"target_speed\": %.3f,"
                     "  \"virtual_gas_pedal\": %.5f,"
                     "  \"control_value\": %.5f"
                     "},"
+#endif
+#if WIFI_ENABLE
                     "\"wifi\": {"
                     "  \"ssid\": \"%s\","
                     "  \"ip\": %d,"
                     "  \"is_connected\": %d"
                     "},"
+#endif
+#if BLUETOOTH_ENABLE
                     "\"bluetooth\": {"
                     "  \"connected\": %d"
                     "},"
+#endif
                     "\"motion\": {"
                     "  \"connected\": %d,"
                     "  \"accel_x\": %.3f,"
@@ -360,16 +370,20 @@ int server_send_data_log_record(State *state) {
             state->car.gas_pedal_connected,
             state->car.gas_pedal,
 
+#if CRUISE_CONTROL_ENABLE
             state->cruise_control.enabled,
             state->cruise_control.target_speed,
             state->cruise_control.virtual_gas_pedal,
             state->cruise_control.control_value,
-
+#endif
+#if WIFI_ENABLE
             state->wifi.ssid,
             state->wifi.ip.addr,
             state->wifi.is_connected,
-
+#endif
+#if BLUETOOTH_ENABLE
             state->bluetooth.connected,
+#endif
 
             state->motion.connected,
             state->motion.accel_x,
