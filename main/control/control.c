@@ -227,15 +227,25 @@ void control_crash_detection(State *state) {
 
     set_error(state, ERROR_CRASH_DETECTED);
 
-    sprintf(message, "CRASH! Location: %.5f,%.5f at %02d:%02d:%02d %02d-%02d-%04d (accuracy: %d%%). Force: %.1f g.",
+    char timestamp[64];
+    Time time = state->location.time.year > 2021 ? state->location.time : state->gsm.time;
+    if (time.year < 2000) {
+        timestamp[0] = '\0';
+    } else {
+        sprintf(timestamp, "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d",
+                time.year,
+                time.month,
+                time.day,
+                time.hours,
+                time.minutes,
+                time.seconds,
+                time.timezone);
+    }
+
+    sprintf(message, "CRASH! Location: %.5f,%.5f at %s (accuracy: %d%%). Force: %.1f g.",
             state->location.latitude,
             state->location.longitude,
-            state->location.time.hours,
-            state->location.time.minutes,
-            state->location.time.seconds,
-            state->location.time.day,
-            state->location.time.month,
-            state->location.time.year,
+            timestamp,
             state->location.satellites / 4 * 100,
             total_force
     );

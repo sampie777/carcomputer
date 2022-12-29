@@ -45,17 +45,18 @@ void data_logger_upload_current(State *state) {
     last_log_time = esp_timer_get_time_ms();
 
     char timestamp[64];
-    if (state->location.time.year < 2000) {
+    Time time = state->location.time.year > 2021 ? state->location.time : state->gsm.time;
+    if (time.year < 2000) {
         timestamp[0] = '\0';
     } else {
         sprintf(timestamp, ",\"time\":\"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
-                state->location.time.year,
-                state->location.time.month,
-                state->location.time.day,
-                state->location.time.hours,
-                state->location.time.minutes,
-                state->location.time.seconds,
-                state->location.time.timezone);
+                time.year,
+                time.month,
+                time.day,
+                time.hours,
+                time.minutes,
+                time.seconds,
+                time.timezone);
     }
 
     char location[128];
@@ -161,6 +162,7 @@ void data_logger_log_current(State *state) {
             "%.3f;"         // state->location.ground_speed
             "%.2f;"         // state->location.ground_heading
             "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d;"         // state->location.time
+            "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d;"         // state->gsm.time
             "\n",
             esp_timer_get_time_ms(),
             state->logging_session_id,
@@ -213,7 +215,14 @@ void data_logger_log_current(State *state) {
             state->location.time.hours,
             state->location.time.minutes,
             state->location.time.seconds,
-            state->location.time.timezone
+            state->location.time.timezone,
+            state->gsm.time.year,
+            state->gsm.time.month,
+            state->gsm.time.day,
+            state->gsm.time.hours,
+            state->gsm.time.minutes,
+            state->gsm.time.seconds,
+            state->gsm.time.timezone
     );
 
     if (sd_card_file_append(state->storage.filename, buffer) == RESULT_OK) {
@@ -274,7 +283,7 @@ void data_logger_init(State *state) {
                                                      "bluetooth_connected;"
                                                      #endif
                                                      "motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;"
-                                                     "location_is_gps_on;location_quality;location_satellites;location_is_effective_positioning;location_latitude;location_longitude;location_altitude;location_ground_speed;location_ground_heading;location_datetime;\n");
+                                                     "location_is_gps_on;location_quality;location_satellites;location_is_effective_positioning;location_latitude;location_longitude;location_altitude;location_ground_speed;location_ground_heading;location_datetime;gsm_datetime;\n");
     }
 #else
     state->storage.is_connected = false;

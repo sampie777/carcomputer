@@ -92,6 +92,17 @@ typedef struct {
     char filename[32];
 } SDState;
 
+
+typedef struct {
+    uint8_t seconds;
+    uint8_t minutes;
+    uint8_t hours;
+    int8_t timezone;
+    uint8_t day;
+    uint8_t month;
+    uint16_t year;
+} Time;
+
 typedef struct {
     bool is_gps_on;
     uint8_t quality;
@@ -103,21 +114,15 @@ typedef struct {
     double ground_speed;    // km/h
     double ground_heading;
 
-    struct Time {
-        uint8_t seconds;
-        uint8_t minutes;
-        uint8_t hours;
-        uint8_t timezone;
-        uint8_t day;
-        uint8_t month;
-        uint16_t year;
-    } time;
+    Time time;
 } GpsState;
 
 typedef struct {
     bool is_uploading;
     esp_http_client_method_t request_type;
     int64_t upload_start_time;
+
+    Time time;
 } GsmState;
 
 typedef struct {

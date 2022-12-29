@@ -159,7 +159,7 @@ void content_location_data(const State *state, SH1106Config *sh1106) {
         return;
     }
 
-    sprintf(buffer, "%d:%02d:%02d    %d-%02d-%d",
+    sprintf(buffer, "%d:%02d:%02d    %d-%02d-%04d",
             state->location.time.hours,
             state->location.time.minutes,
             state->location.time.seconds,

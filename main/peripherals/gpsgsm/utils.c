@@ -6,6 +6,24 @@
 #include <stdio.h>
 #include "utils.h"
 
+void extract_uint16(char **source, uint16_t *destination, char *delimiter) {
+    char *match = strsep(source, delimiter);
+    if (match == NULL) return;
+    *destination = (uint16_t) strtol(match, NULL, 10);
+}
+
+void extract_uint8(char **source, uint8_t *destination, char *delimiter) {
+    char *match = strsep(source, delimiter);
+    if (match == NULL) return;
+    *destination = (uint8_t) strtol(match, NULL, 10);
+}
+
+void extract_int8(char **source, int8_t *destination, char *delimiter) {
+    char *match = strsep(source, delimiter);
+    if (match == NULL) return;
+    *destination = (int8_t) strtol(match, NULL, 10);
+}
+
 void extract_int(char **source, int *destination, char *delimiter) {
     char *match = strsep(source, delimiter);
     if (match == NULL) return;

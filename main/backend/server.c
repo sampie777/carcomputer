@@ -229,17 +229,18 @@ int server_send_trip_end(State *state) {
     printf("[Server] Logging trip end...\n");
 
     char timestamp[64];
-    if (state->location.time.year < 2000) {
+    Time time = state->location.time.year > 2021 ? state->location.time : state->gsm.time;
+    if (time.year < 2000) {
         timestamp[0] = '\0';
     } else {
         sprintf(timestamp, ",\"time\":\"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
-                state->location.time.year,
-                state->location.time.month,
-                state->location.time.day,
-                state->location.time.hours,
-                state->location.time.minutes,
-                state->location.time.seconds,
-                state->location.time.timezone);
+                time.year,
+                time.month,
+                time.day,
+                time.hours,
+                time.minutes,
+                time.seconds,
+                time.timezone);
     }
 
     char location[128];
@@ -298,17 +299,18 @@ int server_send_data_log_record(State *state) {
     printf("[Server] Logging data record...\n");
 
     char timestamp[64];
-    if (state->location.time.year < 2000) {
+    Time time = state->location.time.year > 2021 ? state->location.time : state->gsm.time;
+    if (time.year < 2000) {
         timestamp[0] = '\0';
     } else {
         sprintf(timestamp, ",\"time\":\"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
-                state->location.time.year,
-                state->location.time.month,
-                state->location.time.day,
-                state->location.time.hours,
-                state->location.time.minutes,
-                state->location.time.seconds,
-                state->location.time.timezone);
+                time.year,
+                time.month,
+                time.day,
+                time.hours,
+                time.minutes,
+                time.seconds,
+                time.timezone);
     }
 
     char buffer[1200];

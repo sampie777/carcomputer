@@ -8,6 +8,12 @@
 #include <stdbool.h>
 #include "definitions.h"
 
+void extract_uint16(char **source, uint16_t *destination, char *delimiter);
+
+void extract_uint8(char **source, uint8_t *destination, char *delimiter);
+
+void extract_int8(char **source, int8_t *destination, char *delimiter);
+
 void extract_int(char **source, int *destination, char *delimiter);
 
 void extract_double(char **source, double *destination, char *delimiter);

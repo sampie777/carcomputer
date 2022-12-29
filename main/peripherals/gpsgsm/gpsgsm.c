@@ -40,13 +40,6 @@ void process_gngga_message(State *state, const char *message) {
     int hours = (int) (gga_message.timestamp / 10000);
     state->location.time.minutes = (int) (gga_message.timestamp / 100) - hours * 100;
     state->location.time.seconds = (int) gga_message.timestamp - hours * 10000 - state->location.time.minutes * 100;
-    // Adjust for timezone
-    hours += state->location.time.timezone;
-    if (hours > 23) {
-        hours -= 24;
-    } else if (hours < 0) {
-        hours += 24;
-    }
     state->location.time.hours = hours;
 }
 
@@ -71,6 +64,34 @@ void process_gnrmc_message(State *state, const char *message) {
         state->location.time.month = month;
         state->location.time.year = year;
     }
+}
+
+void process_ctzv_message(State *state, const char *message) {
+    char *search_string = malloc(strlen(message) + 1);
+    char *search_string_pointer = search_string;
+    strcpy(search_string, message);
+
+    extract_string(&search_string, NULL, ":");
+    extract_uint16(&search_string, &(state->gsm.time.year), "/");
+    state->gsm.time.year += 2000;
+    extract_uint8(&search_string, &(state->gsm.time.month), "/");
+    extract_uint8(&search_string, &(state->gsm.time.day), ",");
+    extract_uint8(&search_string, &(state->gsm.time.hours), ":");
+    extract_uint8(&search_string, &(state->gsm.time.minutes), ":");
+    extract_uint8(&search_string, &(state->gsm.time.seconds), ",");
+    extract_int8(&search_string, &(state->gsm.time.timezone), "\0");
+
+    free(search_string_pointer);
+
+    printf("Set new GSM time: %04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\n",
+           state->gsm.time.year,
+           state->gsm.time.month,
+           state->gsm.time.day,
+           state->gsm.time.hours,
+           state->gsm.time.minutes,
+           state->gsm.time.seconds,
+           state->gsm.time.timezone
+    );
 }
 
 void transmit(const char *data, uint8_t with_break) {
@@ -258,6 +279,8 @@ void process_message(State *state, const char *message) {
         process_gngga_message(state, stripped_message);
     } else if (strstr(stripped_message, "$GNRMC") != NULL) {
         process_gnrmc_message(state, stripped_message);
+    } else if (starts_with(stripped_message, "+CTZV:")) {
+        process_ctzv_message(state, stripped_message);
     }
 
     free(stripped_message);
@@ -357,6 +380,44 @@ void proceed_device_init(State *state) {
     }
 }
 
+void update_time(State *state) {
+    static int64_t last_update_time = 0;
+
+    if (esp_timer_get_time_ms() < last_update_time + 1000) return;
+    last_update_time = esp_timer_get_time_ms();
+
+    state->gsm.time.seconds++;
+
+    if (state->gsm.time.seconds < 60) return;
+    state->gsm.time.seconds = 0;
+    state->gsm.time.minutes++;
+
+    if (state->gsm.time.minutes < 60) return;
+    state->gsm.time.minutes = 0;
+    state->gsm.time.hours++;
+
+    if (state->gsm.time.hours < 24) return;
+    state->gsm.time.hours = 0;
+    state->gsm.time.day++;
+
+    if (state->gsm.time.day < 30) return;
+    if ((state->gsm.time.month == 1 ||
+         state->gsm.time.month == 3 ||
+         state->gsm.time.month == 5 ||
+         state->gsm.time.month == 7 ||
+         state->gsm.time.month == 8 ||
+         state->gsm.time.month == 10 ||
+         state->gsm.time.month == 12) && state->gsm.time.day == 30
+            )
+        return;
+    state->gsm.time.day = 1;
+    state->gsm.time.month++;
+
+    if (state->gsm.time.month < 13) return;
+    state->gsm.time.month = 1;
+    state->gsm.time.year++;
+}
+
 void gpsgsm_process(State *state) {
     static int64_t sms_sent_time = 0;
 
@@ -407,6 +468,8 @@ void gpsgsm_process(State *state) {
         http_request_body = NULL;
         state->gsm.is_uploading = false;
     }
+
+    update_time(state);
 }
 
 void gpsgsm_init(A9GState *a9g_state) {
