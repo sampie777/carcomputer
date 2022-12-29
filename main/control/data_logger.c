@@ -47,7 +47,7 @@ void data_logger_upload_current(State *state) {
     if (state->location.time.year < 2000) {
         timestamp[0] = '\0';
     } else {
-        sprintf(timestamp, ",\"time\": \"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
+        sprintf(timestamp, ",\"time\":\"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
                 state->location.time.year,
                 state->location.time.month,
                 state->location.time.day,
@@ -59,17 +59,17 @@ void data_logger_upload_current(State *state) {
 
     char buffer[512];
     sprintf(buffer, "{"
-                    "\"uptimeMs\": %lld,"
-                    "\"car\": {"
-                    "  \"is_connected\": %d,"
-                    "  \"speed\": %.3f"
+                    "\"uptimeMs\":%lld,"
+                    "\"car\":{"
+                    """\"is_connected\":%d,"
+                    """\"speed\":%.3f"
                     "},"
-                    "\"location\": {"
-                    "  \"satellites\": %d,"
-                    "  \"latitude\": %.5f,"
-                    "  \"longitude\": %.5f,"
-                    "  \"ground_speed\": %.3f,"
-                    "  \"ground_heading\": %.2f"
+                    "\"location\":{"
+                    """\"satellites\":%d,"
+                    """\"latitude\":%.5f,"
+                    """\"longitude\":%.5f,"
+                    """\"ground_speed\":%.3f,"
+                    """\"ground_heading\":%.2f"
                     "%s"
                     "}"
                     "}",

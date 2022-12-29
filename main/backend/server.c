@@ -232,7 +232,7 @@ int server_send_trip_end(State *state) {
     if (state->location.time.year < 2000) {
         timestamp[0] = '\0';
     } else {
-        sprintf(timestamp, ",\"time\": \"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
+        sprintf(timestamp, ",\"time\":\"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
                 state->location.time.year,
                 state->location.time.month,
                 state->location.time.day,
@@ -244,24 +244,24 @@ int server_send_trip_end(State *state) {
 
     char buffer[512];
     sprintf(buffer, "{"
-                    "\"uptimeMs\": \"%lld\","
+                    "\"uptimeMs\":\"%lld\","
 #if WIFI_ENABLE
-                    "\"wifi\": {"
-                    "  \"ssid\": \"%s\""
+                    "\"wifi\":{"
+                    """\"ssid\":\"%s\""
                     "},"
 #endif
-                    "\"car\": {"
-                    "  \"odometer_start\": %d,"
-                    "  \"odometer\": %d"
+                    "\"car\":{"
+                    """\"odometer_start\":%d,"
+                    """\"odometer\":%d"
                     "},"
-                    "\"location\": {"
-                    "  \"is_gps_on\": %d,"
-                    "  \"quality\": %d,"
-                    "  \"satellites\": %d,"
-                    "  \"is_effective_positioning\": %d,"
-                    "  \"latitude\": %.5f,"
-                    "  \"longitude\": %.5f,"
-                    "  \"altitude\": %.1f"
+                    "\"location\":{"
+                    """\"is_gps_on\":%d,"
+                    """\"quality\":%d,"
+                    """\"satellites\":%d,"
+                    """\"is_effective_positioning\":%d,"
+                    """\"latitude\":%.5f,"
+                    """\"longitude\":%.5f,"
+                    """\"altitude\":%.1f"
                     "%s"
                     "}"
                     "}", esp_timer_get_time_ms(),
@@ -288,7 +288,7 @@ int server_send_data_log_record(State *state) {
     if (state->location.time.year < 2000) {
         timestamp[0] = '\0';
     } else {
-        sprintf(timestamp, ",\"time\": \"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
+        sprintf(timestamp, ",\"time\":\"%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\"",
                 state->location.time.year,
                 state->location.time.month,
                 state->location.time.day,
@@ -300,61 +300,61 @@ int server_send_data_log_record(State *state) {
 
     char buffer[1200];
     sprintf(buffer, "{"
-                    "\"uptimeMs\": %lld,"
-                    "\"car\": {"
-                    "  \"is_connected\": %d,"
-                    "  \"is_controller_connected\": %d,"
-                    "  \"is_braking\": %d,"
-                    "  \"is_ignition_on\": %d,"
-                    "  \"speed\": %.3f,"
-                    "  \"rpm\": %.3f,"
-                    "  \"odometer\": %d,"
-                    "  \"gas_pedal_connected\": %d,"
-                    "  \"gas_pedal\": %.5f"
+                    "\"uptimeMs\":%lld,"
+                    "\"car\":{"
+                    """\"is_connected\":%d,"
+                    """\"is_controller_connected\":%d,"
+                    """\"is_braking\":%d,"
+                    """\"is_ignition_on\":%d,"
+                    """\"speed\":%.3f,"
+                    """\"rpm\":%.3f,"
+                    """\"odometer\":%d,"
+                    """\"gas_pedal_connected\":%d,"
+                    """\"gas_pedal\":%.5f"
                     "},"
 #if CRUISE_CONTROL_ENABLE
-                    "\"cruiseControl\": {"
-                    "  \"enabled\": %d,"
-                    "  \"target_speed\": %.3f,"
-                    "  \"virtual_gas_pedal\": %.5f,"
-                    "  \"control_value\": %.5f"
+                    "\"cruiseControl\":{"
+                    """\"enabled\":%d,"
+                    """\"target_speed\":%.3f,"
+                    """\"virtual_gas_pedal\":%.5f,"
+                    """\"control_value\":%.5f"
                     "},"
 #endif
 #if WIFI_ENABLE
-                    "\"wifi\": {"
-                    "  \"ssid\": \"%s\","
-                    "  \"ip\": %d,"
-                    "  \"is_connected\": %d"
+                    "\"wifi\":{"
+                    """\"ssid\":\"%s\","
+                    """\"ip\":%d,"
+                    """\"is_connected\":%d"
                     "},"
 #endif
 #if BLUETOOTH_ENABLE
-                    "\"bluetooth\": {"
-                    "  \"connected\": %d"
+                    "\"bluetooth\":{"
+                    """\"connected\":%d"
                     "},"
 #endif
-                    "\"motion\": {"
-                    "  \"connected\": %d,"
-                    "  \"accel_x\": %.3f,"
-                    "  \"accel_y\": %.3f,"
-                    "  \"accel_z\": %.3f,"
-                    "  \"gyro_x\": %.3f,"
-                    "  \"gyro_y\": %.3f,"
-                    "  \"gyro_z\": %.3f,"
-                    "  \"compass_x\": %.3f,"
-                    "  \"compass_y\": %.3f,"
-                    "  \"compass_z\": %.3f,"
-                    "  \"temperature\": %.3f"
+                    "\"motion\":{"
+                    """\"connected\":%d,"
+                    """\"accel_x\":%.3f,"
+                    """\"accel_y\":%.3f,"
+                    """\"accel_z\":%.3f,"
+                    """\"gyro_x\":%.3f,"
+                    """\"gyro_y\":%.3f,"
+                    """\"gyro_z\":%.3f,"
+                    """\"compass_x\":%.3f,"
+                    """\"compass_y\":%.3f,"
+                    """\"compass_z\":%.3f,"
+                    """\"temperature\":%.3f"
                     "},"
-                    "\"location\": {"
-                    "  \"is_gps_on\": %d,"
-                    "  \"quality\": %d,"
-                    "  \"satellites\": %d,"
-                    "  \"is_effective_positioning\": %d,"
-                    "  \"latitude\": %.5f,"
-                    "  \"longitude\": %.5f,"
-                    "  \"altitude\": %.1f,"
-                    "  \"ground_speed\": %.3f,"
-                    "  \"ground_heading\": %.2f"
+                    "\"location\":{"
+                    """\"is_gps_on\":%d,"
+                    """\"quality\":%d,"
+                    """\"satellites\":%d,"
+                    """\"is_effective_positioning\":%d,"
+                    """\"latitude\":%.5f,"
+                    """\"longitude\":%.5f,"
+                    """\"altitude\":%.1f,"
+                    """\"ground_speed\":%.3f,"
+                    """\"ground_heading\":%.2f"
                     "%s"
                     "}"
                     "}\n",
