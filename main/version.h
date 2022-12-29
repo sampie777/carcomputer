@@ -5,6 +5,6 @@
 #ifndef CARCOMPUTER_VERSION_H
 #define CARCOMPUTER_VERSION_H
 
-const char* APP_VERSION = "0.1.0-SNAPSHOT";
+const char* APP_VERSION = "0.1.0";
 
 #endif //CARCOMPUTER_VERSION_H
