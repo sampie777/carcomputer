@@ -244,12 +244,13 @@ int server_send_trip_end(State *state) {
 
     char buffer[512];
     sprintf(buffer, "{"
-                    "\"uptimeMs\":\"%lld\","
-#if WIFI_ENABLE
+                    "\"uptimeMs\":%lld,"
+                    "\"session\":%u,"
+                    #if WIFI_ENABLE
                     "\"wifi\":{"
                     """\"ssid\":\"%s\""
                     "},"
-#endif
+                    #endif
                     "\"car\":{"
                     """\"odometer_start\":%d,"
                     """\"odometer\":%d"
@@ -264,7 +265,10 @@ int server_send_trip_end(State *state) {
                     """\"altitude\":%.1f"
                     "%s"
                     "}"
-                    "}", esp_timer_get_time_ms(),
+                    "}",
+            esp_timer_get_time_ms(),
+            state->logging_session_id,
+
 #if WIFI_ENABLE
             state->wifi.ssid,
 #endif
@@ -301,6 +305,7 @@ int server_send_data_log_record(State *state) {
     char buffer[1200];
     sprintf(buffer, "{"
                     "\"uptimeMs\":%lld,"
+                    "\"session\":%u,"
                     "\"car\":{"
                     """\"is_connected\":%d,"
                     """\"is_controller_connected\":%d,"
@@ -312,26 +317,26 @@ int server_send_data_log_record(State *state) {
                     """\"gas_pedal_connected\":%d,"
                     """\"gas_pedal\":%.5f"
                     "},"
-#if CRUISE_CONTROL_ENABLE
+                    #if CRUISE_CONTROL_ENABLE
                     "\"cruiseControl\":{"
                     """\"enabled\":%d,"
                     """\"target_speed\":%.3f,"
                     """\"virtual_gas_pedal\":%.5f,"
                     """\"control_value\":%.5f"
                     "},"
-#endif
-#if WIFI_ENABLE
+                    #endif
+                    #if WIFI_ENABLE
                     "\"wifi\":{"
                     """\"ssid\":\"%s\","
                     """\"ip\":%d,"
                     """\"is_connected\":%d"
                     "},"
-#endif
-#if BLUETOOTH_ENABLE
+                    #endif
+                    #if BLUETOOTH_ENABLE
                     "\"bluetooth\":{"
                     """\"connected\":%d"
                     "},"
-#endif
+                    #endif
                     "\"motion\":{"
                     """\"connected\":%d,"
                     """\"accel_x\":%.3f,"
@@ -359,6 +364,7 @@ int server_send_data_log_record(State *state) {
                     "}"
                     "}\n",
             esp_timer_get_time_ms(),
+            state->logging_session_id,
 
             state->car.is_connected,
             state->car.is_controller_connected,

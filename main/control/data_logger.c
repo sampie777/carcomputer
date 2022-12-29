@@ -8,6 +8,7 @@
 #include "../utils.h"
 #include "../backend/server.h"
 #include "../error_codes.h"
+#include "../backend/utils.h"
 
 void data_logger_upload_all(State *state) {
     static int64_t engine_off_time = 0;
@@ -60,6 +61,7 @@ void data_logger_upload_current(State *state) {
     char buffer[512];
     sprintf(buffer, "{"
                     "\"uptimeMs\":%lld,"
+                    "\"session\":%u,"
                     "\"car\":{"
                     """\"is_connected\":%d,"
                     """\"speed\":%.3f"
@@ -74,6 +76,7 @@ void data_logger_upload_current(State *state) {
                     "}"
                     "}",
             esp_timer_get_time_ms(),
+            state->logging_session_id,
             state->car.is_connected,
             state->car.speed,
             state->location.satellites,
@@ -104,6 +107,7 @@ void data_logger_log_current(State *state) {
     char buffer[256];
     sprintf(buffer,
             "%lld;"         // esp_timer_get_time_ms()
+            "%u;"           // state->logging_session_id
             "%d;"           // state->car.is_connected
             "%d;"           // state->car.is_controller_connected
             "%d;"           // state->car.is_braking
@@ -150,6 +154,7 @@ void data_logger_log_current(State *state) {
             "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d;"         // state->location.time
             "\n",
             esp_timer_get_time_ms(),
+            state->logging_session_id,
             state->car.is_connected,
             state->car.is_controller_connected,
             state->car.is_braking,
@@ -230,6 +235,10 @@ void data_logger_process(State *state) {
 void data_logger_init(State *state) {
     printf("[DataLogger] Initializing...\n");
 
+    while (state->logging_session_id == 0) {
+        state->logging_session_id = generate_session_id();
+    }
+
 #if SD_ENABLE
     if (sd_card_init() != RESULT_OK) {
         state->storage.is_connected = false;
@@ -244,7 +253,7 @@ void data_logger_init(State *state) {
         }
         printf("[SD] Using file: %s\n", state->storage.filename);
 
-        sd_card_file_append(state->storage.filename, "timestamp;"
+        sd_card_file_append(state->storage.filename, "timestamp;session_id;"
                                                      "car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;"
                                                      #if CRUISE_CONTROL_ENABLE
                                                      "cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;"

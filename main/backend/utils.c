@@ -24,3 +24,10 @@ void generate_registration_token(char *token, size_t length) {
 
     token[length] = '\0';
 }
+
+uint32_t generate_session_id() {
+    bootloader_random_enable();
+    uint32_t id = esp_random();
+    bootloader_random_disable();
+    return id;
+}
