@@ -67,6 +67,9 @@ void show_error_message(State *state, SH1106Config *sh1106) {
         case ERROR_CRASH_NO_ICE:
             strcpy(buffer, "CRASH, no ICE!");
             break;
+        case ERROR_CRASH_DETECTED:
+            strcpy(buffer, "CRASH detected!");
+            break;
         case ERROR_GPS_TIMEOUT:
             strcpy(buffer, "GPS timeout");
             break;

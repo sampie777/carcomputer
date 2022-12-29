@@ -11,6 +11,7 @@
 #include "../peripherals/mpu9250.h"
 #include "../backend/server.h"
 #include "../error_codes.h"
+#include "../peripherals/gpsgsm/gpsgsm.h"
 
 #if CRUISE_CONTROL_ENABLE
 #include "../peripherals/gas_pedal.h"
@@ -224,10 +225,9 @@ void control_crash_detection(State *state) {
 #ifdef ICE_CONTACT_NUMBER
     char message[158];   // Max SMS length
 
-    sprintf(message, "CRASH! (%.1f g)", total_force);
-    display_set_error_message(state, message);
+    set_error(state, ERROR_CRASH_DETECTED);
 
-    sprintf(message, "CRASH! Location: %.5f,%.5f at %02d:%02d:%02d %02d-%02d-%d (accuracy: %d%%). Force: %.1f g.",
+    sprintf(message, "CRASH! Location: %.5f,%.5f at %02d:%02d:%02d %02d-%02d-%04d (accuracy: %d%%). Force: %.1f g.",
             state->location.latitude,
             state->location.longitude,
             state->location.time.hours,

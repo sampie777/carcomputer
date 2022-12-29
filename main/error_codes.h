@@ -13,5 +13,6 @@
 #define ERROR_GPS_TIMEOUT (1 << 3)
 #define ERROR_SMS_FAILED (1 << 4)
 #define ERROR_SD_FULL (1 << 5)
+#define ERROR_CRASH_DETECTED (1 << 6)
 
 #endif //CARCOMPUTER_ERROR_CODES_H
