@@ -127,6 +127,24 @@ double nmea_coordinates_to_degrees(double coordinates, char direction) {
     return result;
 }
 
+void extract_ctzv_message(const char *message, Time *time) {
+    char *search_string = malloc(strlen(message) + 1);
+    char *search_string_pointer = search_string;
+    strcpy(search_string, message);
+
+    extract_string(&search_string, NULL, ":");
+    extract_uint16(&search_string, &(time->year), "/");
+    time->year += 2000;
+    extract_uint8(&search_string, &(time->month), "/");
+    extract_uint8(&search_string, &(time->day), ",");
+    extract_uint8(&search_string, &(time->hours), ":");
+    extract_uint8(&search_string, &(time->minutes), ":");
+    extract_uint8(&search_string, &(time->seconds), ",");
+    extract_int8(&search_string, &(time->timezone), "\0");
+
+    free(search_string_pointer);
+}
+
 bool a9g_state_compare(A9GState *a, A9GState *b) {
     return a->initialized == b->initialized
            && a->network_attached == b->network_attached

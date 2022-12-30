@@ -67,21 +67,7 @@ void process_gnrmc_message(State *state, const char *message) {
 }
 
 void process_ctzv_message(State *state, const char *message) {
-    char *search_string = malloc(strlen(message) + 1);
-    char *search_string_pointer = search_string;
-    strcpy(search_string, message);
-
-    extract_string(&search_string, NULL, ":");
-    extract_uint16(&search_string, &(state->gsm.time.year), "/");
-    state->gsm.time.year += 2000;
-    extract_uint8(&search_string, &(state->gsm.time.month), "/");
-    extract_uint8(&search_string, &(state->gsm.time.day), ",");
-    extract_uint8(&search_string, &(state->gsm.time.hours), ":");
-    extract_uint8(&search_string, &(state->gsm.time.minutes), ":");
-    extract_uint8(&search_string, &(state->gsm.time.seconds), ",");
-    extract_int8(&search_string, &(state->gsm.time.timezone), "\0");
-
-    free(search_string_pointer);
+    extract_ctzv_message(message, &(state->gsm.time));
 
     printf("[GSM] Set new GSM time: %04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\n",
            state->gsm.time.year,

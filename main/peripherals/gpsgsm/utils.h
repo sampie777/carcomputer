@@ -7,6 +7,7 @@
 
 #include <stdbool.h>
 #include "definitions.h"
+#include "../../state.h"
 
 void extract_uint16(char **source, uint16_t *destination, char *delimiter);
 
@@ -31,6 +32,8 @@ void extract_GNRMC_message(const char *string, NmeaGNRMCMessage *message);
 int nmea_calculate_checksum(const char *message);
 
 double nmea_coordinates_to_degrees(double coordinates, char direction);
+
+void extract_ctzv_message(const char *message, Time *time);
 
 bool a9g_state_compare(A9GState *a, A9GState *b);
 
