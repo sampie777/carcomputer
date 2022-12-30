@@ -34,7 +34,7 @@ extern "C" {
 #define BACKEND_REGISTRATION_TOKEN_LENGTH 7
 #define BACKEND_REGISTRATION_STATUS_URL "https://car.sajansen.nl/api/v1/devices/register"
 
-#define DATA_UPLOAD_URL "https://car.sajansen.nl/api/v1/cars/logs"
+#define DATA_UPLOAD_URL "http://car.sajansen.nl/api/v1/cars/logs"
 #define TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS 15000
 #define TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS 3000
 #define TRIP_LOGGER_UPLOAD_URL_TRIP_END DATA_UPLOAD_URL
