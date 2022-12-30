@@ -198,9 +198,6 @@ void control_trip_logger(State *state) {
 
     if (state->car.odometer == 0) return;
 
-    // Can't log trip if WiFi is disconnected
-    if (!state->wifi.is_connected) return;
-
     // Trip already logged
     if (state->trip_has_been_uploaded || state->car.odometer_start == state->car.odometer) return;
 
