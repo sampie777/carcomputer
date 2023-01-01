@@ -10,6 +10,12 @@
 #include "../error_codes.h"
 #include "../backend/utils.h"
 
+/**
+ * This method should read all data from the SD card and upload all data to
+ * the server.
+ * todo: This method isn't completed yet (it isn't reading data from the SD card).
+ * @param state
+ */
 void data_logger_upload_all(State *state) {
     static int64_t engine_off_time = 0;
     static uint32_t last_odometer = 0;
@@ -80,7 +86,9 @@ void data_logger_upload_current(State *state) {
                     "\"session\":%u,"
                     "\"car\":{"
                     """\"is_connected\":%d,"
-                    """\"speed\":%.3f"
+                    """\"speed\":%.3f,"
+                    """\"odometer_start\":%d,"
+                    """\"odometer\":%d"
                     "},"
                     "\"location\":{"
                     """\"satellites\":%d"
@@ -92,6 +100,8 @@ void data_logger_upload_current(State *state) {
             state->logging_session_id,
             state->car.is_connected,
             state->car.speed,
+            state->car.odometer_start,
+            state->car.odometer,
             state->location.satellites,
             location,
             timestamp);
