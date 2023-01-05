@@ -46,8 +46,10 @@ void data_logger_upload_all(State *state) {
 
 void data_logger_upload_current(State *state) {
     static int64_t last_log_time = 0;
+    static int64_t last_upload_time = 0;
+    static char *persistent_buffer = NULL;
 
-    if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS) return;
+    if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_MINIMAL_DATA_LOG_INTERVAL_MS) return;
     last_log_time = esp_timer_get_time_ms();
 
     char timestamp[64];
@@ -80,7 +82,7 @@ void data_logger_upload_current(State *state) {
         );
     }
 
-    char buffer[512];
+    char buffer[360];   // At least 307
     sprintf(buffer, "{"
                     "\"uptimeMs\":%lld,"
                     "\"session\":%u,"
@@ -106,9 +108,29 @@ void data_logger_upload_current(State *state) {
             location,
             timestamp);
 
+    // Merge buffer into the persistent buffer forming a JSON array of log objects.
+    if (persistent_buffer == NULL) {
+        persistent_buffer = malloc(strlen(buffer) + 3);
+        persistent_buffer[0] = '[';
+    } else {
+        persistent_buffer = realloc(persistent_buffer, strlen(persistent_buffer) + strlen(buffer) + 3);
+        // Insert comma before adding the array item
+        strcat(persistent_buffer, ",");
+    }
+    strcat(persistent_buffer, buffer);
+
+
+    if (esp_timer_get_time_ms() < last_upload_time + DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS) return;
+    last_upload_time = esp_timer_get_time_ms();
+
+    strcat(persistent_buffer, "]");
+
 #ifdef DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL
     server_send_data(state, DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL, buffer, false);
 #endif
+
+    free(persistent_buffer);
+    persistent_buffer = NULL;
 }
 
 /**
