@@ -42,7 +42,7 @@ uint8_t **scale_data(const uint8_t *data, int data_length, int scale, int *scale
     *scaled_data_rows = scale;
     *scaled_data_cols = scale * data_length;
 
-    uint8_t **scaled_data = malloc(sizeof(uint8_t *) * *scaled_data_rows);
+    uint8_t **scaled_data = malloc(sizeof(uint8_t *) * (*scaled_data_rows));
     for (int i = 0; i < *scaled_data_rows; i++) {
         scaled_data[i] = malloc(sizeof(uint8_t) * (*scaled_data_cols));
         memset(scaled_data[i], 0, *scaled_data_cols);

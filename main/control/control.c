@@ -207,8 +207,6 @@ void control_trip_logger(State *state) {
         return;
     }
 
-    // Track this value in case ignition turns on after trip ended (for closing windows or something).
-    state->car.odometer_start = state->car.odometer;
     state->trip_has_been_uploaded = true;
 }
 
