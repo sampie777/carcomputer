@@ -203,6 +203,7 @@ void data_logger_log_current(State *state) {
             "%.2f;"         // state->location.ground_heading
             "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d;"         // state->location.time
             "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d;"         // state->gsm.time
+            "%u;"           // state->errors
             "\n",
             esp_timer_get_time_ms(),
             state->logging_session_id,
@@ -262,7 +263,8 @@ void data_logger_log_current(State *state) {
             state->gsm.time.hours,
             state->gsm.time.minutes,
             state->gsm.time.seconds,
-            state->gsm.time.timezone
+            state->gsm.time.timezone,
+            state->errors
     );
 
     if (sd_card_file_append(state->storage.filename, buffer) == RESULT_OK) {
@@ -323,7 +325,8 @@ void data_logger_init(State *state) {
                                                      "bluetooth_connected;"
                                                      #endif
                                                      "motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;"
-                                                     "location_is_gps_on;location_quality;location_satellites;location_is_effective_positioning;location_latitude;location_longitude;location_altitude;location_ground_speed;location_ground_heading;location_datetime;gsm_datetime;\n");
+                                                     "location_is_gps_on;location_quality;location_satellites;location_is_effective_positioning;location_latitude;location_longitude;location_altitude;location_ground_speed;location_ground_heading;location_datetime;gsm_datetime;"
+                                                     "errors;\n");
     }
 #else
     state->storage.is_connected = false;
