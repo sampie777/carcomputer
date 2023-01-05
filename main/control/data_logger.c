@@ -82,12 +82,14 @@ void data_logger_upload_current(State *state) {
         );
     }
 
-    char buffer[360];   // At least 307
+    char buffer[410];   // At least 397
     sprintf(buffer, "{"
                     "\"uptimeMs\":%lld,"
                     "\"session\":%u,"
                     "\"car\":{"
                     """\"is_connected\":%d,"
+                    """\"is_controller_connected\":%d,"
+                    """\"is_ignition_on\":%d,"
                     """\"speed\":%.3f,"
                     """\"odometer_start\":%d,"
                     """\"odometer\":%d"
@@ -96,17 +98,23 @@ void data_logger_upload_current(State *state) {
                     """\"satellites\":%d"
                     """%s"
                     """%s"
+                    "},"
+                    "\"motion\":{"
+                    """\"temperature\":%.3f"
                     "}"
                     "}",
             esp_timer_get_time_ms(),
             state->logging_session_id,
             state->car.is_connected,
+            state->car.is_controller_connected,
+            state->car.is_ignition_on,
             state->car.speed,
             state->car.odometer_start,
             state->car.odometer,
             state->location.satellites,
             location,
-            timestamp);
+            timestamp,
+            state->motion.temperature);
 
     // Merge buffer into the persistent buffer forming a JSON array of log objects.
     if (persistent_buffer == NULL) {
