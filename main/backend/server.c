@@ -278,6 +278,10 @@ int server_send_trip_end(State *state) {
                     """\"satellites\":%d"
                     """%s"
                     """%s"
+                    "},"
+                    "\"storage\":{"
+                    """\"is_connected\":%d,"
+                    """\"filename\":\"%s\""
                     "}"
                     "}",
             esp_timer_get_time_ms(),
@@ -291,7 +295,10 @@ int server_send_trip_end(State *state) {
             state->location.is_gps_on,
             state->location.satellites,
             location,
-            timestamp);
+            timestamp,
+
+            state->storage.is_connected,
+            state->storage.filename);
     return server_send_data(state, TRIP_LOGGER_UPLOAD_URL_TRIP_END, buffer, false);
 }
 
@@ -372,6 +379,10 @@ int server_send_data_log_record(State *state) {
                     """\"ground_speed\":%.3f,"
                     """\"ground_heading\":%.2f"
                     "%s"
+                    "},"
+                    "\"storage\":{"
+                    """\"is_connected\":%d,"
+                    """\"filename\":\"%s\""
                     "}"
                     "}\n",
             esp_timer_get_time_ms(),
@@ -423,7 +434,10 @@ int server_send_data_log_record(State *state) {
             state->location.altitude,
             state->location.ground_speed,
             state->location.ground_heading,
-            timestamp
+            timestamp,
+
+            state->storage.is_connected,
+            state->storage.filename
     );
     return server_send_data(state, DATA_LOGGER_UPLOAD_URL_FULL_DATA, buffer, false);
 }
