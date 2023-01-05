@@ -120,6 +120,7 @@ void data_logger_upload_current(State *state) {
     if (persistent_buffer == NULL) {
         persistent_buffer = malloc(strlen(buffer) + 3);
         persistent_buffer[0] = '[';
+        persistent_buffer[1] = '\0';
     } else {
         persistent_buffer = realloc(persistent_buffer, strlen(persistent_buffer) + strlen(buffer) + 3);
         // Insert comma before adding the array item
@@ -134,7 +135,7 @@ void data_logger_upload_current(State *state) {
     strcat(persistent_buffer, "]");
 
 #ifdef DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL
-    server_send_data(state, DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL, buffer, false);
+    server_send_data(state, DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL, persistent_buffer, false);
 #endif
 
     free(persistent_buffer);
