@@ -7,6 +7,7 @@
 #include <string.h>
 #include "sh1106.h"
 #include "font.h"
+#include "../../utils.h"
 
 #define CONTROL_BYTE_CONFIG_SINGLE_DATA 0x80
 #define CONTROL_BYTE_CONFIG_MULTI_DATA 0x00
@@ -243,7 +244,16 @@ void sh1106_display(SH1106Config *config) {
         i2c_master_write_byte(command, SH1106_CONFIG_SET_COLUMN_HIGH | (SH1106_COL_OFFSET >> 4), true);
 
         i2c_master_write_byte(command, CONTROL_BYTE_RAM_MULTI_DATA, true);
+
+        // For some reason the next if-statement cannot be put in a C if-statement.
+        // The display will than show scrambled pixels if DISPLAY_UPSIDE_DOWN == true.
+#if DISPLAY_UPSIDE_DOWN
+        uint8_t data[config->width];
+        invert_array(config->buffer[row], data, config->width);
+        i2c_master_write(command, data, config->width, true);
+#else
         i2c_master_write(command, config->buffer[row], config->width, true);
+#endif
 
         i2c_master_stop(command);
         if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
@@ -280,7 +290,7 @@ void sh1106_init(SH1106Config *config) {
     i2c_master_write_byte(command, SH1106_CONFIG_SET_MEMORY_MODE, true);
     i2c_master_write_byte(command, 0x00, true);
     i2c_master_write_byte(command, SH1106_CONFIG_SET_SEGMENT_REMAP | 0x01, true);
-    i2c_master_write_byte(command, SH1106_CONFIG_SET_COMMON_OUTPUT_SCAN_DIRECTION | (config->flip ? 0x00 : 0x08), true);
+    i2c_master_write_byte(command, SH1106_CONFIG_SET_COMMON_OUTPUT_SCAN_DIRECTION | (config->mirror_vertical ? 0x00 : 0x08), true);
     i2c_master_write_byte(command, SH1106_CONFIG_SET_COMMON_PADS, true);
     i2c_master_write_byte(command, 0x12, true);
 
