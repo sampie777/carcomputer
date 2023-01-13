@@ -83,3 +83,9 @@ void set_error(State *state, uint32_t error_code) {
         previous_errors = state->errors;
     }
 }
+
+void invert_array(const uint8_t *array, uint8_t *output_array, int length) {
+    for (int i = 0; i < length; i++) {
+        output_array[i] = array[length - i - 1];
+    }
+}

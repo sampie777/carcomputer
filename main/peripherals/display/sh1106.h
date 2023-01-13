@@ -9,7 +9,7 @@
 
 typedef struct {
     int address;
-    int8_t flip;
+    bool mirror_vertical;
     int height;
     int width;
     uint8_t **buffer;

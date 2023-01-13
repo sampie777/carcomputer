@@ -16,7 +16,7 @@
 
 SH1106Config sh1106_config = {
         .address = DISPLAY_I2C_ADDRESS,
-        .flip = DISPLAY_UPSIDE_DOWN,
+        .mirror_vertical = DISPLAY_UPSIDE_DOWN,
         .width = DISPLAY_WIDTH,
         .height = DISPLAY_HEIGHT,
 };
