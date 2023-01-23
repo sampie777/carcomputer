@@ -89,3 +89,17 @@ void invert_array(const uint8_t *array, uint8_t *output_array, int length) {
         output_array[i] = array[length - i - 1];
     }
 }
+
+void convert_to_base_26(uint32_t input, char *output, size_t max_length) {
+    memset(output, '\0', max_length);
+
+    uint32_t temp = input;
+    int i = 0;
+
+    while (temp > 0 && i <= max_length - 1) {
+        uint32_t digit_value = temp % 26;
+        temp = temp / 26;
+        // Start char at ascii A
+        output[i++] = (char) (digit_value + 65);
+    }
+}
