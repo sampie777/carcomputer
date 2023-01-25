@@ -288,10 +288,14 @@ void process_message(State *state, const char *message) {
     } else if (starts_with(stripped_message, "+CTZV:")) {
         process_ctzv_message(state, stripped_message);
     } else if (strcmp(stripped_message, "failure, pelase check your network or certificate!") == 0) {
-        printf("[GSM] Restarting GSM network\n");
-        // Resetting the whole chip seems like the only solution
-        // Related: https://stackoverflow.com/questions/68612918/https-requests-on-a9g-via-at-commands-fail-after-7-requests-http-works-fine
-        send_command(&state->a9g, A9GCommand_Reset_Software);
+        state->a9g.network_error_count++;
+
+        if (state->a9g.network_error_count > 1) {
+            printf("[GSM] Restarting GSM network (error count: %u)\n", state->a9g.network_error_count);
+            // Resetting the whole chip seems like the only solution
+            // Related: https://stackoverflow.com/questions/68612918/https-requests-on-a9g-via-at-commands-fail-after-7-requests-http-works-fine
+            send_command(&state->a9g, A9GCommand_Reset_Software);
+        }
     }
 
     free(stripped_message);

@@ -173,4 +173,5 @@ void a9g_state_reset(A9GState *source) {
     source->agps_enabled = A9Status_Unknown;
     source->gps_logging_enabled = A9Status_Unknown;
     source->gps_logging_started = false;
+    source->network_error_count = 0;
 }

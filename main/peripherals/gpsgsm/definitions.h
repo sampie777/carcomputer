@@ -67,6 +67,7 @@ typedef struct {
     enum A9Status agps_enabled;
     enum A9Status gps_logging_enabled;
     bool gps_logging_started;
+    uint8_t network_error_count;
 } A9GState;
 
 enum SmsState {
