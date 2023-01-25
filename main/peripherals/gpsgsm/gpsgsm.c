@@ -247,9 +247,11 @@ void process_message(State *state, const char *message) {
     if (strcmp(stripped_message, "Init...") == 0) {
         a9g_state_reset(&state->a9g);
         state->a9g.initialized = A9Status_Requested;
+        state->a9g.gps_logging_started = false;
     } else if (starts_with(stripped_message, "READY") || starts_with(stripped_message, "Ai_Thinker_Co")) {
         a9g_state_reset(&state->a9g);
         state->a9g.initialized = A9Status_Ok;
+        state->a9g.gps_logging_started = false;
     } else if (starts_with(stripped_message, "+CMGS=")) {
         sms_state = SentSuccess;
     }
@@ -350,6 +352,8 @@ void read_messages(State *state) {
 void proceed_device_init(State *state) {
     static int64_t state_start_time = 0;
     static A9GState previous_state = {};
+
+    if (state->a9g.gps_logging_started) return;
 
     if (!a9g_state_compare(&state->a9g, &previous_state)) {
         state_start_time = esp_timer_get_time_ms();
