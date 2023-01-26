@@ -49,6 +49,8 @@ int mcp2515_init(bool listen_only) {
         printf("[mcp2515] Failed to set filter 3\n");
     if (mcp2515->setFilter(MCP2515::RXF4, false, CAN_ID_ODOMETER) != MCP2515::ERROR_OK)
         printf("[mcp2515] Failed to set filter 4\n");
+    if (mcp2515->setFilter(MCP2515::RXF5, false, CAN_ID_GEAR_LIGHTS) != MCP2515::ERROR_OK)
+        printf("[mcp2515] Failed to set filter 5\n");
 
     if (listen_only) {
         if (mcp2515->setListenOnlyMode() != MCP2515::ERROR_OK)

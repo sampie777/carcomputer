@@ -65,6 +65,7 @@ _Noreturn void process_main(State *state) {
         control_trip_logger(state);
         control_cruise_control(state);
         control_crash_detection(state);
+        control_car_gear(state);
 
         data_logger_process(state);
 

@@ -30,6 +30,16 @@ typedef enum {
     ScreenMenuOption_MAX_VALUE,
 } ScreenMenuOptions;
 
+typedef enum {
+    GearNeutral,
+    GearReverse,
+    Gear1,
+    Gear2,
+    Gear3,
+    Gear4,
+    Gear5,
+} CarGearPosition;
+
 typedef struct {
     Screen current_screen;
     ScreenMenuOptions menu_option_selection;
@@ -48,11 +58,13 @@ typedef struct {
     bool is_controller_connected;
     bool is_braking;
     bool is_ignition_on;
+    bool is_in_reverse;
     double speed;                   // Absolute value in km/h
     double rpm;                     // Absolute value in rpm
     int64_t last_can_message_time;
     uint32_t odometer_start;
     uint32_t odometer;
+    CarGearPosition estimated_gear;
 
     bool gas_pedal_connected;
     double gas_pedal;               // Relative value between 0.0 and 1.0
@@ -62,6 +74,7 @@ typedef struct {
     bool is_drivers_door_open;
     bool is_other_doors_open;
     bool is_blower_on;
+    bool is_locked;
 } CarState;
 
 typedef struct {

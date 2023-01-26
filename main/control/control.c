@@ -257,3 +257,34 @@ void control_crash_detection(State *state) {
     set_error(state, ERROR_CRASH_NO_ICE);
 #endif
 }
+
+CarGearPosition estimate_car_gear(CarState *car) {
+    if (car->is_in_reverse) {
+        return GearReverse;
+    }
+
+    if (car->rpm == 0) {
+        return GearNeutral;
+    }
+
+    double ratio = (double) car->speed / car->rpm;
+    int rounded_ration = (int) round(ratio * 1000);
+    switch (rounded_ration) {
+        case CAR_GEAR_1_RATIO:
+            return Gear1;
+        case CAR_GEAR_2_RATIO:
+            return Gear2;
+        case CAR_GEAR_3_RATIO:
+            return Gear3;
+        case CAR_GEAR_4_RATIO:
+            return Gear4;
+        case CAR_GEAR_5_RATIO:
+            return Gear5;
+        default:
+            return GearNeutral;
+    }
+}
+
+void control_car_gear(State *state) {
+    state->car.estimated_gear = estimate_car_gear(&state->car);
+}

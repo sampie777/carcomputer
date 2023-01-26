@@ -81,6 +81,15 @@ void handle_door_lock_message(State *state, const CanMessage *message) {
     state->car.is_other_doors_open = (message->data[5] >> CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT) & 1;
 }
 
+void handle_gear_and_lights_message(State *state, const CanMessage *message) {
+    if (message->length != CAN_LENGTH_GEAR_LIGHTS) {
+        return;
+    }
+
+    state->car.is_in_reverse = (message->data[6] >> CAN_GEAR_LIGHTS_REVERSE_BIT) & 1;
+    state->car.is_locked = (message->data[2] >> CAN_GEAR_LIGHTS_IS_LOCKED_BIT) & 1;
+}
+
 int message_available() {
     // If CAN_INT pin is low, read receive buffer
     return !gpio_get_level(CANBUS_INTERRUPT_PIN);
@@ -107,6 +116,8 @@ void handle_message(State *state, CanMessage *message) {
             break;
         case CAN_ID_DOOR_LOCKS:
             handle_door_lock_message(state, message);
+        case CAN_ID_GEAR_LIGHTS:
+            handle_gear_and_lights_message(state, message);
         default:
             return;
     }

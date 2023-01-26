@@ -40,7 +40,7 @@ extern "C" {
 #define TRIP_LOGGER_UPLOAD_URL_TRIP_END DATA_UPLOAD_URL
 #define DATA_LOGGER_LOG_INTERVAL_MS 500
 #define DATA_LOGGER_MINIMAL_DATA_LOG_INTERVAL_MS 5000
-#define DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS 15000
+#define DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS 20000
 #define DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL DATA_UPLOAD_URL   // Comment to disable interval upload
 #define DATA_LOGGER_UPLOAD_URL_FULL_DATA DATA_UPLOAD_URL
 
@@ -99,6 +99,33 @@ extern "C" {
 
 #define CAR_CLAXON_PIN GPIO_NUM_25
 #define CAR_ENGINE_SHUTOFF_DISABLE_PIN GPIO_NUM_26
+
+// Gear ration is calculated by speed / rpm
+//#define CAR_GEAR_1_RATIO 0.00586
+//#define CAR_GEAR_1_RATIO 0.00605
+//#define CAR_GEAR_1_RATIO 0.00619
+//#define CAR_GEAR_1_RATIO 0.00603  // Average
+#define CAR_GEAR_1_RATIO 6    // Average rounded
+//#define CAR_GEAR_2_RATIO 0.01203
+//#define CAR_GEAR_2_RATIO 0.01186
+//#define CAR_GEAR_2_RATIO 0.01193
+//#define CAR_GEAR_2_RATIO 0.01194  // Average
+#define CAR_GEAR_2_RATIO 11    // Average rounded
+//#define CAR_GEAR_3_RATIO 0.01722
+//#define CAR_GEAR_3_RATIO 0.01728
+//#define CAR_GEAR_3_RATIO 0.01734
+//#define CAR_GEAR_3_RATIO 0.01728  // Average
+#define CAR_GEAR_3_RATIO 17    // Average rounded
+//#define CAR_GEAR_4_RATIO 0.02389
+//#define CAR_GEAR_4_RATIO 0.02387
+//#define CAR_GEAR_4_RATIO 0.02394
+//#define CAR_GEAR_4_RATIO 0.02390  // Average
+#define CAR_GEAR_4_RATIO 23    // Average rounded
+//#define CAR_GEAR_5_RATIO 0.02904
+//#define CAR_GEAR_5_RATIO 0.02940
+//#define CAR_GEAR_5_RATIO 0.02949
+//#define CAR_GEAR_5_RATIO 0.02931  // Average
+#define CAR_GEAR_5_RATIO 29    // Average rounded
 
 #define BUTTONS_ADC_CHANNEL_0 ADC1_CHANNEL_0    // Mapped to PIN 36
 #define BUTTONS_ADC_CHANNEL_1 ADC1_CHANNEL_3    // Mapped to PIN 39
