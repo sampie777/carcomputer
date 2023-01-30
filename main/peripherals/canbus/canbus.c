@@ -116,8 +116,10 @@ void handle_message(State *state, CanMessage *message) {
             break;
         case CAN_ID_DOOR_LOCKS:
             handle_door_lock_message(state, message);
+            break;
         case CAN_ID_GEAR_LIGHTS:
             handle_gear_and_lights_message(state, message);
+            break;
         default:
             return;
     }
