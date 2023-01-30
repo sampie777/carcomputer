@@ -41,6 +41,8 @@ void process_gngga_message(State *state, const char *message) {
     state->location.time.minutes = (int) (gga_message.timestamp / 100) - hours * 100;
     state->location.time.seconds = (int) gga_message.timestamp - hours * 10000 - state->location.time.minutes * 100;
     state->location.time.hours = hours;
+
+    state->location.gngga_last_updated = esp_timer_get_time_ms();
 }
 
 void process_gnrmc_message(State *state, const char *message) {
@@ -64,6 +66,8 @@ void process_gnrmc_message(State *state, const char *message) {
         state->location.time.month = month;
         state->location.time.year = year;
     }
+
+    state->location.gnrmc_last_updated = esp_timer_get_time_ms();
 }
 
 void process_ctzv_message(State *state, const char *message) {
@@ -489,6 +493,25 @@ void gpsgsm_process(State *state) {
     }
 
     update_time(state);
+
+    // Reset location data after it becomes invalid (expires)
+    if (esp_timer_get_time_ms() > state->location.gngga_last_updated + GPSGSM_LOCATION_MAX_VALID_TIME_MS) {
+        state->location.latitude = 0;
+        state->location.longitude = 0;
+        state->location.altitude = 0;
+        state->location.quality = 0;
+        state->location.satellites = 0;
+
+        state->location.time.minutes = 0;
+        state->location.time.seconds = 0;
+        state->location.time.hours = 0;
+    }
+
+    if (esp_timer_get_time_ms() > state->location.gnrmc_last_updated + GPSGSM_LOCATION_MAX_VALID_TIME_MS) {
+        state->location.is_effective_positioning = false;
+        state->location.ground_speed = 0;
+        state->location.ground_heading = 0;
+    }
 }
 
 void gpsgsm_init(A9GState *a9g_state) {

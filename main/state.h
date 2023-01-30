@@ -31,7 +31,7 @@ typedef enum {
 } ScreenMenuOptions;
 
 typedef enum {
-    GearNeutral,
+    GearNeutral = 0,
     GearReverse,
     Gear1,
     Gear2,
@@ -132,6 +132,8 @@ typedef struct {
     double ground_heading;
 
     Time time;
+    int64_t gngga_last_updated;
+    int64_t gnrmc_last_updated;
 } GpsState;
 
 typedef struct {
