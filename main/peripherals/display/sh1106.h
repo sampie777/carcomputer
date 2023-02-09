@@ -31,6 +31,7 @@ void sh1106_display(SH1106Config *config);
 void sh1106_clear(SH1106Config *config);
 void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontColor color, char c);
 int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c);
+int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c, int text_spacing);
 void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length);
 void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length);
 void sh1106_draw_rectangle(SH1106Config *config, int x, int y, int width, int height);

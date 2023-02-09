@@ -123,10 +123,10 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontCol
  * @param y
  * @param size
  * @param c
- * @param length
+ * @param text_spacing The minimum extra spacing between the letters (default = 0 as this will result in a 1 pixel gap between each letter)
  * @return the total horizontal pixel length used to draw the string
  */
-int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c) {
+int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c, int text_spacing) {
     int letter_spacing = 0;
     for (int i = 0; i < strlen(c); i++) {
         // If current char starts with empty space, move it a bit to the left
@@ -136,13 +136,30 @@ int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontCo
 
         sh1106_draw_char(config, x + i * font_width * (int) size + letter_spacing * (int) size, y, size, color, c[i]);
 
-        // If current char ends with empty space, move the next char a bit to the right
+        // If current char does not end with empty space, move the next char a bit to the right
         if (font[c[i] * font_width + font_width - 1] != 0x00) {
             letter_spacing++;
+        }
+
+        if (text_spacing != 0 && i < strlen(c) - 1) {
+            letter_spacing += text_spacing;
         }
     }
 
     return (int) strlen(c) * font_width * (int) size + letter_spacing * (int) size - 1;
+}
+
+/**
+ *
+ * @param config
+ * @param x
+ * @param y
+ * @param size
+ * @param c
+ * @return the total horizontal pixel length used to draw the string
+ */
+int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c) {
+    return sh1106_draw_string_with_spacing(config, x, y, size, color, c, 0);
 }
 
 void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length) {
