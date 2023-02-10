@@ -34,9 +34,9 @@ void handle_rpm_message(State *state, CanMessage *message) {
         return;
     }
 
-    uint16_t value = message->data[0] << 8 | message->data[1];
-    state->car.rpm = value / 8.0;
-    if (value > 150) {
+    state->car.rpm_raw = message->data[0] << 8 | message->data[1];
+    state->car.rpm = state->car.rpm_raw / 8.0;
+    if (state->car.rpm_raw > 150) {
         state->car.rpm += 150;
     }
 }

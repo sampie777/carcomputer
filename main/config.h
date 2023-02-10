@@ -100,32 +100,12 @@ extern "C" {
 #define CAR_CLAXON_PIN GPIO_NUM_25
 #define CAR_ENGINE_SHUTOFF_DISABLE_PIN GPIO_NUM_26
 
-// Gear ration is calculated by speed / rpm
-//#define CAR_GEAR_1_RATIO 0.00586
-//#define CAR_GEAR_1_RATIO 0.00605
-//#define CAR_GEAR_1_RATIO 0.00619
-//#define CAR_GEAR_1_RATIO 0.00603  // Average
-#define CAR_GEAR_1_RATIO 6    // Average rounded
-//#define CAR_GEAR_2_RATIO 0.01203
-//#define CAR_GEAR_2_RATIO 0.01186
-//#define CAR_GEAR_2_RATIO 0.01193
-//#define CAR_GEAR_2_RATIO 0.01194  // Average
-#define CAR_GEAR_2_RATIO 11    // Average rounded
-//#define CAR_GEAR_3_RATIO 0.01722
-//#define CAR_GEAR_3_RATIO 0.01728
-//#define CAR_GEAR_3_RATIO 0.01734
-//#define CAR_GEAR_3_RATIO 0.01728  // Average
-#define CAR_GEAR_3_RATIO 17    // Average rounded
-//#define CAR_GEAR_4_RATIO 0.02389
-//#define CAR_GEAR_4_RATIO 0.02387
-//#define CAR_GEAR_4_RATIO 0.02394
-//#define CAR_GEAR_4_RATIO 0.02390  // Average
-#define CAR_GEAR_4_RATIO 23    // Average rounded
-//#define CAR_GEAR_5_RATIO 0.02904
-//#define CAR_GEAR_5_RATIO 0.02940
-//#define CAR_GEAR_5_RATIO 0.02949
-//#define CAR_GEAR_5_RATIO 0.02931  // Average
-#define CAR_GEAR_5_RATIO 29    // Average rounded
+// Gear ration is calculated by speed / rpm_raw * 10000
+#define CAR_GEAR_1_RATIO 9
+#define CAR_GEAR_2_RATIO 16
+#define CAR_GEAR_3_RATIO 24
+#define CAR_GEAR_4_RATIO 32
+#define CAR_GEAR_5_RATIO 40
 
 #define BUTTONS_ADC_CHANNEL_0 ADC1_CHANNEL_0    // Mapped to PIN 36
 #define BUTTONS_ADC_CHANNEL_1 ADC1_CHANNEL_3    // Mapped to PIN 39

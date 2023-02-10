@@ -267,8 +267,8 @@ CarGearPosition estimate_car_gear(CarState *car) {
         return GearNeutral;
     }
 
-    double ratio = (double) car->speed / car->rpm;
-    int rounded_ration = (int) round(ratio * 1000);
+    double ratio = (double) car->speed / car->rpm_raw * 10000;
+    int rounded_ration = (int) round(ratio);
     switch (rounded_ration) {
         case CAR_GEAR_1_RATIO:
             return Gear1;
