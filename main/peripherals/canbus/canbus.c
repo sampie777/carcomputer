@@ -35,10 +35,7 @@ void handle_rpm_message(State *state, CanMessage *message) {
     }
 
     state->car.rpm_raw = message->data[0] << 8 | message->data[1];
-    state->car.rpm = state->car.rpm_raw / 8.0;
-    if (state->car.rpm_raw > 150) {
-        state->car.rpm += 150;
-    }
+    state->car.rpm = state->car.rpm_raw / 7.6188;
 }
 
 void handle_brake_message(State *state, CanMessage *message) {
