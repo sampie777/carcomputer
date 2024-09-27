@@ -67,6 +67,7 @@ void control_read_user_input(State *state) {
         case BUTTON_SOURCE_LONG_PRESS:
             printf("Button pressed: BUTTON_SOURCE_LONG_PRESS\n");
             utils_reboot(state);
+            break;
         case BUTTON_INFO: printf("Button pressed: BUTTON_INFO\n");
             break;
         case BUTTON_DOWN: printf("Button pressed: BUTTON_DOWN\n");
