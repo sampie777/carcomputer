@@ -21,9 +21,9 @@ void cruise_control_apply_pid(State *state) {
         return;
     }
 
-//    if (!_isSpeedControl) {
-//        return;
-//    }
+    //    if (!_isSpeedControl) {
+    //        return;
+    //    }
 
     if (esp_timer_get_time_ms() < last_iteration_time + CRUISE_CONTROL_PID_ITERATION_TIME) {
         return;

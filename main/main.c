@@ -1,4 +1,5 @@
 #include <driver/adc.h>
+
 #include "config.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -23,8 +24,7 @@ void task_process_main(void *args) {
     printf("Task process started\n");
 
     State *state = args;
-    int64_t lastQueryTime = 5000;
-
+    int64_t lastQueryTime = 0;
     init(state);
 
     while (1) {
