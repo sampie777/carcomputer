@@ -8,6 +8,8 @@
 #include <freertos/task.h>
 #include "utils.h"
 
+#include "error_codes.h"
+
 int64_t esp_timer_get_time_ms() {
     return esp_timer_get_time() / 1000;
 }
@@ -79,7 +81,18 @@ void set_error(State *state, uint32_t error_code) {
 
     if (state->errors != previous_errors) {
         // Only print this once
-        printf("Set error code: %lu\n", error_code);
+        printf("Set error code: ");
+        switch (error_code) {
+            case ERROR_PEDAL_DISCONNECTED: printf("ERROR_PEDAL_DISCONNECTED"); break;
+            case ERROR_SPI_FAILED: printf("ERROR_SPI_FAILED"); break;
+            case ERROR_CRASH_NO_ICE: printf("ERROR_CRASH_NO_ICE"); break;
+            case ERROR_GPS_TIMEOUT: printf("ERROR_GPS_TIMEOUT"); break;
+            case ERROR_SMS_FAILED: printf("ERROR_SMS_FAILED"); break;
+            case ERROR_SD_FULL: printf("ERROR_SD_FULL"); break;
+            case ERROR_CRASH_DETECTED: printf("ERROR_CRASH_DETECTED"); break;
+            default: printf("unknown");
+        }
+        printf("\n");
         previous_errors = state->errors;
     }
 }
