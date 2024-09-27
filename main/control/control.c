@@ -112,6 +112,8 @@ void control_cruise_control(State *state) {
 
 void control_init(State *state) {
     gpio_set_direction(POWER_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CAR_ENGINE_SHUTOFF_DISABLE_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_direction(CAR_CLAXON_PIN, GPIO_MODE_OUTPUT);
 
     led_init();
 
