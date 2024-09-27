@@ -123,6 +123,6 @@ Button buttons_get_pressed() {
 }
 
 void buttons_init() {
-    adc1_config_channel_atten(BUTTONS_ADC_CHANNEL_0, ADC_ATTEN_DB_11);
-    adc1_config_channel_atten(BUTTONS_ADC_CHANNEL_1, ADC_ATTEN_DB_11);
+    adc1_config_channel_atten(BUTTONS_ADC_CHANNEL_0, ADC_ATTEN_DB_12);
+    adc1_config_channel_atten(BUTTONS_ADC_CHANNEL_1, ADC_ATTEN_DB_12);
 }

@@ -90,8 +90,8 @@ void gas_pedal_write(State *state) {
 
 void gas_pedal_init(State *state) {
     // Init input
-    adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_0, ADC_ATTEN_DB_11);
-    adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_1, ADC_ATTEN_DB_11);
+    adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_0, ADC_ATTEN_DB_12);
+    adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_1, ADC_ATTEN_DB_12);
 
     // Init output
     gpio_set_direction(CAR_VIRTUAL_GAS_PEDAL_ENABLE_PIN, GPIO_MODE_OUTPUT);
@@ -99,7 +99,7 @@ void gas_pedal_init(State *state) {
 
     // 78 kHz gives max resolution of 10 bits: 80 MHz / 2^10 = 78 kHz
     uint32_t max_frequency = 80000000 / (0x01 << CAR_GAS_PEDAL_RESOLUTION);
-    printf("[GasPedal] PWM frequency: %d Hz\n", max_frequency);
+    printf("[GasPedal] PWM frequency: %lu Hz\n", max_frequency);
     ledc_timer_config_t config = {
             .speed_mode = CAR_VIRTUAL_GAS_PEDAL_TIMER_SPEED_MODE,
             .duty_resolution = CAR_GAS_PEDAL_RESOLUTION,

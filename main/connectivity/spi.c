@@ -5,8 +5,8 @@
 #include <driver/spi_common.h>
 #include <hal/gpio_types.h>
 #include "spi.h"
+#include "../config.h"
 #include "../return_codes.h"
-#include "../peripherals/display/display.h"
 #include "../utils.h"
 #include "../error_codes.h"
 

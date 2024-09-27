@@ -3,6 +3,7 @@
 //
 
 #include "cruise_control.h"
+#include "../config.h"
 #include "../utils.h"
 #include "../peripherals/gas_pedal.h"
 

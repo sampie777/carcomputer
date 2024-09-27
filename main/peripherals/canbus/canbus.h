@@ -5,6 +5,7 @@
 #ifndef APP_TEMPLATE_CANBUS_H
 #define APP_TEMPLATE_CANBUS_H
 
+#include <stdint.h>
 #include "../../state.h"
 
 #ifdef __cplusplus

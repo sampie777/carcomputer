@@ -79,7 +79,7 @@ void set_error(State *state, uint32_t error_code) {
 
     if (state->errors != previous_errors) {
         // Only print this once
-        printf("Set error code: %u\n", error_code);
+        printf("Set error code: %lu\n", error_code);
         previous_errors = state->errors;
     }
 }
