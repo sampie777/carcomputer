@@ -1,0 +1,210 @@
+[LOG] gsm_http_post done storing body
+[LOG] data_logger_upload_current free buffer
+[LOG] data_logger_upload_current free buffer done
+[LOG] data_logger_upload_all
+[LOG] data_logger_upload_current creating entry
+[LOG] buffer: '{"uptimeMs":550756,"session":3728509896,"car":{"is_connected":1,"speed":81.562,"odometer_start":246898,"odometer":246915},"location":{"satellites":0}}'
+[LOG] data_logger_upload_current create new buffer
+[LOG] data_logger_upload_current creating entry done
+[LOG] data_logger_upload_current creating entry
+[LOG] buffer: '{"uptimeMs":555756,"session":3728509896,"car":{"is_connected":1,"speed":82.729,"odometer_start":246898,"odometer":246915},"location":{"satellites":0}}'
+[LOG] data_logger_upload_current merge entry
+[LOG] data_logger_upload_current creating entry done
+[LOG] data_logger_upload_current creating entry
+[LOG] buffer: '{"uptimeMs":560756,"session":3728509896,"car":{"is_connected":1,"speed":82.844,"odometer_start":246898,"odometer":246915},"location":{"satellites":0}}'
+[LOG] data_logger_upload_current merge entry
+[LOG] data_logger_upload_current creating entry done
+[LOG] data_logger_upload_current creating entry
+[LOG] buffer: '{"uptimeMs":565756,"session":3728509896,"car":{"is_connected":1,"speed":82.198,"odometer_start":246898,"odometer":246915},"location":{"satellites":0}}'
+[LOG] data_logger_upload_current merge entry
+[LOG] data_logger_upload_current creating entry done
+[LOG] data_logger_upload_current close buffer json array
+[LOG] data_logger_upload_current server_send_data
+[LOG] persistent_buffer: '[{"uptimeMs":550756,"session":3728509896,"car":{"is_connected":1,"speed":81.562,"odometer_start":246898,"odometer":246915},"location":{"satellites":0}},{"uptimeMs":555756,"session":3728509896,"car":{"is_connected":1,"speed":82.729,"odometer_start":246898,"odometer":246915},"location":{"satellites":0}},{"uptimeMs":560756,"session":3728509896,"car":{"is_connected":1,"speed":82.844,"odometer_start":246898,"odometer":246915},"location":{"satellites":0}},{"uptimeMs":565756,"session":3728509896,"car":{"is_connected":1,"speed":82.198,"odometer_start":246898,"odometer":246915},"location":{"satellites":0}}]'
+[GSM] HTTP POST request to http://car.sajansen.nl/api/v1/cars/logs
+[LOG] gsm_http_post Strip domain from url
+[LOG] gsm_http_post Store url for upload
+[GSM] JSON [{\"uptimeMs\":550756,\"session\":3728509896,\"car\":{\"is_connected\":1,\"speed\":81.562,\"odometer_start\":246898,\"odometer\":246915},\"location\":{\"satellites\":0}},{\"uptimeMs\":555756,\"session\":3728509896,\"car\":{\"is_connected\":1,\"speed\":82.729,\"odometer_start\":246898,\"odometer\":246915},\"location\":{\"satellites\":0}},{\"uptimeMs\":560756,\"session\":3728509896,\"car\":{\"is_connected\":1,\"speed\":82.844,\"odometer_start\":246898,\"odometer\":246915},\"location\":{\"satellites\":0}},{\"uptimeMs\":565756,\"session\":3728509896,\"car\":{\"is_connected\":1,\"speed\":82.198,\"odometer_start\":246898,\"odometer\":246915},\"location\":{\"satellites\":0}}]
+[LOG] gsm_http_post done storing body
+[LOG] data_logger_upload_current free buffer
+[LOG] data_logger_upload_current free buffer done
+[LOG] data_logger_upload_current creating entry
+[LOG] buffer: '{"uptimeMs":570756,"session":3728509896,"car":{"is_connected":1,"speed":78.156,"odometer_start":246898,"odometer":246915},"location":{"satellites":0}}'
+[LOG] data_logger_upload_current create new buffer
+[LOG] data_logger_upload_current creating entry done
+Guru Meditation Error: Core  1 panic'ed (Unhandled debug exception).
+Debug exception reason: BREAK instr
+Core  1 register dump:
+PC      : 0x400803c0  PS      : 0x00060e36  A0      : 0x800dab71  A1      : 0x3ffb4db0
+0x400803c0: _DoubleExceptionVector at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/xtensa_vectors.S:461
+
+A2      : 0x000dc938  A3      : 0x00000000  A4      : 0x00000014  A5      : 0x00000000
+A6      : 0x00000001  A7      : 0x3ffb9271  A8      : 0x80080346  A9      : 0x3ffb4f10
+A10     : 0x3ffb9270  A11     : 0x3ffb9270  A12     : 0x00060020  A13     : 0x00000000
+A14     : 0x00000001  A15     : 0x00000000  SAR     : 0x0000000c  EXCCAUSE: 0x00000001
+EXCVADDR: 0x00000000  LBEG    : 0x4000c2e0  LEND    : 0x4000c2f6  LCOUNT  : 0xffffffff
+
+
+Backtrace:0x400803bd:0x3ffb4db00x400dab6e:0x3ffb4f30 0x400db5dd:0x3ffb4f50 0x400d7244:0x3ffb4f90 0x400d6b73:0x3ffb4fb0 0x400d5be8:0x3ffb4fd0 0x4008a6c5:0x3ffb4ff0
+0x400803bd: _UserExceptionVector at ??:?
+
+0x400dab6e: i2c_cmd_link_append at /home/samuel/Programs/esp/esp-idf/components/driver/i2c.c:1129
+
+0x400db5dd: i2c_master_start at /home/samuel/Programs/esp/esp-idf/components/driver/i2c.c:1155 (discriminator 2)
+
+0x400d7244: sh1106_display at /home/samuel/workspace/embedded/carcomputer/build/../main/peripherals/display/sh1106.c:254 (discriminator 3)
+
+0x400d6b73: display_update at /home/samuel/workspace/embedded/carcomputer/build/../main/peripherals/display/display.c:238
+
+0x400d5be8: process_gui at /home/samuel/workspace/embedded/carcomputer/build/../main/main.c:31 (discriminator 1)
+
+0x4008a6c5: vPortTaskWrapper at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/port.c:131
+
+
+
+Core  0 register dump:
+PC      : 0x400803c0  PS      : 0x00060036  A0      : 0x800822d1  A1      : 0x3ffbe6b0
+0x400803c0: _DoubleExceptionVector at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/xtensa_vectors.S:461
+
+A2      : 0x3ffbdd2c  A3      : 0x00000001  A4      : 0x00000003  A5      : 0xff000fff
+A6      : 0x3ffb552c  A7      : 0x3ffb5710  A8      : 0xb33fffff  A9      : 0x0000cdcd
+A10     : 0x00060021  A11     : 0x00000001  A12     : 0xffff9fff  A13     : 0x3ef81538
+A14     : 0x00000000  A15     : 0x00060523  SAR     : 0x00000020  EXCCAUSE: 0x00000001
+EXCVADDR: 0x0000003d  LBEG    : 0x4000c2e0  LEND    : 0x4000c2f6  LCOUNT  : 0x00000000
+
+
+Backtrace:0x400803bd:0x3ffbe6b00x400822ce:0x3ffbe6d0 0x40083ec9:0x3ffbe6f0 0x40084149:0x3ffbe710 0x40084125:0x3ffbe730 0x40082dd1:0x3ffbe760 0x4000bfed:0x3ffb2320 0x4008a976:0x3ffb2330 0x4008234c:0x3ffb2350 0x40083ec9:0x3ffb2370 0x400de2a6:0x3ffb2390 0x400de051:0x3ffb23b0 0x400de0c7:0x3ffb23f0 0x400d91e5:0x3ffb2420 0x400d98fd:0x3ffb2470 0x400d6eb7:0x3ffb2490 0x400d6c09:0x3ffb24c0 0x400d6cad:0x3ffb24e0 0x400d5cea:0x3ffb2510 0x400d5c26:0x3ffb2530 0x400d5cdb:0x3ffb2550 0x400f508c:0x3ffb2750 0x4008a6c5:0x3ffb2770
+0x400803bd: _UserExceptionVector at ??:?
+
+0x400822ce: xPortEnterCriticalTimeoutSafe at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/include/freertos/portmacro.h:590
+ (inlined by) vPortEnterCriticalSafe at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/include/freertos/portmacro.h:599
+ (inlined by) esp_intr_enable at /home/samuel/Programs/esp/esp-idf/components/esp_hw_support/intr_alloc.c:721
+
+0x40083ec9: spi_bus_intr_enable at /home/samuel/Programs/esp/esp-idf/components/driver/spi_master.c:501
+
+0x40084149: bg_enable at /home/samuel/Programs/esp/esp-idf/components/driver/spi_bus_lock.c:291
+ (inlined by) bg_exit_core at /home/samuel/Programs/esp/esp-idf/components/driver/spi_bus_lock.c:489
+ (inlined by) spi_bus_lock_bg_exit at /home/samuel/Programs/esp/esp-idf/components/driver/spi_bus_lock.c:717
+
+0x40084125: spi_intr at /home/samuel/Programs/esp/esp-idf/components/driver/spi_master.c:669
+
+0x40082dd1: _xt_lowint1 at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/xtensa_vectors.S:1111
+
+0x4008a976: vPortClearInterruptMaskFromISR at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/include/freertos/portmacro.h:571
+ (inlined by) vPortExitCritical at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/port.c:319
+
+0x4008234c: vPortExitCriticalSafe at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/include/freertos/portmacro.h:607
+ (inlined by) esp_intr_enable at /home/samuel/Programs/esp/esp-idf/components/esp_hw_support/intr_alloc.c:737
+
+0x40083ec9: spi_bus_intr_enable at /home/samuel/Programs/esp/esp-idf/components/driver/spi_master.c:501
+
+0x400de2a6: bg_enable at /home/samuel/Programs/esp/esp-idf/components/driver/spi_bus_lock.c:291
+ (inlined by) req_core at /home/samuel/Programs/esp/esp-idf/components/driver/spi_bus_lock.c:317
+ (inlined by) spi_bus_lock_bg_request at /home/samuel/Programs/esp/esp-idf/components/driver/spi_bus_lock.c:722
+
+0x400de051: spi_device_queue_trans at /home/samuel/Programs/esp/esp-idf/components/driver/spi_master.c:821
+
+0x400de0c7: spi_device_transmit at /home/samuel/Programs/esp/esp-idf/components/driver/spi_master.c:859
+
+0x400d91e5: MCP2515::getStatus() at /home/samuel/workspace/embedded/carcomputer/build/../main/lib/esp32-mcp2515/mcp2515.cpp:238
+
+0x400d98fd: MCP2515::readMessage(can_frame*) at /home/samuel/workspace/embedded/carcomputer/build/../main/lib/esp32-mcp2515/mcp2515.cpp:777
+
+0x400d6eb7: mcp2515_read_message at /home/samuel/workspace/embedded/carcomputer/build/../main/peripherals/canbus/mcp2515_wrapper.cpp:68
+
+0x400d6c09: read_message at /home/samuel/workspace/embedded/carcomputer/build/../main/peripherals/canbus/canbus.c:99
+
+0x400d6cad: canbus_check_messages at /home/samuel/workspace/embedded/carcomputer/build/../main/peripherals/canbus/canbus.c:132
+
+0x400d5cea: control_read_can_bus at /home/samuel/workspace/embedded/carcomputer/build/../main/control/control.c:23
+
+0x400d5c26: process_main at /home/samuel/workspace/embedded/carcomputer/build/../main/main.c:57 (discriminator 1)
+
+0x400d5cdb: app_main at /home/samuel/workspace/embedded/carcomputer/build/../main/main.c:126
+
+0x400f508c: main_task at /home/samuel/Programs/esp/esp-idf/components/freertos/port/port_common.c:129 (discriminator 2)
+
+0x4008a6c5: vPortTaskWrapper at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/port.c:131
+
+
+
+
+
+ELF file SHA256: 3dc5dfd592158fb5
+
+Rebooting...
+ets Jun  8 2016 00:22:57
+
+rst:0xc (SW_CPU_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:6612
+load:0x40078000,len:14788
+load:0x40080400,len:3792
+0x40080400: _init at ??:?
+
+entry 0x40080694
+I (27) boot: ESP-IDF v4.4.1-dirty 2nd stage bootloader
+I (27) boot: compile time 13:31:56
+I (27) boot: chip revision: 1
+I (30) boot_comm: chip revision: 1, min. bootloader chip revision: 0
+I (37) boot.esp32: SPI Speed      : 40MHz
+I (42) boot.esp32: SPI Mode       : DIO
+I (47) boot.esp32: SPI Flash Size : 4MB
+I (51) boot: Enabling RNG early entropy source...
+I (57) boot: Partition Table:
+I (60) boot: ## Label            Usage          Type ST Offset   Length
+I (67) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (75) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (82) boot:  2 factory          factory app      00 00 00010000 00100000
+I (90) boot: End of partition table
+I (94) boot_comm: chip revision: 1, min. application chip revision: 0
+I (101) esp_image: segment 0: paddr=00010020 vaddr=3f400020 size=0e3c0h ( 58304) map
+I (131) esp_image: segment 1: paddr=0001e3e8 vaddr=3ffbdb60 size=01c30h (  7216) load
+I (134) esp_image: segment 2: paddr=00020020 vaddr=400d0020 size=2537ch (152444) map
+I (192) esp_image: segment 3: paddr=000453a4 vaddr=3ffbf790 size=01b34h (  6964) load
+I (195) esp_image: segment 4: paddr=00046ee0 vaddr=40080000 size=0eb60h ( 60256) load
+I (222) esp_image: segment 5: paddr=00055a48 vaddr=50000000 size=00010h (    16) load
+I (230) boot: Loaded app from partition at offset 0x10000
+I (230) boot: Disabling RNG early entropy source...
+I (242) cpu_start: Pro cpu up.
+I (243) cpu_start: Starting app cpu, entry point is 0x40081324
+0x40081324: call_start_cpu1 at /home/samuel/Programs/esp/esp-idf/components/esp_system/port/cpu_start.c:160
+
+I (230) cpu_start: App cpu up.
+I (257) cpu_start: Pro cpu start user code
+I (257) cpu_start: cpu freq: 160000000
+I (257) cpu_start: Application information:
+I (262) cpu_start: Project name:     carcomputer
+I (267) cpu_start: App version:      v0.2.0-11-gb9c31af-dirty
+I (273) cpu_start: Compile time:     Feb 10 2023 15:08:54
+I (279) cpu_start: ELF file SHA256:  3dc5dfd592158fb5...
+I (285) cpu_start: ESP-IDF:          v4.4.1-dirty
+I (291) heap_init: Initializing. RAM available for dynamic allocation:
+I (298) heap_init: At 3FFAE6E0 len 0000F480 (61 KiB): DRAM
+I (304) heap_init: At 3FFC1D38 len 0001E2C8 (120 KiB): DRAM
+I (310) heap_init: At 3FFE0440 len 00003AE0 (14 KiB): D/IRAM
+I (317) heap_init: At 3FFE4350 len 0001BCB0 (111 KiB): D/IRAM
+I (323) heap_init: At 4008EB60 len 000114A0 (69 KiB): IRAM
+I (331) spi_flash: detected chip: generic
+I (334) spi_flash: flash io: dio
+I (339) cpu_start: Starting scheduler on PRO CPU.
+I (0) cpu_start: Starting scheduler on APP CPU.
+Opening Non-Volatile Storage (NVS) handle...
+Reading 'device_name' from NVS... OK
+[i2c] Init done
+[CAN] Initializing CAN bus...
+[CAN] Init done
+[mpu9250] Initializing...
+[Display] Initializing display...
+[sh1106] Initializing...
+[sh1106] Init done
+[Display] Init done
+[mpu9250] Init done
+[GPS] Initializing...
+I (964) uart: queue free spaces: 10
+[GPS] Init done
+[Auth] Initializing...
+Reading 'access_token' from NVS... OK
+[Auth] Client is authenticated

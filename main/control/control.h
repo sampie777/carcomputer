@@ -28,5 +28,6 @@ void control_cruise_control(State *state);
 void control_crash_detection(State *state);
 
 void control_car_gear(State *state);
+void control_send_test_sms(State *state);
 
 #endif //APP_TEMPLATE_CONTROL_H

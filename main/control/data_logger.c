@@ -33,12 +33,13 @@ void data_logger_upload_all(State *state) {
 
     if (state->car.odometer == last_odometer) return;
 
+    printf("[LOG] data_logger_upload_all\n");
 #ifdef DATA_LOGGER_UPLOAD_URL_FULL_DATA
-    if (server_send_data_log_record(state) != RESULT_OK) {
-        // Retry again in X seconds
-        engine_off_time = esp_timer_get_time_ms() + TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS - TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS;
-        return;
-    }
+//    if (server_send_data_log_record(state) != RESULT_OK) {
+//        // Retry again in X seconds
+//        engine_off_time = esp_timer_get_time_ms() + TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS - TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS;
+//        return;
+//    }
 #endif
 
     last_odometer = state->car.odometer;
@@ -51,6 +52,8 @@ void data_logger_upload_current(State *state) {
 
     if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_MINIMAL_DATA_LOG_INTERVAL_MS) return;
     last_log_time = esp_timer_get_time_ms();
+
+    printf("[LOG] data_logger_upload_current creating entry\n");
 
     char timestamp[64];
     Time time = state->location.time.year > 2021 ? state->location.time : state->gsm.time;
@@ -82,14 +85,12 @@ void data_logger_upload_current(State *state) {
         );
     }
 
-    char buffer[410];   // At least 397
+    char buffer[512];
     sprintf(buffer, "{"
                     "\"uptimeMs\":%lld,"
                     "\"session\":%u,"
                     "\"car\":{"
                     """\"is_connected\":%d,"
-                    """\"is_controller_connected\":%d,"
-                    """\"is_ignition_on\":%d,"
                     """\"speed\":%.3f,"
                     """\"odometer_start\":%d,"
                     """\"odometer\":%d"
@@ -98,48 +99,52 @@ void data_logger_upload_current(State *state) {
                     """\"satellites\":%d"
                     """%s"
                     """%s"
-                    "},"
-                    "\"motion\":{"
-                    """\"temperature\":%.3f"
                     "}"
                     "}",
             esp_timer_get_time_ms(),
             state->logging_session_id,
             state->car.is_connected,
-            state->car.is_controller_connected,
-            state->car.is_ignition_on,
             state->car.speed,
             state->car.odometer_start,
             state->car.odometer,
             state->location.satellites,
             location,
-            timestamp,
-            state->motion.temperature);
+            timestamp);
+
+    printf("[LOG] buffer: '%s'\n", buffer);
 
     // Merge buffer into the persistent buffer forming a JSON array of log objects.
     if (persistent_buffer == NULL) {
-        persistent_buffer = malloc(strlen(buffer) + 3);
+        printf("[LOG] data_logger_upload_current create new buffer\n");
+        persistent_buffer = malloc(strlen(buffer) + 8);
         persistent_buffer[0] = '[';
         persistent_buffer[1] = '\0';
     } else {
-        persistent_buffer = realloc(persistent_buffer, strlen(persistent_buffer) + strlen(buffer) + 3);
+        printf("[LOG] data_logger_upload_current merge entry\n");
+        persistent_buffer = realloc(persistent_buffer, strlen(persistent_buffer) + strlen(buffer) + 8);
         // Insert comma before adding the array item
         strcat(persistent_buffer, ",");
     }
     strcat(persistent_buffer, buffer);
 
+    printf("[LOG] data_logger_upload_current creating entry done\n");
 
     if (esp_timer_get_time_ms() < last_upload_time + DATA_LOGGER_MINIMAL_DATA_UPLOAD_INTERVAL_MS) return;
     last_upload_time = esp_timer_get_time_ms();
 
+    printf("[LOG] data_logger_upload_current close buffer json array\n");
     strcat(persistent_buffer, "]");
 
 #ifdef DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL
+    printf("[LOG] data_logger_upload_current server_send_data\n");
+    printf("[LOG] persistent_buffer: '%s'\n", persistent_buffer);
     server_send_data(state, DATA_LOGGER_UPLOAD_URL_LOG_INTERVAL, persistent_buffer, false);
 #endif
 
+    printf("[LOG] data_logger_upload_current free buffer\n");
     free(persistent_buffer);
     persistent_buffer = NULL;
+    printf("[LOG] data_logger_upload_current free buffer done\n");
 }
 
 /**
@@ -155,7 +160,7 @@ void data_logger_log_current(State *state) {
     if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_LOG_INTERVAL_MS) return;
     last_log_time = esp_timer_get_time_ms();
 
-    char buffer[256];
+    char buffer[300];
     sprintf(buffer,
             "%lld;"         // esp_timer_get_time_ms()
             "%u;"           // state->logging_session_id

@@ -12,7 +12,7 @@
 #include "utils.h"
 #include "../../error_codes.h"
 
-#define MESSAGE_MAX_LENGTH 512
+#define MESSAGE_MAX_LENGTH 1024
 
 static enum SmsState sms_state = Idle;
 
@@ -174,6 +174,7 @@ void process_http_response(State *state, const char *message, const char *stripp
 
     if (http_code < 0 && starts_with(stripped_message, "HTTP/1.1  ")) {
         messages_since_http_start = 0;
+        printf("[LOG] process_http_response Get http_code\n");
         int result = sscanf(message, "HTTP/1.1  %d", &http_code);
         if (result == 0) {
             return;
@@ -191,6 +192,7 @@ void process_http_response(State *state, const char *message, const char *stripp
 
     if (content_length < 0 && starts_with(stripped_message, "Content-Length: ")) {
         // Get length
+        printf("[LOG] process_http_response Get Content-Length\n");
         int result = sscanf(message, "Content-Length: %d", &content_length);
         printf("[GSM] HTTP Content length will be %d\n", content_length);
         if (result == 0) {
@@ -224,12 +226,15 @@ void process_http_response(State *state, const char *message, const char *stripp
     };
     strcpy(response.message, message);
 
+    printf("[LOG] process_http_response executing callback\n");
     http_request_callback(state, &response);
+    printf("[LOG] process_http_response executing callback done\n");
     http_request_callback = NULL;
 
     http_code = -1;
     content_length = -1;
     free(response.message);
+    printf("[LOG] process_http_response done.\n");
 }
 
 void process_message(State *state, const char *message) {
@@ -381,7 +386,9 @@ void proceed_device_init(State *state) {
         if (state->a9g.pnp_activated != A9Status_Requested) {
             send_command(&state->a9g, A9GCommand_CGACT_PNP_Enable);
         }
-    } else if (state->a9g.agps_enabled == A9Status_Unknown || state->a9g.agps_enabled == A9Status_Error) {
+    }
+#if GPS_ENABLE
+    else if (state->a9g.agps_enabled == A9Status_Unknown || state->a9g.agps_enabled == A9Status_Error) {
         if (state->a9g.agps_enabled != A9Status_Requested) {
             send_command(&state->a9g, A9GCommand_AGPS_Disable);
         }
@@ -401,6 +408,7 @@ void proceed_device_init(State *state) {
         a9g_state_reset(&state->a9g);
         state->a9g.initialized = A9Status_Error;
     }
+#endif
 }
 
 void update_time(State *state) {
@@ -485,10 +493,12 @@ void gpsgsm_process(State *state) {
                 printf("[GSM] Unhandled HTTP request type: %d\n", state->gsm.request_type);
         }
 
-        if (http_request_url != NULL) free(http_request_url);
-        http_request_url = NULL;
-        if (http_request_body != NULL) free(http_request_body);
-        http_request_body = NULL;
+        if (http_request_url != NULL) {
+            printf("[LOG] gpsgsm_process (not) free http_request_url\n");
+        }
+        if (http_request_body != NULL) {
+            printf("[LOG] gpsgsm_process (not) free http_request_body\n");
+        }
         state->gsm.is_uploading = false;
     }
 
@@ -599,12 +609,14 @@ void gsm_http_post(State *state, const char *url, const char *json) {
     state->gsm.request_type = HTTP_METHOD_POST;
 
     // Strip domain from url
+    printf("[LOG] gsm_http_post Strip domain from url\n");
     char url_copy[strlen(url)];
     strcpy(url_copy, url);
     strtok(url_copy, "://");
     char *domain = strtok(NULL, "/");
 
     // Store url for upload
+    printf("[LOG] gsm_http_post Store url for upload\n");
     http_request_url = realloc(http_request_url, strlen(url) + strlen(state->server.access_token) + strlen(SERVER_API_KEY) + 32);
     sprintf(http_request_url, "%s%capi_key=%s&access_token=%s", url, strstr(url, "?") == NULL ? '?' : '&', SERVER_API_KEY, state->server.access_token);
 
@@ -622,6 +634,7 @@ void gsm_http_post(State *state, const char *url, const char *json) {
     http_request_body = realloc(http_request_body, strlen(json_escaped) + 1);
     strcpy(http_request_body, json_escaped);
     free(json_escaped);
+    printf("[LOG] gsm_http_post done storing body\n");
 
     // Open connection to the server
     transmit(A9G_CGATT_ENABLE, true);

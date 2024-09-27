@@ -53,26 +53,47 @@ _Noreturn void process_main(State *state) {
 
     while (1) {
         // Collect data
+#if SWITCH_0_READ_CAN_BUS
         control_read_can_bus(state);
+#endif
+#if SWITCH_1_READ_INPUTS
         control_read_analog_sensors(state);
         control_read_user_input(state);
+#endif
+#if SWITCH_2_PROCESS_GSMGPS
         gpsgsm_process(state);
 
+        // Enable this line for sending a test SMS, like for keeping the SIM card active
+//        control_send_test_sms(state);
+
+#endif
+#if SWITCH_3_SET_OUTPUTS
         // Process data
         security_step(state);
         control_mpu_power(state);
         control_door_lock(state);
+#endif
+#if SWITCH_4_TRIP_END
         control_trip_logger(state);
+#endif
+#if SWITCH_5_CRUISE_CONTROL_AND_CRASH_DETECTION
         control_cruise_control(state);
         control_crash_detection(state);
+#endif
+#if SWITCH_6_CAR_GEAR
         control_car_gear(state);
 
+#endif
+#if SWITCH_7_TRIP_LOGGER
         data_logger_process(state);
 
+#endif
+#if SWITCH_8_AUTH
 #if WIFI_ENABLE
         wifi_scan(state);
 #endif
         server_process(state);
+#endif
     }
 }
 

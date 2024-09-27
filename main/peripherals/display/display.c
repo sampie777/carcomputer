@@ -160,10 +160,12 @@ void show_content_overlay(State *state, SH1106Config *sh1106) {
 void show_screen(State *state, SH1106Config *sh1106) {
     switch (state->display.current_screen) {
         case Screen_Booting:
+            // Show clear flash of device is booting
+            sh1106_draw_filled_rectangle(sh1106, 0, 0, sh1106->width, sh1106->height);
             sh1106_draw_string(sh1106, (sh1106->width - 5 * 10) / 2, STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2 - 4,
-                               FONT_SMALL, FONT_WHITE, "Booting...");
+                               FONT_SMALL, FONT_BLACK, "Booting...");
             sh1106_draw_string(sh1106, (sh1106->width - 5 * (int) strlen(APP_VERSION)) / 2, STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
-                               FONT_SMALL, FONT_WHITE, APP_VERSION);
+                               FONT_SMALL, FONT_BLACK, APP_VERSION);
             break;
         case Screen_Rebooting:
             sh1106_draw_string(sh1106, (sh1106->width - 5 * 12) / 2, STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2,
@@ -191,6 +193,7 @@ void show_screen(State *state, SH1106Config *sh1106) {
 }
 
 void set_current_screen(State *state) {
+    static int64_t t = 0;
     if (state->is_rebooting) {
         state->display.current_screen = Screen_Rebooting;
         return;
@@ -198,6 +201,13 @@ void set_current_screen(State *state) {
     if (state->is_booting) {
         state->display.current_screen = Screen_Booting;
         return;
+    } else if (state->display.current_screen == Screen_Booting) {
+        if (t == 0) {
+            t = esp_timer_get_time_ms();
+        }
+        if (esp_timer_get_time_ms() < t + 1000) {
+            return;
+        }
     }
 
     if (state->server.should_authenticate && state->server.registration_token != NULL && strlen(state->server.registration_token) > 0) {

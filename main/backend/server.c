@@ -92,7 +92,7 @@ esp_err_t server_http_event_handler(esp_http_client_event_t *evt) {
 }
 
 int send_data_over_wifi(State *state, const char *url, const char *data) {
-#if WIFI_ENABLE
+//#if WIFI_ENABLE
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
 
     char *http_request_url = malloc(strlen(url) + strlen(state->server.access_code)+ strlen(SERVER_API_KEY) + 32);
@@ -260,7 +260,7 @@ int server_send_trip_end(State *state) {
         );
     }
 
-    char buffer[512];
+    char buffer[600];
     sprintf(buffer, "{"
                     "\"uptimeMs\":%lld,"
                     "\"session\":%u,"
@@ -320,7 +320,17 @@ int server_send_data_log_record(State *state) {
                 time.timezone);
     }
 
-    char buffer[1200];
+    char buffer[1200
+#if CRUISE_CONTROL_ENABLE
++ 150
+#endif
+#if WIFI_ENABLE
++ 100
+#endif
+#if BLUETOOTH_ENABLE
++ 43
+#endif
+    ];
     sprintf(buffer, "{"
                     "\"uptimeMs\":%lld,"
                     "\"session\":%u,"

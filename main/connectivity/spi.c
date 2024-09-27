@@ -33,7 +33,7 @@ int spi_init(State *state) {
 int spi_register_device(spi_device_handle_t *handle, int cs_pin) {
     spi_device_interface_config_t device_config = {
             .mode = 0,
-            .clock_speed_hz = 2 * (int) 10e6,
+            .clock_speed_hz = 2 * (int) 10e6,   // Max is 40 MHz when using GPIO matrix, 90 MHz when using dedicated IO_MUX pins
             .spics_io_num = cs_pin,
             .queue_size = 1
     };

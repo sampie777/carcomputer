@@ -9,18 +9,17 @@
 extern "C" {
 #endif
 
-#include <soc/adc_channel.h>
 #include "secrets.h"
 
-#define SWITCH_0_READ_CAN_BUS false
-#define SWITCH_1_READ_INPUTS false
+#define SWITCH_0_READ_CAN_BUS true
+#define SWITCH_1_READ_INPUTS true
 #define SWITCH_3_SET_OUTPUTS false
 #define SWITCH_4_TRIP_END false
 #define SWITCH_5_CRUISE_CONTROL_AND_CRASH_DETECTION false
 #define SWITCH_6_CAR_GEAR false
-#define SWITCH_2_PROCESS_GSMGPS true
+#define SWITCH_2_PROCESS_GSMGPS false
 #define SWITCH_8_AUTH false
-#define SWITCH_7_TRIP_LOGGER true
+#define SWITCH_7_TRIP_LOGGER false
 
 
 // Unused GPIOs: 22 (GPIO15 will/must be HIGH on device reset: strapping pin)
@@ -32,9 +31,9 @@ extern "C" {
 #define BLUETOOTH_ENABLE false
 #define WIFI_ENABLE false
 #define GSM_ENABLE true
-#define GPS_ENABLE true
-#define SD_ENABLE true
-#define CRUISE_CONTROL_ENABLE true
+#define GPS_ENABLE false
+#define SD_ENABLE false
+#define CRUISE_CONTROL_ENABLE false
 
 // Detailed feature settings
 #define POWER_OFF_MAX_TIMEOUT_MS 90000
@@ -66,8 +65,8 @@ extern "C" {
 #define I2C_TIMEOUT_MS 1000
 
 #define MAIN_I2C_PORT I2C_NUM_0
-#define MAIN_I2C_SDA_PIN GPIO_NUM_12
-#define MAIN_I2C_SCL_PIN GPIO_NUM_13
+#define MAIN_I2C_SDA_PIN GPIO_NUM_13
+#define MAIN_I2C_SCL_PIN GPIO_NUM_12
 
 #define ADC_RESOLUTION 10
 

@@ -5,3 +5,4 @@ cmake-build-*/
 .idea/
 CMakeListsPrivate.txt
 secrets.h
+esp-idf/

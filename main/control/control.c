@@ -14,8 +14,10 @@
 #include "../peripherals/gpsgsm/gpsgsm.h"
 
 #if CRUISE_CONTROL_ENABLE
+
 #include "../peripherals/gas_pedal.h"
 #include "cruise_control.h"
+
 #endif
 
 void control_read_can_bus(State *state) {
@@ -32,7 +34,7 @@ void control_read_can_bus(State *state) {
 void control_read_analog_sensors(State *state) {
 #if CRUISE_CONTROL_ENABLE
     if (gas_pedal_read(state) == RESULT_DISCONNECTED) {
-        set_error(state, ERROR_PEDAL_DISCONNECTED);
+//        set_error(state, ERROR_PEDAL_DISCONNECTED);
     }
 #endif
 
@@ -96,7 +98,8 @@ void control_read_user_input(State *state) {
         case BUTTON_SOURCE:
             if (state->display.current_screen == Screen_Menu) {
                 state->display.menu_option_selection = 0;
-            } if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl) ||
+            }
+            if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl) ||
                 state->display.current_screen == Screen_Sensors ||
                 state->display.current_screen == Screen_GPS ||
                 state->display.current_screen == Screen_Config ||
@@ -201,11 +204,12 @@ void control_trip_logger(State *state) {
     // Trip already logged
     if (state->trip_has_been_uploaded || state->car.odometer_start == state->car.odometer) return;
 
-    if (server_send_trip_end(state) != RESULT_OK) {
-        // Retry again in X seconds
-        engine_off_time = esp_timer_get_time_ms() + TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS - TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS;
-        return;
-    }
+    printf("[LOG] control_trip_logger\n");
+//    if (server_send_trip_end(state) != RESULT_OK) {
+//        // Retry again in X seconds
+//        engine_off_time = esp_timer_get_time_ms() + TRIP_LOGGER_ENGINE_OFF_GRACE_TIME_MS - TRIP_LOGGER_UPLOAD_RETRY_TIMEOUT_MS;
+//        return;
+//    }
 
     state->trip_has_been_uploaded = true;
 }
@@ -217,6 +221,8 @@ void control_crash_detection(State *state) {
 
     if (esp_timer_get_time_ms() < last_sent + CRASH_DETECTION_CRASH_MAX_DURATION_MS) return;
     last_sent = esp_timer_get_time_ms();
+
+    printf("[LOG] control_crash_detection crash detected\n");
 
 #ifdef ICE_CONTACT_NUMBER
     char message[158];   // Max SMS length
@@ -238,6 +244,7 @@ void control_crash_detection(State *state) {
                 time.timezone);
     }
 
+    printf("[LOG] control_crash_detection constructing message\n");
     sprintf(message, "CRASH! Location: %.5f,%.5f at %s (accuracy: %d%%). Force: %.1f g.",
             state->location.latitude,
             state->location.longitude,
@@ -250,6 +257,7 @@ void control_crash_detection(State *state) {
     char numbers[] = ICE_CONTACT_NUMBER;
     char *number = strtok(numbers, ";");
     while (number != NULL) {
+        printf("[LOG] control_crash_detection sending message\n");
         gsm_send_sms(number, message);
         number = strtok(NULL, ";");
     }
@@ -287,4 +295,24 @@ CarGearPosition estimate_car_gear(CarState *car) {
 
 void control_car_gear(State *state) {
     state->car.estimated_gear = estimate_car_gear(&state->car);
+}
+
+void control_send_test_sms(State *state) {
+    static bool send = false;
+    if (send) return;
+    if (esp_timer_get_time_ms() < 60000) return;
+    send = true;
+
+    char message[158];   // Max SMS length
+
+    sprintf(message, "Hello, this is just a test SMS. Bye :)");
+
+    // Loop over all specified numbers and send them
+    char numbers[] = ICE_CONTACT_NUMBER;
+    char *number = strtok(numbers, ";");
+    while (number != NULL) {
+        printf("[LOG] control_crash_detection sending message\n");
+        gsm_send_sms(number, message);
+        number = strtok(NULL, ";");
+    }
 }

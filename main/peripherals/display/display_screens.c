@@ -257,25 +257,119 @@ char *content_main_menu_get_option_text(ScreenMenuOptions option_index) {
 }
 
 void content_main_menu(const State *state, SH1106Config *sh1106) {
-    static int options_start_index = 0;
-    const int selection_item_height = 12;
-    const int options_total_height = sh1106->height - STATUS_BAR_HEIGHT - 2;
-    const int total_displayable_options = options_total_height / selection_item_height;
-    char *buffer = NULL;
+    char buffer[32];
+    int offset_y = STATUS_BAR_HEIGHT + 6;
+
+    convert_to_base_26(state->logging_session_id, buffer, sizeof(buffer));
+    sh1106_draw_string_with_spacing(sh1106, 2, offset_y, FONT_SMALL, FONT_WHITE, buffer, 1);
+
+    sprintf(buffer, "%3d sats", state->location.satellites);
+    sh1106_draw_string(sh1106, 85, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_y += 12;
+
+    int64_t seconds = esp_timer_get_time_ms() / 1000;
+    int64_t minutes = seconds / 60;
+    seconds = seconds - minutes * 60;
+    sprintf(buffer, "%2d:%02d", (int) minutes, (int) seconds);
+    sh1106_draw_string(sh1106, 5, offset_y + 5, FONT_MEDIUM, FONT_WHITE, buffer);
+
+    sprintf(buffer, "%3.0f km/h", state->car.speed);
+    sh1106_draw_string(sh1106, 85, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_y += 12;
+
+    sprintf(buffer, "%4.1f rpm", state->car.rpm_raw / 1000.0);
+    sh1106_draw_string(sh1106, 70, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 12;
+    sprintf(buffer, "%2.1f", state->car.rpm_raw == 0 ? 0.0 : (double) state->car.speed / state->car.rpm_raw * 10000);
+    sh1106_draw_string(sh1106, 70, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+//
+    if (state->car.estimated_gear == GearNeutral) {
+        sprintf(buffer, "N");
+    } else if (state->car.estimated_gear == GearReverse) {
+        sprintf(buffer, "R");
+    } else {
+        sprintf(buffer, "%d", state->car.estimated_gear - Gear1 + 1);
+    }
+    sh1106_draw_string(sh1106, 110, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+//    sprintf(buffer, "%c%c%c%c%c%c%c%c%c",
+//#if SWITCH_0_READ_CAN_BUS
+//            '0'
+//#else
+//            '_'
+//#endif
+//            ,
+//#if SWITCH_1_READ_INPUTS
+//            '1'
+//#else
+//            '_'
+//#endif
+//            ,
+//#if SWITCH_2_PROCESS_GSMGPS
+//            '2'
+//#else
+//            '_'
+//#endif
+//            ,
+//#if SWITCH_3_SET_OUTPUTS
+//            '3'
+//#else
+//            '_'
+//#endif
+//            ,
+//#if SWITCH_4_TRIP_END
+//            '4'
+//#else
+//            '_'
+//#endif
+//            ,
+//#if SWITCH_5_CRUISE_CONTROL_AND_CRASH_DETECTION
+//            '5'
+//#else
+//            '_'
+//#endif
+//            ,
+//#if SWITCH_6_CAR_GEAR
+//            '6'
+//#else
+//            '_'
+//#endif
+//            ,
+//#if SWITCH_7_TRIP_LOGGER
+//            '7'
+//#else
+//            '_'
+//#endif
+//            ,
+//#if SWITCH_8_AUTH
+//            '8'
+//#else
+//            '_'
+//#endif
+//    );
+//    sh1106_draw_string_with_spacing(sh1106, 5, 55, FONT_SMALL, FONT_WHITE, buffer, 2);
+
+//    static int options_start_index = 0;
+//    const int selection_item_height = 12;
+//    const int options_total_height = sh1106->height - STATUS_BAR_HEIGHT - 2;
+//    const int total_displayable_options = options_total_height / selection_item_height;
+//    char *buffer = NULL;
 
     // Move window so it fits the selected option
-    if (state->display.menu_option_selection >= options_start_index + total_displayable_options) {
-        // If selection is beyond <start index> + <total amount of displayable options>, increase the <start index>
-        options_start_index = (int) state->display.menu_option_selection - total_displayable_options + 1;
-    } else if (state->display.menu_option_selection < options_start_index) {
-        // If selection is less than the <start index>, decrease the <start index>
-        options_start_index = state->display.menu_option_selection;
-    }
-
-    // Iterate up to options size, in order to force text overflow at the bottom of the display
-    for (int i = 0; i <= total_displayable_options; i++) {
-        int y = STATUS_BAR_HEIGHT + 2 + i * selection_item_height;
-        buffer = content_main_menu_get_option_text(options_start_index + i);
-        content_main_menu_option(sh1106, y, selection_item_height, buffer, state->display.menu_option_selection == options_start_index + i);
-    }
+//    if (state->display.menu_option_selection >= options_start_index + total_displayable_options) {
+//        // If selection is beyond <start index> + <total amount of displayable options>, increase the <start index>
+//        options_start_index = (int) state->display.menu_option_selection - total_displayable_options + 1;
+//    } else if (state->display.menu_option_selection < options_start_index) {
+//        // If selection is less than the <start index>, decrease the <start index>
+//        options_start_index = state->display.menu_option_selection;
+//    }
+//
+//    // Iterate up to options size, in order to force text overflow at the bottom of the display
+//    for (int i = 0; i <= total_displayable_options; i++) {
+//        int y = STATUS_BAR_HEIGHT + 2 + i * selection_item_height;
+//        buffer = content_main_menu_get_option_text(options_start_index + i);
+//        content_main_menu_option(sh1106, y, selection_item_height, buffer, state->display.menu_option_selection == options_start_index + i);
+//    }
 }

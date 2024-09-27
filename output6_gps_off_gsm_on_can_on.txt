@@ -1,0 +1,150 @@
+[GPS] Processing: 'X-Content-Type-Options: nosniff' with length: 31
+[GPS] Processing: 'X-XSS-Protection: 1; mode=block' with length: 31
+[GPS] Processing: 'Content-Length: 13' with length: 18
+[GPS] Processing: 'Connection: keep-alive' with length: 22
+[GPS] Processing: 'Vary: Origin' with length: 12
+[GPS] Processing: 'OK (id=4247).' with length: 13
+[mpu9250] I2C request register transmission failed: 0xffffffff
+[mpu9250] I2C request register transmission failed: 0xffffffff
+[mpu9250] I2C request register transmission failed: 0xffffffff
+[LOG] data_logger_upload_current creating entry
+[LOG] buffer: '{"uptimeMs":160000,"session":3408002795,"car":{"is_connected":1,"speed":39.542,"odometer_start":246855,"odometer":246856},"location":{"satellites":0}}'
+[LOG] data_logger_upload_current merge entry
+[LOG] data_logger_upload_current creating entry done
+[LOG] data_logger_upload_current creating entry
+[LOG] buffer: '{"uptimeMs":165000,"session":3408002795,"car":{"is_connected":1,"speed":37.260,"odometer_start":246855,"odometer":246856},"location":{"satellites":0}}'
+[LOG] data_logger_upload_current merge entry
+[LOG] data_logger_upload_current creating entry done
+[LOG] data_logger_upload_current close buffer json array
+[LOG] data_logger_upload_current server_send_data
+[LOG] persistent_buffer: '[{"uptimeMs":150000,"session":3408002795,"car":{"is_connected":1,"speed":20.156,"odometer_start":246855,"odometer":246856},"location":{"satellites":0}},{"uptimeMs":155000,"session":3408002795,"car":{"is_connected":1,"speed":33.979,"odometer_start":246855,"odometer":246856},"location":{"satellites":0}},{"uptimeMs":160000,"session":3408002795,"car":{"is_connected":1,"speed":39.542,"odometer_start":246855,"odometer":246856},"location":{"satellites":0}},{"uptimeMs":165000,"session":3408002795,"car":{"is_connected":1,"speed":37.260,"odometer_start":246855,"odometer":246856},"location":{"satellites":0}}]'
+[GSM] HTTP POST request to http://car.sajansen.nl/api/v1/cars/logs
+[LOG] gsm_http_post Strip domain from url
+[LOG] gsm_http_post Store url for upload
+[GSM] JSON [{\"uptimeMs\":150000,\"session\":3408002795,\"car\":{\"is_connected\":1,\"speed\":20.156,\"odometer_start\":246855,\"odometer\":246856},\"location\":{\"satellites\":0}},{\"uptimeMs\":155000,\"session\":3408002795,\"car\":{\"is_connected\":1,\"speed\":33.979,\"odometer_start\":246855,\"odometer\":246856},\"location\":{\"satellites\":0}},{\"uptimeMs\":160000,\"session\":3408002795,\"car\":{\"is_connected\":1,\"speed\":39.542,\"odometer_start\":246855,\"odometer\":246856},\"location\":{\"satellites\":0}},{\"uptimeMs\":165000,\"session\":3408002795,\"car\":{\"is_connected\":1,\"speed\":37.260,\"odometer_start\":246855,\"odometer\":246856},\"location\":{\"satellites\":0}}]
+[LOG] gsm_http_post done storing body
+[LOG] data_logger_upload_current free buffer
+[LOG] data_logger_upload_current free buffer done
+[GPS] Processing: '+CGATT:1' with length: 8
+[GPS] Processing: 'OK   ' with length: 3
+[GPS] Processing: 'ALREAY CONNECT' with length: 14
+[LOG] data_logger_upload_current creating entry
+[LOG] buffer: '{"uptimeMs":170000,"session":3408002795,"car":{"is_connected":1,"speed":24.542,"odometer_start":246855,"odometer":246856},"location":{"satellites":0}}'
+[LOG] data_logger_upload_current create new buffer
+[LOG] data_logger_upload_current creating entry done
+[LOG] gpsgsm_process (not) free http_request_url
+[LOG] gpsgsm_process (not) free http_request_body
+[GPS] Max message length reached
+[GPS] Processing: '"location\":{\"satellites\":0}}]"' with length: 33
+[mpu9250] I2C request register transmission failed: 0xffffffff
+[mpu9250] I2C request register transmission failed: 0xffffffff
+Guru Meditation Error: Core  0 panic'ed (IllegalInstruction). Exception was unhandled.
+Memory dump at 0x4008eca8: 13043032 0c304238 30523813
+0x4008eca8: xthal_restore_extra_nw at /Users/igrokhotkov/e/esp32/hal/hal/state_asm.S:97
+
+Core  0 register dump:
+PC      : 0x4008ecae  PS      : 0x00050033  A0      : 0x40087efc  A1      : 0x3ffb2210
+0x4008ecae: xthal_restore_extra_nw at /Users/igrokhotkov/e/esp32/hal/hal/state_asm.S:97
+
+0x40087efc: _xt_context_restore at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/xtensa_context.S:263
+
+A2      : 0x3ffb2280  A3      : 0xb33fffff  A4      : 0x00000000  A5      : 0x3ffbe730
+A6      : 0x00000000  A7      : 0x00000000  A8      : 0x00000001  A9      : 0x3ffb54e8
+A10     : 0x3ffb5470  A11     : 0x3ffb55a4  A12     : 0x800842c4  A13     : 0x40087d24
+0x40087d24: _frxt_int_exit at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/portasm.S:255
+
+A14     : 0x00000001  A15     : 0x00000001  SAR     : 0x00000020  EXCCAUSE: 0x00000000
+EXCVADDR: 0x00000000  LBEG    : 0x4000c2e0  LEND    : 0x4000c2f6  LCOUNT  : 0x00000000
+
+
+Backtrace:0x4008ecab:0x3ffb22100x40087ef9:0x40388aaa  |<-CORRUPTED
+0x4008ecab: xthal_restore_extra_nw at /Users/igrokhotkov/e/esp32/hal/hal/state_asm.S:97
+
+0x40087ef9: _xt_context_restore at /home/samuel/Programs/esp/esp-idf/components/freertos/port/xtensa/xtensa_context.S:262
+
+
+
+
+
+ELF file SHA256: 28829244b9229fa1
+
+Rebooting...
+ets Jun  8 2016 00:22:57
+
+rst:0xc (SW_CPU_RESET),boot:0x13 (SPI_FAST_FLASH_BOOT)
+configsip: 0, SPIWP:0xee
+clk_drv:0x00,q_drv:0x00,d_drv:0x00,cs0_drv:0x00,hd_drv:0x00,wp_drv:0x00
+mode:DIO, clock div:2
+load:0x3fff0030,len:6612
+load:0x40078000,len:14788
+load:0x40080400,len:3792
+0x40080400: _init at ??:?
+
+entry 0x40080694
+I (27) boot: ESP-IDF v4.4.1-dirty 2nd stage bootloader
+I (27) boot: compile time 13:31:56
+I (27) boot: chip revision: 1
+I (30) boot_comm: chip revision: 1, min. bootloader chip revision: 0
+I (37) boot.esp32: SPI Speed      : 40MHz
+I (42) boot.esp32: SPI Mode       : DIO
+I (47) boot.esp32: SPI Flash Size : 4MB
+I (51) boot: Enabling RNG early entropy source...
+I (57) boot: Partition Table:
+I (60) boot: ## Label            Usage          Type ST Offset   Length
+I (67) boot:  0 nvs              WiFi data        01 02 00009000 00006000
+I (75) boot:  1 phy_init         RF data          01 01 0000f000 00001000
+I (82) boot:  2 factory          factory app      00 00 00010000 00100000
+I (90) boot: End of partition table
+I (94) boot_comm: chip revision: 1, min. application chip revision: 0
+I (101) esp_image: segment 0: paddr=00010020 vaddr=3f400020 size=0eafch ( 60156) map
+I (132) esp_image: segment 1: paddr=0001eb24 vaddr=3ffbdb60 size=014f4h (  5364) load
+I (134) esp_image: segment 2: paddr=00020020 vaddr=400d0020 size=2c884h (182404) map
+I (203) esp_image: segment 3: paddr=0004c8ac vaddr=3ffbf054 size=02278h (  8824) load
+I (207) esp_image: segment 4: paddr=0004eb2c vaddr=40080000 size=0ed4ch ( 60748) load
+I (234) esp_image: segment 5: paddr=0005d880 vaddr=50000000 size=00010h (    16) load
+I (242) boot: Loaded app from partition at offset 0x10000
+I (242) boot: Disabling RNG early entropy source...
+I (254) cpu_start: Pro cpu up.
+I (255) cpu_start: Starting app cpu, entry point is 0x40081428
+0x40081428: call_start_cpu1 at /home/samuel/Programs/esp/esp-idf/components/esp_system/port/cpu_start.c:160
+
+I (241) cpu_start: App cpu up.
+I (269) cpu_start: Pro cpu start user code
+I (269) cpu_start: cpu freq: 160000000
+I (269) cpu_start: Application information:
+I (273) cpu_start: Project name:     carcomputer
+I (279) cpu_start: App version:      v0.2.0-10-g22fe35e-dirty
+I (285) cpu_start: Compile time:     Feb  9 2023 16:31:09
+I (291) cpu_start: ELF file SHA256:  28829244b9229fa1...
+I (297) cpu_start: ESP-IDF:          v4.4.1-dirty
+I (303) heap_init: Initializing. RAM available for dynamic allocation:
+I (310) heap_init: At 3FFAE6E0 len 0000F480 (61 KiB): DRAM
+I (316) heap_init: At 3FFC1D88 len 0001E278 (120 KiB): DRAM
+I (322) heap_init: At 3FFE0440 len 00003AE0 (14 KiB): D/IRAM
+I (328) heap_init: At 3FFE4350 len 0001BCB0 (111 KiB): D/IRAM
+I (335) heap_init: At 4008ED4C len 000112B4 (68 KiB): IRAM
+I (342) spi_flash: detected chip: generic
+I (346) spi_flash: flash io: dio
+I (351) cpu_start: Starting scheduler on PRO CPU.
+I (0) cpu_start: Starting scheduler on APP CPU.
+Opening Non-Volatile Storage (NVS) handle...
+Reading 'device_name' from NVS... OK
+[i2c] Init done
+[CAN] Initializing CAN bus...
+[CAN] Init done
+[mpu9250] Initializing...
+[Display] Initializing display...
+[sh1106] Initializing...
+[sh1106] Init done
+[Display] Init done
+[mpu9250] Init done
+[GPS] Initializing...
+I (976) uart: queue free spaces: 10
+[GPS] Init done
+[Auth] Initializing...
+Reading 'access_token' from NVS... OK
+[Auth] Client is authenticated
+[DataLogger] Initializing...
+[DataLogger] Init done
+[mpu9250] I2C request register transmission failed: 0xffffffff
+[mpu9250] I2C request register transmission failed: 0xffffffff
