@@ -18,6 +18,8 @@ _Noreturn void process_main(State *state) {
         control_cruise_control(state);
         control_car_gear(state);
         control_led_indicator_step(state);
+
+        vTaskDelay(10);
     }
 }
 
