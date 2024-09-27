@@ -15,7 +15,6 @@ _Noreturn void process_main(State *state) {
         control_read_user_input(state);
 
         // Process data
-        control_mpu_power(state);
         control_cruise_control(state);
         control_car_gear(state);
         control_led_indicator_step(state);

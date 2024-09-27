@@ -67,37 +67,6 @@ void control_read_user_input(State *state) {
     }
 }
 
-void control_mpu_power(State *state) {
-#if POWER_OFF_ENABLE
-    static int64_t ignition_off_time = 0;
-    if (state->car.is_ignition_on) {
-        gpio_set_level(POWER_PIN, 1);
-        ignition_off_time = 0;
-        state->power_off_count_down_sec = -1;
-        return;
-    }
-
-    if (ignition_off_time == 0) {
-        ignition_off_time = esp_timer_get_time_ms();
-    }
-
-    state->cruise_control.enabled = false;
-    long remaining_ms = (long) (ignition_off_time + POWER_OFF_MAX_TIMEOUT_MS - esp_timer_get_time_ms());
-    state->power_off_count_down_sec = (int16_t) (remaining_ms / 1000);
-
-    if (state->trip_has_been_uploaded && remaining_ms > 3000) {
-        // Set countdown to 3 sec.
-        ignition_off_time = esp_timer_get_time_ms() - POWER_OFF_MAX_TIMEOUT_MS + 3000;
-    }
-
-    if (esp_timer_get_time_ms() < ignition_off_time + POWER_OFF_MAX_TIMEOUT_MS) return;
-
-    gpio_set_level(POWER_PIN, 0);
-    delay_ms(1000);
-    ignition_off_time = 0;
-#endif
-}
-
 void control_led_indicator_step(State *state) {
     if (state->is_booting) {
         led_blink(1500);

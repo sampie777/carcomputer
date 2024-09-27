@@ -19,8 +19,6 @@ void control_door_lock(State *state);
 
 void control_engine_shutoff(State *state);
 
-void control_mpu_power(State *state);
-
 void control_cruise_control(State *state);
 
 void control_car_gear(State *state);
