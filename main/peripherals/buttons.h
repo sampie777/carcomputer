@@ -7,12 +7,12 @@
 
 typedef enum {
     BUTTON_NONE,
-    BUTTON_VOLUME_UP,      // 510
-    BUTTON_VOLUME_DOWN,    // 510
+    BUTTON_VOLUME_UP,      // 1967
+    BUTTON_VOLUME_DOWN,    // 1968
     BUTTON_INFO,
-    BUTTON_SOURCE,         // 985
-    BUTTON_UP,             // 798
-    BUTTON_DOWN,           // 798
+    BUTTON_SOURCE,         // 4095
+    BUTTON_UP,             // 3217
+    BUTTON_DOWN,           // 3216
     BUTTON_VOLUME_UP_LONG_PRESS,
     BUTTON_VOLUME_DOWN_LONG_PRESS,
     BUTTON_INFO_LONG_PRESS,
