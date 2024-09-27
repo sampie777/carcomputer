@@ -15,7 +15,7 @@ int64_t esp_timer_get_time_ms() {
 }
 
 void delay_ms(unsigned long ms) {
-    vTaskDelay(ms / portTICK_PERIOD_MS);
+    vTaskDelay(pdMS_TO_TICKS(ms));
 }
 
 void utils_reboot(State *state) {
