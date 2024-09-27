@@ -46,21 +46,26 @@ void control_read_user_input(State *state) {
         case BUTTON_NONE:
             break;
         case BUTTON_UP:
+            printf("Button pressed: BUTTON_UP\n");
             state->cruise_control.enabled = true;
             break;
         case BUTTON_VOLUME_UP:
+            printf("Button pressed: BUTTON_VOLUME_UP\n");
             state->cruise_control.target_speed++;
             break;
         case BUTTON_VOLUME_DOWN:
+            printf("Button pressed: BUTTON_VOLUME_DOWN\n");
             state->cruise_control.target_speed--;
             if (state->cruise_control.target_speed < 0) {
                 state->cruise_control.target_speed = 0;
             }
             break;
         case BUTTON_SOURCE:
+            printf("Button pressed: BUTTON_SOURCE\n");
             state->cruise_control.enabled = false;
             break;
         case BUTTON_SOURCE_LONG_PRESS:
+            printf("Button pressed: BUTTON_SOURCE_LONG_PRESS\n");
             utils_reboot(state);
         default:
             break;

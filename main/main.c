@@ -37,6 +37,7 @@ __attribute__((unused)) void app_main(void) {
     };
 
     init(&state);
+    printf("Init done.\n");
 
     process_main(&state);
 }
