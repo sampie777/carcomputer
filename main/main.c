@@ -1,19 +1,13 @@
 #include <driver/adc.h>
 #include "config.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+// #include "freertos/FreeRTOS.h"
+// #include "freertos/task.h"
 #include "state.h"
 #include "control/control.h"
 #include "connectivity/spi.h"
 
 
 _Noreturn void process_main(State *state) {
-    adc1_config_width(ADC_RESOLUTION - 9);
-    spi_init(state);
-    control_init(state);
-
-    state->is_booting = false;
-
     while (1) {
         // Collect data
         control_read_can_bus(state);
@@ -24,10 +18,16 @@ _Noreturn void process_main(State *state) {
         control_mpu_power(state);
         control_cruise_control(state);
         control_car_gear(state);
+        control_led_indicator_step(state);
     }
 }
 
 void init(State *state) {
+    adc1_config_width(ADC_RESOLUTION - 9);
+    spi_init(state);
+    control_init(state);
+
+    state->is_booting = false;
 }
 
 // Running on main core

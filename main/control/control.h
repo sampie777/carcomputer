@@ -25,4 +25,6 @@ void control_cruise_control(State *state);
 
 void control_car_gear(State *state);
 
+void control_led_indicator_step(State *state);
+
 #endif //APP_TEMPLATE_CONTROL_H

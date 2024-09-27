@@ -79,6 +79,7 @@ extern "C" {
 #define BUTTON_LONG_PRESS_MS 2000
 #define BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS 80   // Don't check the button after is has been pressed for this amount of time (ms)
 
+#define LED_PIN GPIO_NUM_5
 
 #ifdef __cplusplus
 }

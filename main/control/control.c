@@ -10,6 +10,7 @@
 #include "../peripherals/buttons.h"
 #include "../utils.h"
 #include "../error_codes.h"
+#include "../peripherals/led.h"
 
 #if CRUISE_CONTROL_ENABLE
 #include "../peripherals/gas_pedal.h"
@@ -48,15 +49,16 @@ void control_read_user_input(State *state) {
             state->cruise_control.enabled = true;
             break;
         case BUTTON_VOLUME_UP:
-                state->cruise_control.target_speed++;
+            state->cruise_control.target_speed++;
             break;
-                state->cruise_control.target_speed--;
-                if (state->cruise_control.target_speed < 0) {
-                    state->cruise_control.target_speed = 0;
-                }
+        case BUTTON_VOLUME_DOWN:
+            state->cruise_control.target_speed--;
+            if (state->cruise_control.target_speed < 0) {
+                state->cruise_control.target_speed = 0;
+            }
             break;
         case BUTTON_SOURCE:
-                state->cruise_control.enabled = false;
+            state->cruise_control.enabled = false;
             break;
         case BUTTON_SOURCE_LONG_PRESS:
             utils_reboot(state);
@@ -96,6 +98,23 @@ void control_mpu_power(State *state) {
 #endif
 }
 
+void control_led_indicator_step(State *state) {
+    if (state->is_booting) {
+        led_blink(1500);
+        return;
+    }
+    if (!state->car.is_connected) {
+        led_blink(800);
+        return;
+    }
+    if (!state->car.gas_pedal_connected) {
+        led_blink(300);
+        return;
+    }
+
+    led_set(state->cruise_control.enabled);
+}
+
 void control_cruise_control(State *state) {
 #if CRUISE_CONTROL_ENABLE
     cruise_control_step(state);
@@ -104,6 +123,8 @@ void control_cruise_control(State *state) {
 
 void control_init(State *state) {
     gpio_set_direction(POWER_PIN, GPIO_MODE_OUTPUT);
+
+    led_init();
 
     canbus_init(state);
 #if CRUISE_CONTROL_ENABLE
