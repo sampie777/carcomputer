@@ -31,6 +31,25 @@ void task_process_main(void *args) {
         if (esp_timer_get_time_ms() > lastQueryTime + 1000) {
             lastQueryTime = esp_timer_get_time_ms();
             printf("Stack size: %u / %u\n", uxTaskGetStackHighWaterMark(NULL), MAIN_TASK_STACK_SIZE);
+            printf("is_connected: %c; "
+                   "is_controller_connected: %c; "
+                   "is_braking: %c; "
+                   "is_ignition_on: %c; "
+                   "is_in_reverse: %c; "
+                   "speed: %f; "
+                   "rpm: %f; "
+                   "rpm_raw: %d; "
+                   "odometer: %ld;\n",
+                   state->car.is_connected ? 'y' : 'n',
+                   state->car.is_controller_connected ? 'y' : 'n',
+                   state->car.is_braking ? 'y' : 'n',
+                   state->car.is_ignition_on ? 'y' : 'n',
+                   state->car.is_in_reverse ? 'y' : 'n',
+                   state->car.speed,
+                   state->car.rpm,
+                   state->car.rpm_raw,
+                   state->car.odometer
+            );
         }
 
         // Collect data
