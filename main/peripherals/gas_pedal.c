@@ -29,6 +29,10 @@ double read_pedal_volts(adc1_channel_t channel, int sample_count_factor) {
 
 void read_pedals(State *state, int sample_count_factor) {
     state->car.gas_pedal_0_volts = read_pedal_volts(CAR_GAS_PEDAL_ADC_CHANNEL_0, sample_count_factor);
+
+    // Give ADC time to settle for 10 clock cycles, otherwise next reading will be influenced
+    for(volatile int i = 0; i < 10; i++) {}
+
     state->car.gas_pedal_1_volts = read_pedal_volts(CAR_GAS_PEDAL_ADC_CHANNEL_1, sample_count_factor);
 }
 
