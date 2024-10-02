@@ -16,6 +16,8 @@ void init(State *state) {
     control_init(state);
 
     state->is_booting = false;
+
+    printf("Init done.\n");
 }
 
 void task_process_main(void *args) {
@@ -70,12 +72,9 @@ void task_process_main(void *args) {
 
 // Running on main core
 void app_main(void) {
-    State state = {
-        .is_booting = true,
-        .power_off_count_down_sec = -1,
-    };
-
-    printf("Init done.\n");
+    State state = {0};
+    state.is_booting = true;
+    state.power_off_count_down_sec = -1;;
 
     TaskHandle_t task_process_main_handle;
     BaseType_t result = xTaskCreate(

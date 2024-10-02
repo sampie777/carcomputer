@@ -41,8 +41,10 @@ typedef struct {
     CarGearPosition estimated_gear;
 
     bool gas_pedal_connected;
-    double gas_pedal_0_min_value_volts;      // Absolute value between 0 and ADC max
-    double gas_pedal_1_min_value_volts;      // Absolute value between 0 and ADC max
+    double gas_pedal_0_min_value_volts;      // Absolute value in Volts
+    double gas_pedal_1_min_value_volts;      // Absolute value in Volts
+    double gas_pedal_0_max_value_volts;      // Absolute value in Volts
+    double gas_pedal_1_max_value_volts;      // Absolute value in Volts
     double gas_pedal;               // Relative value between 0.0 and 1.0
     double gas_pedal_0_volts;       // Current value in absolute Volts
     double gas_pedal_1_volts;       // Current value in absolute Volts

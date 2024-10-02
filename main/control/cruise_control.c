@@ -88,6 +88,7 @@ void cruise_control_step(State *state) {
         cruise_control_was_enabled = state->cruise_control.enabled;
         state->cruise_control.target_speed = state->car.speed;
         state->cruise_control.initial_control_value = state->car.gas_pedal;
+        state->cruise_control.virtual_gas_pedal = min(1.0, max(0.0, state->car.gas_pedal));
         gas_pedal_enable_time = esp_timer_get_time_ms() + CAR_VIRTUAL_GAS_PEDAL_RISE_TIME_MS;
     }
 

@@ -116,3 +116,8 @@ void convert_to_base_26(uint32_t input, char *output, size_t max_length) {
         output[i++] = (char) (digit_value + 65);
     }
 }
+
+double scale(double value, double min, double max) {
+    double difference = max - min;
+    return min + difference * value;
+}

@@ -34,4 +34,6 @@ void invert_array(const uint8_t *array, uint8_t *output_array, int length);
 
 void convert_to_base_26(uint32_t input, char *output, size_t max_length);
 
+double scale(double value, double min, double max);
+
 #endif //APP_TEMPLATE_UTILS_H

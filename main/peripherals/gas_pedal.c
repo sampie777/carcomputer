@@ -19,7 +19,8 @@ void gas_pedal_enable(uint8_t enable) {
 }
 
 int is_pedal_connected(double reading_0, double reading_1) {
-    return reading_0 >= CAR_GAS_PEDAL_MIN_VOLTS && reading_1 >= CAR_GAS_PEDAL_MIN_VOLTS;
+    double min_voltage = min(CAR_GAS_PEDAL0_MIN_VOLTS, CAR_GAS_PEDAL1_MIN_VOLTS) / 2;
+    return reading_0 >= min_voltage && reading_1 >= min_voltage;
 }
 
 double read_pedal_volts(adc1_channel_t channel, int sample_count_factor) {
@@ -35,7 +36,8 @@ void read_pedals(State *state, int sample_count_factor) {
     state->car.gas_pedal_0_volts = read_pedal_volts(CAR_GAS_PEDAL_ADC_CHANNEL_0, sample_count_factor);
 
     // Give ADC time to settle for 10 clock cycles, otherwise next reading will be influenced
-    for(volatile int i = 0; i < 10; i++) {}
+    for (volatile int i = 0; i < 10; i++) {
+    }
 
     state->car.gas_pedal_1_volts = read_pedal_volts(CAR_GAS_PEDAL_ADC_CHANNEL_1, sample_count_factor);
 }
@@ -54,12 +56,23 @@ int gas_pedal_init_minimums(State *state) {
         state->car.gas_pedal_connected = false;
         state->car.gas_pedal_0_min_value_volts = 0;
         state->car.gas_pedal_1_min_value_volts = 0;
+        state->car.gas_pedal_0_max_value_volts = 0;
+        state->car.gas_pedal_1_max_value_volts = 0;
         return RESULT_DISCONNECTED;
     }
 
     state->car.gas_pedal_connected = true;
-    state->car.gas_pedal_0_min_value_volts = state->car.gas_pedal_0_volts;
-    state->car.gas_pedal_1_min_value_volts = state->car.gas_pedal_1_volts;
+    if (state->car.gas_pedal_0_volts > state->car.gas_pedal_1_volts) {
+        state->car.gas_pedal_0_min_value_volts = max(CAR_GAS_PEDAL0_MIN_VOLTS, CAR_GAS_PEDAL1_MIN_VOLTS);
+        state->car.gas_pedal_1_min_value_volts = min(CAR_GAS_PEDAL0_MIN_VOLTS, CAR_GAS_PEDAL1_MIN_VOLTS);
+        state->car.gas_pedal_0_max_value_volts = max(CAR_GAS_PEDAL0_MAX_VOLTS, CAR_GAS_PEDAL1_MAX_VOLTS);
+        state->car.gas_pedal_1_max_value_volts = min(CAR_GAS_PEDAL0_MAX_VOLTS, CAR_GAS_PEDAL1_MAX_VOLTS);
+    } else {
+        state->car.gas_pedal_0_min_value_volts = min(CAR_GAS_PEDAL0_MIN_VOLTS, CAR_GAS_PEDAL1_MIN_VOLTS);
+        state->car.gas_pedal_1_min_value_volts = max(CAR_GAS_PEDAL0_MIN_VOLTS, CAR_GAS_PEDAL1_MIN_VOLTS);
+        state->car.gas_pedal_0_max_value_volts = min(CAR_GAS_PEDAL0_MAX_VOLTS, CAR_GAS_PEDAL1_MAX_VOLTS);
+        state->car.gas_pedal_1_max_value_volts = max(CAR_GAS_PEDAL0_MAX_VOLTS, CAR_GAS_PEDAL1_MAX_VOLTS);
+    }
     return RESULT_OK;
 }
 
@@ -77,11 +90,13 @@ int gas_pedal_read(State *state) {
     }
 
     if (state->car.gas_pedal_0_min_value_volts > state->car.gas_pedal_1_min_value_volts) {
-        double difference = CAR_GAS_PEDAL_MAX_VOLTS - state->car.gas_pedal_0_min_value_volts;
-        state->car.gas_pedal = (state->car.gas_pedal_0_volts - state->car.gas_pedal_0_min_value_volts) / difference;
+        double difference = state->car.gas_pedal_0_max_value_volts - state->car.gas_pedal_0_min_value_volts;
+        state->car.gas_pedal = max(
+            0.0, (state->car.gas_pedal_0_volts - state->car.gas_pedal_0_min_value_volts) / difference);
     } else {
-        double difference = CAR_GAS_PEDAL_MAX_VOLTS - state->car.gas_pedal_1_min_value_volts;
-        state->car.gas_pedal = (state->car.gas_pedal_1_volts - state->car.gas_pedal_1_min_value_volts) / difference;
+        double difference = state->car.gas_pedal_1_max_value_volts - state->car.gas_pedal_1_min_value_volts;
+        state->car.gas_pedal = max(
+            0.0, (state->car.gas_pedal_1_volts - state->car.gas_pedal_1_min_value_volts) / difference);
     }
 
     return RESULT_OK;
@@ -92,29 +107,14 @@ void gas_pedal_write(State *state) {
         gas_pedal_init_minimums(state);
     }
 
-    double base_voltage_min = min(state->car.gas_pedal_0_min_value_volts, state->car.gas_pedal_1_min_value_volts);
-    double base_voltage_max = max(state->car.gas_pedal_0_min_value_volts, state->car.gas_pedal_1_min_value_volts);
-
-    double difference = CAR_GAS_PEDAL_MAX_VOLTS - base_voltage_max;
-    double target_voltage = base_voltage_max + difference * state->cruise_control.virtual_gas_pedal;
-
-    double factor;
-    if (state->car.gas_pedal_0_min_value_volts == state->car.gas_pedal_1_min_value_volts) factor = 1;
-    else if (base_voltage_max == 0) factor = 0;
-    else factor = base_voltage_min / base_voltage_max;
-
-    double voltage0, voltage1;
-    if (state->car.gas_pedal_0_min_value_volts > state->car.gas_pedal_1_min_value_volts) {
-        voltage0 = target_voltage;
-        voltage1 = factor * target_voltage;
-    } else {
-        voltage0 = factor * target_voltage;
-        voltage1 = target_voltage;
-    }
+    double target_voltage0 = scale(state->cruise_control.virtual_gas_pedal, state->car.gas_pedal_0_min_value_volts,
+                                   state->car.gas_pedal_0_max_value_volts);
+    double target_voltage1 = scale(state->cruise_control.virtual_gas_pedal, state->car.gas_pedal_1_min_value_volts,
+                                   state->car.gas_pedal_1_max_value_volts);
 
     // Set PWM output
-    set_pedal_volts(CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_0, voltage0);
-    set_pedal_volts(CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_1, voltage1);
+    set_pedal_volts(CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_0, target_voltage0);
+    set_pedal_volts(CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_1, target_voltage1);
 }
 
 void gas_pedal_init(State *state) {
