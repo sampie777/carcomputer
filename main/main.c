@@ -32,25 +32,37 @@ void task_process_main(void *args) {
     while (1) {
         if (esp_timer_get_time_ms() > lastQueryTime + 1000) {
             lastQueryTime = esp_timer_get_time_ms();
-            printf("Stack size: %u / %u\n", uxTaskGetStackHighWaterMark(NULL), MAIN_TASK_STACK_SIZE);
-            printf("is_connected: %c; "
-                   "is_controller_connected: %c; "
-                   "is_braking: %c; "
-                   "is_ignition_on: %c; "
-                   "is_in_reverse: %c; "
-                   "speed: %f; "
-                   "rpm: %f; "
-                   "rpm_raw: %d; "
-                   "odometer: %ld;\n",
+            printf("Stack: %u/%u; ", uxTaskGetStackHighWaterMark(NULL), MAIN_TASK_STACK_SIZE);
+            printf("car: %c; "
+                   "can: %c; "
+                   "brake: %c; "
+                   "reverse: %c; "
+                   "speed: %d km/h; "
+                   "rpm: %d; "
+                   "pedal: %d %%; "
+                   "%f / %f V; "
+                   "min: %f V; "
+                   "max: %f V; "
+                   "cc: %c; "
+                   "control: %f; "
+                   "virtual: %d %%; "
+                   "target: %d km/h; "
+                   "\n",
                    state->car.is_connected ? 'y' : 'n',
                    state->car.is_controller_connected ? 'y' : 'n',
                    state->car.is_braking ? 'y' : 'n',
-                   state->car.is_ignition_on ? 'y' : 'n',
                    state->car.is_in_reverse ? 'y' : 'n',
-                   state->car.speed,
-                   state->car.rpm,
-                   state->car.rpm_raw,
-                   state->car.odometer
+                   (int) state->car.speed,
+                   (int) state->car.rpm,
+                   (int) (state->car.gas_pedal * 100),
+                   state->car.gas_pedal_0_volts,
+                   state->car.gas_pedal_1_volts,
+                   state->car.gas_pedal_0_min_value_volts,
+                   state->car.gas_pedal_0_max_value_volts,
+                   state->cruise_control.enabled ? 'y' : 'n',
+                   state->cruise_control.control_value,
+                   (int) (state->cruise_control.virtual_gas_pedal * 100),
+                   (int) state->cruise_control.target_speed
             );
         }
 
