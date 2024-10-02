@@ -24,7 +24,11 @@ int is_pedal_connected(double reading_0, double reading_1) {
 
 double read_pedal_volts(adc1_channel_t channel, int sample_count_factor) {
     double reading = average_read_channel(channel, sample_count_factor * CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
-    return reading / 2760 * 4.8;
+    if (reading > 17) {
+        return 0.0015795 * reading + 0.2702;
+    }
+
+    return -0.0004 * pow(reading, 2) + 0.0234 * reading;
 }
 
 void read_pedals(State *state, int sample_count_factor) {
