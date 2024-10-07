@@ -14,7 +14,7 @@ int gas_pedal_read(State *state);
 
 void gas_pedal_write(State *state);
 
-void gas_pedal_init(State *state);
+void gas_pedal_init(State *state, uint32_t frequency);
 
 double read_pedal_volts(adc1_channel_t channel, int sample_count_factor);
 

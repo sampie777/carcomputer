@@ -11,11 +11,8 @@
 #include "../utils.h"
 #include "../error_codes.h"
 #include "../peripherals/led.h"
-
-#if CRUISE_CONTROL_ENABLE
 #include "../peripherals/gas_pedal.h"
 #include "cruise_control.h"
-#endif
 
 void control_read_can_bus(State *state) {
     canbus_check_controller_connection(state);
@@ -29,7 +26,6 @@ void control_read_can_bus(State *state) {
 }
 
 void control_read_analog_sensors(State *state) {
-#if CRUISE_CONTROL_ENABLE
     if (gas_pedal_read(state) == RESULT_DISCONNECTED) {
         set_error(state, ERROR_PEDAL_DISCONNECTED);
     }
@@ -105,9 +101,7 @@ void control_led_indicator_step(State *state) {
 }
 
 void control_cruise_control(State *state) {
-#if CRUISE_CONTROL_ENABLE
     cruise_control_step(state);
-#endif
 }
 
 void control_init(State *state) {
@@ -118,9 +112,7 @@ void control_init(State *state) {
     led_init();
 
     canbus_init(state);
-#if CRUISE_CONTROL_ENABLE
-    gas_pedal_init(state);
-#endif
+    gas_pedal_init(state, 0);
     buttons_init();
 }
 

@@ -117,7 +117,12 @@ void gas_pedal_write(State *state) {
     set_pedal_volts(CAR_VIRTUAL_GAS_PEDAL_TIMER_CHANNEL_1, target_voltage1);
 }
 
-void gas_pedal_init(State *state) {
+/**
+ *
+ * @param state App state.
+ * @param frequency Frequency for PWM to use. Set to 0 to use max available frequency.
+ */
+void gas_pedal_init(State *state, uint32_t frequency) {
     // Init input
     adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_0, ADC_ATTEN_DB_12);
     adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_1, ADC_ATTEN_DB_12);
@@ -127,13 +132,14 @@ void gas_pedal_init(State *state) {
     gas_pedal_enable(false);
 
     // 78 kHz gives max resolution of 10 bits: 80 MHz / 2^10 = 78 kHz
-    uint32_t max_frequency = 80000000 / (0x01 << CAR_GAS_PEDAL_RESOLUTION);
-    printf("[GasPedal] PWM frequency: %lu Hz\n", max_frequency);
+    if (frequency == 0) frequency = 80000000 / (0x01 << CAR_GAS_PEDAL_RESOLUTION);
+
+    printf("[GasPedal] PWM frequency: %lu Hz\n", frequency);
     ledc_timer_config_t config = {
         .speed_mode = CAR_VIRTUAL_GAS_PEDAL_TIMER_SPEED_MODE,
         .duty_resolution = CAR_GAS_PEDAL_RESOLUTION,
         .timer_num = CAR_VIRTUAL_GAS_PEDAL_TIMER,
-        .freq_hz = max_frequency,
+        .freq_hz = frequency,
         .clk_cfg = LEDC_USE_APB_CLK,
     };
 

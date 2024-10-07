@@ -16,7 +16,6 @@ extern "C" {
 // and therefore should not be used for other purposes (https://docs.espressif.com/projects/esp-idf/en/v4.4.1/esp32/api-reference/peripherals/gpio.html)
 
 // Features
-#define CRUISE_CONTROL_ENABLE true
 
 // Detailed feature settings
 #define POWER_OFF_MAX_TIMEOUT_MS 90000
