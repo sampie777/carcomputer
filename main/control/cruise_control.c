@@ -25,9 +25,7 @@ void cruise_control_apply_pid(State *state) {
     //        return;
     //    }
 
-    if (esp_timer_get_time_ms() < last_iteration_time + CRUISE_CONTROL_PID_ITERATION_TIME) {
-        return;
-    }
+    if (esp_timer_get_time_ms() < last_iteration_time + CRUISE_CONTROL_PID_ITERATION_TIME) return;
     int64_t iterationTime = esp_timer_get_time_ms() - last_iteration_time;
     last_iteration_time = esp_timer_get_time_ms();
 
@@ -36,9 +34,9 @@ void cruise_control_apply_pid(State *state) {
     double integral = previous_integral + error * (double) iterationTime;
     double derivative = (error - previous_error) / (double) iterationTime;
     double output = state->cruise_control.initial_control_value
-                    + CRUISE_CONTROL_PID_Kp * error
-                    + CRUISE_CONTROL_PID_Ki * integral
-                    + CRUISE_CONTROL_PID_Kd * derivative;
+                    + state->cruise_control.pidKp * error
+                    + state->cruise_control.pidKi * integral
+                    + state->cruise_control.pidKd * derivative;
 
     // Anti reset wind-up
     if (output >= 1.0) {
@@ -48,12 +46,11 @@ void cruise_control_apply_pid(State *state) {
         output = 0.0;
         integral = previous_integral;
     }
-    output = max(0.0, min(1.0, output));
 
     previous_error = error;
     previous_integral = integral;
 
-    if (state->car.gas_pedal > 0.01) {
+    if (state->car.gas_pedal > 0.02) {
         // Pedal override interaction
         double overrideControlValue = max(0.0, min(1.0, state->cruise_control.control_value + state->car.gas_pedal));
         state->cruise_control.virtual_gas_pedal = overrideControlValue;

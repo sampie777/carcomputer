@@ -83,13 +83,20 @@ void set_error(State *state, uint32_t error_code) {
         // Only print this once
         printf("Set error code: ");
         switch (error_code) {
-            case ERROR_PEDAL_DISCONNECTED: printf("ERROR_PEDAL_DISCONNECTED"); break;
-            case ERROR_SPI_FAILED: printf("ERROR_SPI_FAILED"); break;
-            case ERROR_CRASH_NO_ICE: printf("ERROR_CRASH_NO_ICE"); break;
-            case ERROR_GPS_TIMEOUT: printf("ERROR_GPS_TIMEOUT"); break;
-            case ERROR_SMS_FAILED: printf("ERROR_SMS_FAILED"); break;
-            case ERROR_SD_FULL: printf("ERROR_SD_FULL"); break;
-            case ERROR_CRASH_DETECTED: printf("ERROR_CRASH_DETECTED"); break;
+            case ERROR_PEDAL_DISCONNECTED: printf("ERROR_PEDAL_DISCONNECTED");
+                break;
+            case ERROR_SPI_FAILED: printf("ERROR_SPI_FAILED");
+                break;
+            case ERROR_CRASH_NO_ICE: printf("ERROR_CRASH_NO_ICE");
+                break;
+            case ERROR_GPS_TIMEOUT: printf("ERROR_GPS_TIMEOUT");
+                break;
+            case ERROR_SMS_FAILED: printf("ERROR_SMS_FAILED");
+                break;
+            case ERROR_SD_FULL: printf("ERROR_SD_FULL");
+                break;
+            case ERROR_CRASH_DETECTED: printf("ERROR_CRASH_DETECTED");
+                break;
             default: printf("unknown");
         }
         printf("\n");
@@ -120,4 +127,50 @@ void convert_to_base_26(uint32_t input, char *output, size_t max_length) {
 double scale(double value, double min, double max) {
     double difference = max - min;
     return min + difference * value;
+}
+
+void debug_state(const State *state) {
+    printf("State:\n");
+
+    printf("\tis_booting: %c\n", state->is_booting ? 'y' : 'n');
+    printf("\tis_rebooting: %c\n", state->is_rebooting ? 'y' : 'n');
+    printf("\tpower_off_count_down_sec: %hd\n", state->power_off_count_down_sec);
+    printf("\tlogging_session_id: %lu\n", state->logging_session_id);
+    printf("\terrors: %lu\n", state->errors);
+
+    printf("\tcar:\n");
+    printf("\t\tis_connected: %c\n", state->car.is_connected ? 'y' : 'n');
+    printf("\t\tis_controller_connected: %c\n", state->car.is_controller_connected ? 'y' : 'n');
+    printf("\t\tis_braking: %c\n", state->car.is_braking ? 'y' : 'n');
+    printf("\t\tis_ignition_on: %c\n", state->car.is_ignition_on ? 'y' : 'n');
+    printf("\t\tis_in_reverse: %c\n", state->car.is_in_reverse ? 'y' : 'n');
+    printf("\t\tspeed: %lf\n", state->car.speed);
+    printf("\t\trpm: %lf\n", state->car.rpm);
+    printf("\t\trpm_raw: %hu\n", state->car.rpm_raw);
+    printf("\t\tlast_can_message_time: %lld\n", state->car.last_can_message_time);
+    printf("\t\todometer_start: %lu\n", state->car.odometer_start);
+    printf("\t\todometer: %lu\n", state->car.odometer);
+    printf("\t\testimated_gear: %d\n", state->car.estimated_gear);
+    printf("\t\tgas_pedal_connected: %c\n", state->car.gas_pedal_connected ? 'y' : 'n');
+    printf("\t\tgas_pedal_0_min_value_volts: %lf\n", state->car.gas_pedal_0_min_value_volts);
+    printf("\t\tgas_pedal_1_min_value_volts: %lf\n", state->car.gas_pedal_1_min_value_volts);
+    printf("\t\tgas_pedal_0_max_value_volts: %lf\n", state->car.gas_pedal_0_max_value_volts);
+    printf("\t\tgas_pedal_1_max_value_volts: %lf\n", state->car.gas_pedal_1_max_value_volts);
+    printf("\t\tgas_pedal: %lf\n", state->car.gas_pedal);
+    printf("\t\tgas_pedal_0_volts: %lf\n", state->car.gas_pedal_0_volts);
+    printf("\t\tgas_pedal_1_volts: %lf\n", state->car.gas_pedal_1_volts);
+    printf("\t\tis_drivers_door_open: %c\n", state->car.is_drivers_door_open ? 'y' : 'n');
+    printf("\t\tis_other_doors_open: %c\n", state->car.is_other_doors_open ? 'y' : 'n');
+    printf("\t\tis_blower_on: %c\n", state->car.is_blower_on ? 'y' : 'n');
+    printf("\t\tis_locked: %c\n", state->car.is_locked ? 'y' : 'n');
+
+    printf("\tcruise_control:\n");
+    printf("\t\tenabled: %c\n", state->cruise_control.enabled ? 'y' : 'n');
+    printf("\t\ttarget_speed: %lf\n", state->cruise_control.target_speed);
+    printf("\t\tvirtual_gas_pedal: %lf\n", state->cruise_control.virtual_gas_pedal);
+    printf("\t\tinitial_control_value: %lf\n", state->cruise_control.initial_control_value);
+    printf("\t\tcontrol_value: %lf\n", state->cruise_control.control_value);
+    printf("\t\tpidKp: %lf\n", state->cruise_control.pidKp);
+    printf("\t\tpidKi: %lf\n", state->cruise_control.pidKi);
+    printf("\t\tpidKd: %lf\n", state->cruise_control.pidKd);
 }

@@ -24,6 +24,9 @@ typedef struct {
     double virtual_gas_pedal;       // Relative value between 0.0 and 1.0
     double initial_control_value;   // Relative value between 0.0 and 1.0
     double control_value;           // Relative value between 0.0 and 1.0
+    double pidKp;
+    double pidKi;
+    double pidKd;
 } CruiseControlState;
 
 typedef struct {

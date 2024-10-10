@@ -21,51 +21,17 @@ void init(State *state) {
 }
 
 void task_process_main(void *args) {
+    State *state = args;
+
     // Wait to be started by the main task
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     printf("Task process started\n");
 
-    State *state = args;
-    int64_t lastQueryTime = 0;
     init(state);
 
-    while (1) {
-        if (esp_timer_get_time_ms() > lastQueryTime + 1000) {
-            lastQueryTime = esp_timer_get_time_ms();
-            printf("Stack: %u/%u; ", uxTaskGetStackHighWaterMark(NULL), MAIN_TASK_STACK_SIZE);
-            printf("car: %c; "
-                   "can: %c; "
-                   "brake: %c; "
-                   "reverse: %c; "
-                   "speed: %d km/h; "
-                   "rpm: %d; "
-                   "pedal: %d %%; "
-                   "%f / %f V; "
-                   "min: %f V; "
-                   "max: %f V; "
-                   "cc: %c; "
-                   "control: %f; "
-                   "virtual: %d %%; "
-                   "target: %d km/h; "
-                   "\n",
-                   state->car.is_connected ? 'y' : 'n',
-                   state->car.is_controller_connected ? 'y' : 'n',
-                   state->car.is_braking ? 'y' : 'n',
-                   state->car.is_in_reverse ? 'y' : 'n',
-                   (int) state->car.speed,
-                   (int) state->car.rpm,
-                   (int) (state->car.gas_pedal * 100),
-                   state->car.gas_pedal_0_volts,
-                   state->car.gas_pedal_1_volts,
-                   state->car.gas_pedal_0_min_value_volts,
-                   state->car.gas_pedal_0_max_value_volts,
-                   state->cruise_control.enabled ? 'y' : 'n',
-                   state->cruise_control.control_value,
-                   (int) (state->cruise_control.virtual_gas_pedal * 100),
-                   (int) state->cruise_control.target_speed
-            );
-        }
+    debug_state(state);
 
+    while (1) {
         // Collect data
         control_read_can_bus(state);
         control_read_analog_sensors(state);
@@ -84,9 +50,12 @@ void task_process_main(void *args) {
 
 // Running on main core
 void app_main(void) {
-    State state = {0};
+    static State state = {0};
     state.is_booting = true;
-    state.power_off_count_down_sec = -1;;
+    state.power_off_count_down_sec = -1;
+    state.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
+    state.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
+    state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
 
     TaskHandle_t task_process_main_handle;
     BaseType_t result = xTaskCreate(
