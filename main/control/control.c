@@ -29,11 +29,19 @@ void control_read_analog_sensors(State *state) {
     if (gas_pedal_read(state) == RESULT_DISCONNECTED) {
         set_error(state, ERROR_PEDAL_DISCONNECTED);
     }
-#endif
 }
+
+typedef enum {
+    PidProportional = 0,
+    PidIntegral,
+    PidDerivative,
+} PidIncreaseTarget;
 
 void control_read_user_input(State *state) {
     static int64_t last_read_time = 0;
+    static double pid_increase_step = 0.01;
+    static PidIncreaseTarget pid_increase_target = PidProportional;
+
     if (esp_timer_get_time_ms() < last_read_time + BUTTONS_READ_INTERVAL_MS) return;
     last_read_time = esp_timer_get_time_ms();
 
@@ -44,33 +52,90 @@ void control_read_user_input(State *state) {
         case BUTTON_UP:
             printf("Button pressed: BUTTON_UP\n");
             state->cruise_control.enabled = true;
+            printf("Cruise control enabled. \n"
+                   "\tpidKp = %lf; pidKi = %lf; pidKd = %lf\n"
+                   "\ttarget_speed = %lf\n"
+                   "\tinitial_control_value = %lf\n"
+                   "\tvirtual_gas_pedal = %lf\n"
+                   "\t",
+                   state->cruise_control.pidKp,
+                   state->cruise_control.pidKi,
+                   state->cruise_control.pidKd,
+                   state->cruise_control.target_speed,
+                   state->cruise_control.initial_control_value,
+                   state->cruise_control.virtual_gas_pedal
+            );
             break;
         case BUTTON_VOLUME_UP:
             printf("Button pressed: BUTTON_VOLUME_UP\n");
+            if (!state->cruise_control.enabled) {
+                if (pid_increase_target == PidProportional) {
+                    state->cruise_control.pidKp += pid_increase_step;
+                    printf("state->cruise_control.pidKp = %lf\n", state->cruise_control.pidKp);
+                } else if (pid_increase_target == PidIntegral) {
+                    state->cruise_control.pidKi += pid_increase_step;
+                    printf("state->cruise_control.pidKi = %lf\n", state->cruise_control.pidKi);
+                } else if (pid_increase_target == PidDerivative) {
+                    state->cruise_control.pidKd += pid_increase_step;
+                    printf("state->cruise_control.pidKd = %lf\n", state->cruise_control.pidKd);
+                }
+                break;
+            }
+
             state->cruise_control.target_speed++;
+            printf("target speed: %lf\n", state->cruise_control.target_speed);
             break;
         case BUTTON_VOLUME_DOWN:
             printf("Button pressed: BUTTON_VOLUME_DOWN\n");
+            if (!state->cruise_control.enabled) {
+                if (pid_increase_target == PidProportional) {
+                    state->cruise_control.pidKp -= pid_increase_step;
+                    printf("state->cruise_control.pidKp = %lf\n", state->cruise_control.pidKp);
+                } else if (pid_increase_target == PidIntegral) {
+                    state->cruise_control.pidKi -= pid_increase_step;
+                    printf("state->cruise_control.pidKi = %lf\n", state->cruise_control.pidKi);
+                } else if (pid_increase_target == PidDerivative) {
+                    state->cruise_control.pidKd -= pid_increase_step;
+                    printf("state->cruise_control.pidKd = %lf\n", state->cruise_control.pidKd);
+                }
+                break;
+            }
+
             state->cruise_control.target_speed--;
             if (state->cruise_control.target_speed < 0) {
                 state->cruise_control.target_speed = 0;
             }
+            printf("target speed: %lf\n", state->cruise_control.target_speed);
             break;
         case BUTTON_SOURCE:
             printf("Button pressed: BUTTON_SOURCE\n");
+            if (state->cruise_control.enabled) printf("Disconnecting cruise control because of user input\n");
             state->cruise_control.enabled = false;
             break;
         case BUTTON_SOURCE_LONG_PRESS:
             printf("Button pressed: BUTTON_SOURCE_LONG_PRESS\n");
-            utils_reboot(state);
+            if (pid_increase_target == PidProportional) {
+                pid_increase_target = PidIntegral;
+                printf("pid_increase_target = PidIntegral\n");
+            } else if (pid_increase_target == PidIntegral) {
+                pid_increase_target = PidDerivative;
+                printf("pid_increase_target = PidDerivative\n");
+            } else {
+                pid_increase_target = PidProportional;
+                printf("pid_increase_target = PidProportional\n");
+            }
+
+        // utils_reboot(state);
             break;
         case BUTTON_INFO: printf("Button pressed: BUTTON_INFO\n");
             break;
         case BUTTON_DOWN: printf("Button pressed: BUTTON_DOWN\n");
             break;
         case BUTTON_VOLUME_UP_LONG_PRESS: printf("Button pressed: BUTTON_VOLUME_UP_LONG_PRESS\n");
+            pid_increase_step *= 10;
             break;
         case BUTTON_VOLUME_DOWN_LONG_PRESS: printf("Button pressed: BUTTON_VOLUME_DOWN_LONG_PRESS\n");
+            pid_increase_step *= 0.1;
             break;
         case BUTTON_INFO_LONG_PRESS: printf("Button pressed: BUTTON_INFO_LONG_PRESS\n");
             break;

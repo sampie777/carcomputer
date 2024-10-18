@@ -58,6 +58,10 @@ void cruise_control_apply_pid(State *state) {
         // Apply PID
         state->cruise_control.control_value = output;
         state->cruise_control.virtual_gas_pedal = state->cruise_control.control_value;
+        printf("  cc: %lf %%; %lf km/h of %lf km/h\n",
+               state->cruise_control.virtual_gas_pedal,
+               state->car.speed,
+               state->cruise_control.target_speed);
     }
 }
 
@@ -68,14 +72,17 @@ void cruise_control_step(State *state) {
 
     // Safety checks
     if (!state->car.gas_pedal_connected) {
+        if (state->cruise_control.enabled) printf("Disconnecting cruise control because of disconnected gas pedal\n");
         state->cruise_control.enabled = false;
     }
 
     if (state->car.is_connected) {
         if (state->car.is_braking || state->car.rpm > CRUISE_CONTROL_MAX_RPM_LIMIT) {
+            if (state->cruise_control.enabled) printf("Disconnecting cruise control because of braking or high refs\n");
             state->cruise_control.enabled = false;
         }
     } else if (car_was_connected) {
+        if (state->cruise_control.enabled) printf("Disconnecting cruise control because of disconnected car\n");
         state->cruise_control.enabled = false;
     }
     car_was_connected = state->car.is_connected;
