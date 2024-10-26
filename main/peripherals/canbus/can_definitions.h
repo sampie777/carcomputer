@@ -8,6 +8,7 @@
 /* Rpm message */
 #define CAN_ID_RPM 385
 #define CAN_LENGTH_RPM 8
+#define CAN_RPM_CALIBRATION 7.6188
 
 /* Ignition message */
 #define CAN_ID_IGNITION 640
@@ -15,8 +16,8 @@
 
 /* Speed & brake message */
 #define CAN_ID_SPEED_AND_BRAKE 852
-#define CAN_LENGTH_SPEED 8
-#define CAN_LENGTH_BRAKE CAN_LENGTH_SPEED
+#define CAN_LENGTH_SPEED_AND_BRAKE 8
+#define CAN_SPEED_CALIBRATION 96.0
 
 /* Door lock message */
 #define CAN_ID_DOOR_LOCKS 856

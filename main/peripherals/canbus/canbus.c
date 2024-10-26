@@ -20,13 +20,15 @@ void print_can_message(const CanMessage *message) {
     printf("]\n");
 }
 
-void handle_speed_message(State *state, CanMessage *message) {
-    if (message->length != CAN_LENGTH_SPEED) {
+void handle_speed_and_brake_message(State *state, CanMessage *message) {
+    if (message->length != CAN_LENGTH_SPEED_AND_BRAKE) {
         return;
     }
 
     int value = message->data[0] << 8 | message->data[1];
-    state->car.speed = value / 96.0;
+    state->car.speed = value / CAN_SPEED_CALIBRATION;
+
+    state->car.is_braking = message->data[6] & 16;
 }
 
 void handle_rpm_message(State *state, CanMessage *message) {
@@ -35,15 +37,7 @@ void handle_rpm_message(State *state, CanMessage *message) {
     }
 
     state->car.rpm_raw = message->data[0] << 8 | message->data[1];
-    state->car.rpm = state->car.rpm_raw / 7.6188;
-}
-
-void handle_brake_message(State *state, CanMessage *message) {
-    if (message->length != CAN_LENGTH_BRAKE) {
-        return;
-    }
-
-    state->car.is_braking = message->data[6] & 16;
+    state->car.rpm = state->car.rpm_raw / CAN_RPM_CALIBRATION;
 }
 
 void handle_ignition_message(State *state, CanMessage *message) {
@@ -52,6 +46,9 @@ void handle_ignition_message(State *state, CanMessage *message) {
     }
 
     state->car.is_ignition_on = message->data[0] & 2;
+
+    int value = message->data[4] << 8 | message->data[5];
+    state->car.speed = value / CAN_SPEED_CALIBRATION;
 }
 
 void handle_odometer_message(State *state, CanMessage *message) {
@@ -105,8 +102,7 @@ void handle_message(State *state, CanMessage *message) {
             handle_ignition_message(state, message);
             break;
         case CAN_ID_SPEED_AND_BRAKE:
-            handle_speed_message(state, message);
-            handle_brake_message(state, message);
+            handle_speed_and_brake_message(state, message);
             break;
         case CAN_ID_ODOMETER:
             handle_odometer_message(state, message);
@@ -180,6 +176,62 @@ int canbus_send_lock_doors(const State *state, bool lock_doors) {
         }
     };
 
-    print_can_message(&message);
+    return canbus_send(&message);
+}
+
+int canbus_generate_speed_and_brake_message(double speed, bool is_braking, bool is_ignition_on) {
+    int raw_speed = (int) (speed * CAN_SPEED_CALIBRATION);
+    CanMessage message = {
+        .id = CAN_ID_SPEED_AND_BRAKE,
+        .length = CAN_LENGTH_SPEED_AND_BRAKE,
+        .data = {
+            raw_speed >> 8,
+            raw_speed & 0xff,
+            is_ignition_on ? 0xff : 0x00,
+            is_ignition_on ? 0xff : 0x00,
+            0x40,
+            0x00,
+            is_braking ? 0x14 : 0x04,
+            0x00
+        }
+    };
+    return canbus_send(&message);
+}
+
+int canbus_generate_rpm_message(double rpm, double pedal) {
+    int raw_rpm = (int) (rpm * CAN_RPM_CALIBRATION);
+    CanMessage message = {
+        .id = CAN_ID_RPM,
+        .length = CAN_LENGTH_RPM,
+        .data = {
+            raw_rpm >> 8,
+            raw_rpm & 0xff,
+            0x29,
+            (int) (pedal / (224.0 / 255)),
+            pedal > 0 ? 0x50 : 0x4f,
+            0x20,
+            0x00,
+            0x00
+        }
+    };
+    return canbus_send(&message);
+}
+
+int canbus_generate_ignition_message(double speed, bool is_ignition_on) {
+    int raw_speed = (int) (speed * CAN_SPEED_CALIBRATION);
+    CanMessage message = {
+        .id = CAN_ID_IGNITION,
+        .length = CAN_LENGTH_IGNITION,
+        .data = {
+            is_ignition_on ? 0x02 : 0x00,
+            0x00,
+            0x00,
+            0x00,
+            raw_speed >> 8,
+            raw_speed & 0xff,
+            0x00,
+            is_ignition_on ? 0x21 : 0x01,
+        }
+    };
     return canbus_send(&message);
 }
