@@ -65,8 +65,24 @@ int mcp2515_init(bool listen_only) {
 
 int mcp2515_read_message(CanMessage *message) {
     can_frame frame = {};
-    if (mcp2515->readMessage(&frame) != MCP2515::ERROR_OK) {
-        return RESULT_EMPTY;
+    MCP2515::ERROR result = mcp2515->readMessage(&frame);
+
+    if (result == MCP2515::ERROR_NOMSG) return RESULT_EMPTY;
+    if (result != MCP2515::ERROR_OK) {
+        printf("CAN readMessage error = ");
+        switch (result) {
+            case MCP2515::ERROR_FAIL: printf("ERROR_FAIL");
+                break;
+            case MCP2515::ERROR_ALLTXBUSY: printf("ERROR_ALLTX");
+                break;
+            case MCP2515::ERROR_FAILINIT: printf("ERROR_FAILI");
+                break;
+            case MCP2515::ERROR_FAILTX: printf("ERROR_FAILT");
+                break;
+            default: printf("%i", result);
+        }
+        printf("\n");
+        return RESULT_FAILED;
     }
     message->id = frame.can_id;
     message->length = frame.can_dlc;
@@ -76,9 +92,9 @@ int mcp2515_read_message(CanMessage *message) {
 
 int mcp2515_send_message(const CanMessage *message) {
     struct can_frame frame = {
-            .can_id = message->id,
-            .can_dlc = message->length,
-            .data = {0, 0, 0, 0, 0, 0, 0, 0}
+        .can_id = message->id,
+        .can_dlc = message->length,
+        .data = {0, 0, 0, 0, 0, 0, 0, 0}
     };
     memcpy(frame.data, message->data, message->length);
 

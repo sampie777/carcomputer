@@ -126,10 +126,13 @@ void handle_message(State *state, CanMessage *message) {
 void canbus_check_messages(State *state) {
     for (int i = 0; i < 10 && message_available(); i++) {
         CanMessage message = {};
-        if (read_message(&message) != RESULT_OK) {
-            break;
-        }
+        int result = read_message(&message);
+        if (result == RESULT_EMPTY) break;
+        if (result != RESULT_OK) continue;
+
         handle_message(state, &message);
+
+        if (i >= 9) printf("Too much CAN messages to handle.\n");
     }
 }
 
@@ -152,7 +155,7 @@ void canbus_check_controller_connection(State *state) {
     last_check_time = esp_timer_get_time_ms();
 
     uint8_t config3 = mcp2515_get_config3();
-    state->car.is_controller_connected = (config3 >> 3) == 0x10;    // Check certain bits we know will be constant
+    state->car.is_controller_connected = (config3 >> 3) == 0x10; // Check certain bits we know will be constant
 
     if (state->car.is_controller_connected) return;
     canbus_init(state);
@@ -160,19 +163,21 @@ void canbus_check_controller_connection(State *state) {
 
 int canbus_send_lock_doors(const State *state, bool lock_doors) {
     CanMessage message = {
-            .id = CAN_ID_DOOR_LOCKS,
-            .length = CAN_LENGTH_DOOR_LOCKS,
-            .data = {0,
-                     state->car.is_blower_on << CAN_DOOR_LOCKS_BLOWER_BIT,
-                     0,
-                     lock_doors
-                     ? (CAN_DOOR_LOCKS_LOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_LOCK_OTHER_DOORS)
-                     : (CAN_DOOR_LOCKS_UNLOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_UNLOCK_OTHER_DOORS),
-                     1,
-                     (state->car.is_drivers_door_open << CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT)
-                     | (state->car.is_other_doors_open << CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT),
-                     0,
-                     0}
+        .id = CAN_ID_DOOR_LOCKS,
+        .length = CAN_LENGTH_DOOR_LOCKS,
+        .data = {
+            0,
+            state->car.is_blower_on << CAN_DOOR_LOCKS_BLOWER_BIT,
+            0,
+            lock_doors
+                ? (CAN_DOOR_LOCKS_LOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_LOCK_OTHER_DOORS)
+                : (CAN_DOOR_LOCKS_UNLOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_UNLOCK_OTHER_DOORS),
+            1,
+            (state->car.is_drivers_door_open << CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT)
+            | (state->car.is_other_doors_open << CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT),
+            0,
+            0
+        }
     };
 
     print_can_message(&message);
