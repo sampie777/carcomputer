@@ -10,7 +10,7 @@
 
 #define MAIN_TASK_STACK_SIZE 32000
 
-void init(State *state) {
+void init(State* state) {
     adc1_config_width(ADC_RESOLUTION - 9);
     spi_init(state);
     control_init(state);
@@ -20,8 +20,8 @@ void init(State *state) {
     printf("Init done.\n");
 }
 
-void task_process_main(void *args) {
-    State *state = args;
+void task_process_main(void* args) {
+    State* state = args;
 
     // Wait to be started by the main task
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -42,7 +42,7 @@ void task_process_main(void *args) {
         control_car_gear(state);
         control_led_indicator_step(state);
 
-        vTaskDelay(10);
+        vTaskDelay(1);
     }
 
     vTaskDelete(NULL);
@@ -60,7 +60,7 @@ void app_main(void) {
     TaskHandle_t task_process_main_handle;
     BaseType_t result = xTaskCreate(
         task_process_main,
-        "task_process_main",
+        "task_main",
         MAIN_TASK_STACK_SIZE,
         &state,
         1,
