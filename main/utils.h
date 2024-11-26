@@ -38,4 +38,6 @@ double scale(double value, double min, double max);
 
 void debug_state(const State *state);
 
+void wdt_feed(int max_timeout_ms);
+
 #endif //APP_TEMPLATE_UTILS_H

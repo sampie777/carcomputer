@@ -32,6 +32,8 @@ void task_process_main(void* args) {
     debug_state(state);
 
     while (1) {
+        wdt_feed(CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000);
+
         // Collect data
         control_read_can_bus(state);
         control_read_analog_sensors(state);
@@ -41,8 +43,6 @@ void task_process_main(void* args) {
         control_cruise_control(state);
         control_car_gear(state);
         control_led_indicator_step(state);
-
-        vTaskDelay(1);
     }
 
     vTaskDelete(NULL);
@@ -57,15 +57,15 @@ void app_main(void) {
     state.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
     state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
 
-    TaskHandle_t task_process_main_handle;
+    TaskHandle_t task_main_handle;
     BaseType_t result = xTaskCreate(
         task_process_main,
         "task_main",
         MAIN_TASK_STACK_SIZE,
         &state,
         1,
-        &task_process_main_handle);
+        &task_main_handle);
 
     if (result != pdPASS) printf("Task creation failed: %d.\n", result);
-    xTaskNotifyGive(task_process_main_handle);
+    xTaskNotifyGive(task_main_handle);
 }
