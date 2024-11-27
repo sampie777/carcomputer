@@ -38,9 +38,10 @@ void task_process_main(void* args) {
         if (esp_timer_get_time_ms() > last_time + 1000) {
             last_time = esp_timer_get_time_ms();
 
-            printf("gas_pedal: %lf\t", state->car.gas_pedal);
-            printf("volts: %lf\t", state->car.gas_pedal_0_volts);
-            printf("%lf ", state->car.gas_pedal_1_volts);
+            printf("gas: %lf\t", state->car.gas_pedal);
+            printf("%lf / ", state->car.gas_pedal_0_volts);
+            printf("%lf V\t", state->car.gas_pedal_1_volts);
+            printf("speed: %lf / %lf (%lf %%) ", state->car.speed, state->cruise_control.target_speed, state->cruise_control.control_value);
             printf("\n");
         }
 

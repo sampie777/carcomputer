@@ -31,13 +31,23 @@ void cruise_control_apply_pid(State* state) {
     //    }
 
     if (esp_timer_get_time_ms() < last_iteration_time + CRUISE_CONTROL_PID_ITERATION_TIME) return;
-    int64_t iterationTime = esp_timer_get_time_ms() - last_iteration_time;
+    int64_t iteration_time = last_iteration_time == 0
+                                 ? CRUISE_CONTROL_PID_ITERATION_TIME
+                                 : esp_timer_get_time_ms() - last_iteration_time;
     last_iteration_time = esp_timer_get_time_ms();
+
+    // If pedal is still depressed when cruise control is engaged, just keep using the current pedal value,
+    // until the user releases the pedal. Only after that we can switch over to the actual cruise control logic.
+    if (!is_pedal_released_after_init && state->car.gas_pedal > CRUISE_CONTROL_OVERRIDE_PEDAL_MIN) {
+        state->cruise_control.virtual_gas_pedal = state->car.gas_pedal;
+        return;
+    }
+    is_pedal_released_after_init = true;
 
     // Calculate PID
     double error = state->cruise_control.target_speed - state->car.speed;
-    double integral = previous_integral + error * (double)iterationTime;
-    double derivative = (error - previous_error) / (double)iterationTime;
+    double integral = previous_integral + error * (double)iteration_time;
+    double derivative = (error - previous_error) / (double)iteration_time;
     double output = state->cruise_control.initial_control_value
         + state->cruise_control.pidKp * error
         + state->cruise_control.pidKi * integral
@@ -56,23 +66,22 @@ void cruise_control_apply_pid(State* state) {
     previous_error = error;
     previous_integral = integral;
 
-    if (state->car.gas_pedal > 0.1) {
-        if (!is_pedal_released_after_init) return;
-
+    if (state->car.gas_pedal > CRUISE_CONTROL_OVERRIDE_PEDAL_MIN) {
         // Pedal override interaction
         double override_control_value = max(0.0, min(1.0, state->cruise_control.control_value + state->car.gas_pedal));
         state->cruise_control.virtual_gas_pedal = override_control_value;
         return;
     }
-    is_pedal_released_after_init = true;
 
     // Apply PID
     state->cruise_control.control_value = output;
     state->cruise_control.virtual_gas_pedal = state->cruise_control.control_value;
-    // printf("  cc: %lf %%; %lf km/h of %lf km/h\n",
-    //        state->cruise_control.virtual_gas_pedal,
+    // printf("  cc: %lf %%; %lf km/h of %lf km/h; %f; %lld ms\n",
+    //        state->cruise_control.control_value,
     //        state->car.speed,
-    //        state->cruise_control.target_speed);
+    //        state->cruise_control.target_speed,
+    //        error,
+    //        iteration_time);
 }
 
 void cruise_control_step(State* state) {
@@ -102,15 +111,14 @@ void cruise_control_step(State* state) {
     if (state->cruise_control.enabled && state->cruise_control.enabled != cruise_control_was_enabled) {
         state->cruise_control.target_speed = round(state->car.speed);
         state->cruise_control.initial_control_value = state->car.gas_pedal;
-        state->cruise_control.virtual_gas_pedal = min(1.0, max(0.0, state->car.gas_pedal));
+        state->cruise_control.virtual_gas_pedal = 0;
         gas_pedal_enable_time = esp_timer_get_time_ms() + CAR_VIRTUAL_GAS_PEDAL_RISE_TIME_MS;
 
         printf("Cruise control enabled. \n"
                "\tpidKp = %lf; pidKi = %lf; pidKd = %lf\n"
                "\ttarget_speed = %lf\n"
                "\tinitial_control_value = %lf\n"
-               "\tvirtual_gas_pedal = %lf\n"
-               "\t",
+               "\tvirtual_gas_pedal = %lf\n",
                state->cruise_control.pidKp,
                state->cruise_control.pidKi,
                state->cruise_control.pidKd,
