@@ -8,7 +8,8 @@
 #include "control/control.h"
 #include "connectivity/spi.h"
 
-#define MAIN_TASK_STACK_SIZE 32000
+#define PRIMARY_TASK_STACK_SIZE 32000
+#define SECONDARY_TASK_STACK_SIZE 32000
 
 void init(State* state) {
     adc1_config_width(ADC_RESOLUTION - 9);
@@ -22,12 +23,9 @@ void init(State* state) {
     debug_state(state);
 }
 
-void task_process_main(void* args) {
+void task_primary(void* args) {
+    printf("Primary task started on core: %d\n", xPortGetCoreID());
     State* state = args;
-
-    // Wait to be started by the main task
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    printf("Task process started\n");
 
     init(state);
 
@@ -58,6 +56,17 @@ void task_process_main(void* args) {
     vTaskDelete(NULL);
 }
 
+void task_secondary(void* args) {
+    printf("Secondary task started on core: %d\n", xPortGetCoreID());
+    State* state = args;
+
+    while (1) {
+        wdt_feed(CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000);
+    }
+
+    vTaskDelete(NULL);
+}
+
 // Running on main core
 void app_main(void) {
     static State state = {0};
@@ -67,15 +76,21 @@ void app_main(void) {
     state.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
     state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
 
-    TaskHandle_t task_main_handle;
-    BaseType_t result = xTaskCreate(
-        task_process_main,
-        "task_main",
-        MAIN_TASK_STACK_SIZE,
+    xTaskCreatePinnedToCore(
+        task_primary,
+        "task_primary",
+        PRIMARY_TASK_STACK_SIZE,
+        &state,
+        2,
+        NULL,
+        0);
+
+    xTaskCreatePinnedToCore(
+        task_secondary,
+        "task_secondary",
+        SECONDARY_TASK_STACK_SIZE,
         &state,
         1,
-        &task_main_handle);
-
-    if (result != pdPASS) printf("Task creation failed: %d.\n", result);
-    xTaskNotifyGive(task_main_handle);
+        NULL,
+        1);
 }
