@@ -177,9 +177,9 @@ void debug_state(const State *state) {
 }
 
 void wdt_feed(int max_timeout_ms) {
-    static int64_t last_fed = -1 * max_timeout_ms;
+    static int64_t last_fed = 0;
     // Check time against the max timeout minus a safety margin to not make it absolutely last minute
-    if (esp_timer_get_time_ms() < last_fed + max(100, max_timeout_ms - 1000)) return;
+    if (last_fed != 0 && esp_timer_get_time_ms() < last_fed + max(100, max_timeout_ms - 1000)) return;
     last_fed = esp_timer_get_time_ms();
     vTaskDelay(1);
 }
