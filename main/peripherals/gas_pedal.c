@@ -90,7 +90,6 @@ int gas_pedal_read(State *state) {
             return RESULT_DISCONNECTED;
         }
 
-        printf("# ");
         state->car.gas_pedal_0_volts = previous_gas_pedal_0_volts;
         state->car.gas_pedal_1_volts = previous_gas_pedal_1_volts;
         return RESULT_OK;
