@@ -26,6 +26,12 @@ extern "C" {
 #define SPI_CLK_PIN GPIO_NUM_14
 #define SPI_DEFAULT_HOST HSPI_HOST
 
+#define I2C_FREQUENCY_HZ 400000
+#define I2C_TIMEOUT_MS 1000
+#define MAIN_I2C_PORT I2C_NUM_0
+#define MAIN_I2C_SDA_PIN GPIO_NUM_18
+#define MAIN_I2C_SCL_PIN GPIO_NUM_5
+
 #define ADC_RESOLUTION 10
 
 #define CANBUS_INTERRUPT_PIN GPIO_NUM_4
@@ -81,6 +87,17 @@ extern "C" {
 #define BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS 80   // Don't check the button after is has been pressed for this amount of time (ms)
 
 #define LED_PIN GPIO_NUM_5
+
+#define DISPLAY_I2C_PORT I2C_NUM_1
+#define DISPLAY_I2C_SDA_PIN GPIO_NUM_21
+#define DISPLAY_I2C_SCL_PIN GPIO_NUM_19
+#define DISPLAY_I2C_ADDRESS 0x3C
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 64
+#define DISPLAY_UPSIDE_DOWN true
+#define DISPLAY_UPDATE_MIN_INTERVAL 40  // 25 fps
+#define DISPLAY_ERROR_MESSAGE_TIME_MS 4000
+#define DISPLAY_LONG_BLINK_INTERVAL 1000
 
 #ifdef __cplusplus
 }

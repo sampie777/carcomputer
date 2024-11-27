@@ -9,6 +9,18 @@
 #include <stdbool.h>
 
 typedef enum {
+    Screen_Booting = 0,
+    Screen_Rebooting,
+    Screen_Menu,
+    Screen_CruiseControl,
+} Screen;
+
+typedef enum {
+    ScreenMenuOption_CruiseControl,
+    ScreenMenuOption_MAX_VALUE,
+} ScreenMenuOptions;
+
+typedef enum {
     GearNeutral = 0,
     GearReverse,
     Gear1,
@@ -17,6 +29,11 @@ typedef enum {
     Gear4,
     Gear5,
 } CarGearPosition;
+
+typedef struct {
+    Screen current_screen;
+    ScreenMenuOptions menu_option_selection;
+} DisplayState;
 
 typedef struct {
     bool enabled;
@@ -59,13 +76,14 @@ typedef struct {
 } CarState;
 
 typedef struct {
-    CarState car;
-    CruiseControlState cruise_control;
     bool is_booting;
     bool is_rebooting;
     int16_t power_off_count_down_sec;
     uint32_t logging_session_id;
     uint32_t errors;
+    CarState car;
+    CruiseControlState cruise_control;
+    DisplayState display;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H
