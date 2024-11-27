@@ -18,6 +18,8 @@ void init(State* state) {
     state->is_booting = false;
 
     printf("Init done.\n");
+
+    debug_state(state);
 }
 
 void task_process_main(void* args) {
@@ -29,15 +31,11 @@ void task_process_main(void* args) {
 
     init(state);
 
-    debug_state(state);
-
     int64_t last_time = 0;
-    int x = 0;
-    wdt_feed(0);
     while (1) {
         wdt_feed(CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000);
 
-        if (esp_timer_get_time_ms() > last_time + 5000 || x-- > 0) {
+        if (esp_timer_get_time_ms() > last_time + 1000) {
             last_time = esp_timer_get_time_ms();
 
             printf("gas_pedal: %lf\t", state->car.gas_pedal);
