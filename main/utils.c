@@ -26,6 +26,7 @@ void utils_reboot(State *state) {
 
 double average_read_channel(adc1_channel_t channel, int sample_count) {
     double total = 0;
+    sample_count = max(1, sample_count);
     for (int i = 0; i < sample_count; i++) {
         total += adc1_get_raw(channel);
     }
@@ -178,7 +179,7 @@ void debug_state(const State *state) {
 void wdt_feed(int max_timeout_ms) {
     static int64_t last_fed = 0;
     // Check time against the max timeout minus a safety margin to not make it absolutely last minute
-    if (esp_timer_get_time_ms() < last_fed + max(100, max_timeout_ms - 500)) return;
+    if (esp_timer_get_time_ms() < last_fed + max(100, max_timeout_ms - 1000)) return;
     last_fed = esp_timer_get_time_ms();
     vTaskDelay(1);
 }

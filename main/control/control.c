@@ -52,19 +52,6 @@ void control_read_user_input(State *state) {
         case BUTTON_UP:
             printf("Button pressed: BUTTON_UP\n");
             state->cruise_control.enabled = true;
-            printf("Cruise control enabled. \n"
-                   "\tpidKp = %lf; pidKi = %lf; pidKd = %lf\n"
-                   "\ttarget_speed = %lf\n"
-                   "\tinitial_control_value = %lf\n"
-                   "\tvirtual_gas_pedal = %lf\n"
-                   "\t",
-                   state->cruise_control.pidKp,
-                   state->cruise_control.pidKi,
-                   state->cruise_control.pidKd,
-                   state->cruise_control.target_speed,
-                   state->cruise_control.initial_control_value,
-                   state->cruise_control.virtual_gas_pedal
-            );
             break;
         case BUTTON_VOLUME_UP:
             printf("Button pressed: BUTTON_VOLUME_UP\n");

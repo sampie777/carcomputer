@@ -31,8 +31,20 @@ void task_process_main(void* args) {
 
     debug_state(state);
 
+    int64_t last_time = 0;
+    int x = 0;
+    wdt_feed(0);
     while (1) {
         wdt_feed(CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000);
+
+        if (esp_timer_get_time_ms() > last_time + 5000 || x-- > 0) {
+            last_time = esp_timer_get_time_ms();
+
+            printf("gas_pedal: %lf\t", state->car.gas_pedal);
+            printf("volts: %lf\t", state->car.gas_pedal_0_volts);
+            printf("%lf ", state->car.gas_pedal_1_volts);
+            printf("\n");
+        }
 
         // Collect data
         control_read_can_bus(state);

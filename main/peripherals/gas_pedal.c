@@ -77,12 +77,26 @@ int gas_pedal_init_minimums(State *state) {
 }
 
 int gas_pedal_read(State *state) {
+    // If gas pedal reading is faulty, lets retry at least a couple of times before reacting to it.
+    static uint8_t pedal_connection_retries = 0;
+    double previous_gas_pedal_0_volts = state->car.gas_pedal_0_volts;
+    double previous_gas_pedal_1_volts = state->car.gas_pedal_1_volts;
+
     read_pedals(state, 1);
 
     if (!is_pedal_connected(state->car.gas_pedal_0_volts, state->car.gas_pedal_1_volts)) {
-        state->car.gas_pedal_connected = false;
-        return RESULT_DISCONNECTED;
+        if (pedal_connection_retries-- <= 0) {
+            state->car.gas_pedal_connected = false;
+            return RESULT_DISCONNECTED;
+        }
+
+        printf("# ");
+        state->car.gas_pedal_0_volts = previous_gas_pedal_0_volts;
+        state->car.gas_pedal_1_volts = previous_gas_pedal_1_volts;
+        return RESULT_OK;
     }
+
+    pedal_connection_retries = 10;
     state->car.gas_pedal_connected = true;
 
     if (state->car.gas_pedal_0_min_value_volts == 0 && state->car.gas_pedal_1_min_value_volts == 0) {
