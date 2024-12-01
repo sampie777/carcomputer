@@ -129,8 +129,13 @@ void control_read_user_input(State* state) {
         case BUTTON_INFO_LONG_PRESS: printf("Button pressed: BUTTON_INFO_LONG_PRESS\n");
             break;
         case BUTTON_UP_LONG_PRESS: printf("Button pressed: BUTTON_UP_LONG_PRESS\n");
+            if (!state->cruise_control.enabled) return;
+            state->cruise_control.target_speed += 10;
             break;
         case BUTTON_DOWN_LONG_PRESS: printf("Button pressed: BUTTON_DOWN_LONG_PRESS\n");
+            if (!state->cruise_control.enabled) return;
+            state->cruise_control.target_speed -= 10;
+            if (state->cruise_control.target_speed < 0) state->cruise_control.target_speed = 0;
             break;
         default:
             break;
