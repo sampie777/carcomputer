@@ -37,6 +37,7 @@ typedef struct {
 
 typedef struct {
     bool enabled;
+    double previous_target_speed;   // Absolute value in km/h. Used for resetting the CC to the last used target speed after disconnecting or whatever
     double target_speed;            // Absolute value in km/h
     double virtual_gas_pedal;       // Relative value between 0.0 and 1.0
     double initial_control_value;   // Relative value between 0.0 and 1.0

@@ -14,7 +14,7 @@
 #include "../peripherals/gas_pedal.h"
 #include "cruise_control.h"
 
-void control_read_can_bus(State *state) {
+void control_read_can_bus(State* state) {
     canbus_check_controller_connection(state);
     canbus_check_messages(state);
 
@@ -25,7 +25,7 @@ void control_read_can_bus(State *state) {
     }
 }
 
-void control_read_analog_sensors(State *state) {
+void control_read_analog_sensors(State* state) {
     if (gas_pedal_read(state) == RESULT_DISCONNECTED) {
         set_error(state, ERROR_PEDAL_DISCONNECTED);
     }
@@ -37,7 +37,7 @@ typedef enum {
     PidDerivative,
 } PidIncreaseTarget;
 
-void control_read_user_input(State *state) {
+void control_read_user_input(State* state) {
     static int64_t last_read_time = 0;
     static double pid_increase_step = 0.01;
     static PidIncreaseTarget pid_increase_target = PidProportional;
@@ -70,7 +70,6 @@ void control_read_user_input(State *state) {
             }
 
             state->cruise_control.target_speed++;
-            printf("target speed: %lf\n", state->cruise_control.target_speed);
             break;
         case BUTTON_VOLUME_DOWN:
             printf("Button pressed: BUTTON_VOLUME_DOWN\n");
@@ -89,10 +88,7 @@ void control_read_user_input(State *state) {
             }
 
             state->cruise_control.target_speed--;
-            if (state->cruise_control.target_speed < 0) {
-                state->cruise_control.target_speed = 0;
-            }
-            printf("target speed: %lf\n", state->cruise_control.target_speed);
+            if (state->cruise_control.target_speed < 0) state->cruise_control.target_speed = 0;
             break;
         case BUTTON_SOURCE:
             printf("Button pressed: BUTTON_SOURCE\n");
@@ -119,10 +115,16 @@ void control_read_user_input(State *state) {
         case BUTTON_DOWN: printf("Button pressed: BUTTON_DOWN\n");
             break;
         case BUTTON_VOLUME_UP_LONG_PRESS: printf("Button pressed: BUTTON_VOLUME_UP_LONG_PRESS\n");
-            pid_increase_step *= 10;
+            state->cruise_control.target_speed = state->cruise_control.previous_target_speed;
+
+            if (!state->cruise_control.enabled) {
+                pid_increase_step *= 10;
+            }
             break;
         case BUTTON_VOLUME_DOWN_LONG_PRESS: printf("Button pressed: BUTTON_VOLUME_DOWN_LONG_PRESS\n");
-            pid_increase_step *= 0.1;
+            if (!state->cruise_control.enabled) {
+                pid_increase_step *= 0.1;
+            }
             break;
         case BUTTON_INFO_LONG_PRESS: printf("Button pressed: BUTTON_INFO_LONG_PRESS\n");
             break;
@@ -135,7 +137,7 @@ void control_read_user_input(State *state) {
     }
 }
 
-void control_led_indicator_step(State *state) {
+void control_led_indicator_step(State* state) {
     if (state->is_booting) {
         led_blink(1500);
         return;
@@ -152,11 +154,11 @@ void control_led_indicator_step(State *state) {
     led_set(state->cruise_control.enabled);
 }
 
-void control_cruise_control(State *state) {
+void control_cruise_control(State* state) {
     cruise_control_step(state);
 }
 
-void control_init(State *state) {
+void control_init(State* state) {
     gpio_set_direction(POWER_PIN, GPIO_MODE_OUTPUT);
     gpio_set_direction(CAR_ENGINE_SHUTOFF_DISABLE_PIN, GPIO_MODE_OUTPUT);
     gpio_set_direction(CAR_CLAXON_PIN, GPIO_MODE_OUTPUT);
@@ -168,7 +170,7 @@ void control_init(State *state) {
     buttons_init();
 }
 
-CarGearPosition estimate_car_gear(CarState *car) {
+CarGearPosition estimate_car_gear(CarState* car) {
     if (car->is_in_reverse) {
         return GearReverse;
     }
@@ -195,6 +197,6 @@ CarGearPosition estimate_car_gear(CarState *car) {
     }
 }
 
-void control_car_gear(State *state) {
+void control_car_gear(State* state) {
     state->car.estimated_gear = estimate_car_gear(&state->car);
 }

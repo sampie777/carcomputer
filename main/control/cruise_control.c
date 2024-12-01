@@ -46,8 +46,8 @@ void cruise_control_apply_pid(State* state) {
 
     // Calculate PID
     double error = state->cruise_control.target_speed - state->car.speed;
-    double integral = previous_integral + error * (double)iteration_time;
-    double derivative = (error - previous_error) / (double)iteration_time;
+    double integral = previous_integral + error * (double) iteration_time;
+    double derivative = (error - previous_error) / (double) iteration_time;
     double output = state->cruise_control.initial_control_value
         + state->cruise_control.pidKp * error
         + state->cruise_control.pidKi * integral
@@ -57,8 +57,7 @@ void cruise_control_apply_pid(State* state) {
     if (output >= 1.0) {
         output = 1.0;
         integral = previous_integral;
-    }
-    else if (output <= 0.0) {
+    } else if (output <= 0.0) {
         output = 0.0;
         integral = previous_integral;
     }
@@ -88,6 +87,13 @@ void cruise_control_step(State* state) {
     static uint8_t car_was_connected = false;
     static uint8_t cruise_control_was_enabled = false;
     static int64_t gas_pedal_enable_time = 0;
+    static double previous_target_speed = 0; // Uses just to see if the current target speed has been updated
+
+    if (state->cruise_control.target_speed != previous_target_speed) {
+        printf("target speed: %lf\n", state->cruise_control.target_speed);
+        state->cruise_control.previous_target_speed = state->cruise_control.target_speed;
+        previous_target_speed = state->cruise_control.target_speed;
+    }
 
     // Safety checks
     if (!state->car.gas_pedal_connected) {
@@ -100,8 +106,7 @@ void cruise_control_step(State* state) {
             if (state->cruise_control.enabled) printf("Disconnecting cruise control because of braking or high refs\n");
             state->cruise_control.enabled = false;
         }
-    }
-    else if (car_was_connected) {
+    } else if (car_was_connected) {
         if (state->cruise_control.enabled) printf("Disconnecting cruise control because of disconnected car\n");
         state->cruise_control.enabled = false;
     }
@@ -132,8 +137,7 @@ void cruise_control_step(State* state) {
     // Disable or enable gas pedal after pedal output rise time
     if (!state->cruise_control.enabled) {
         gas_pedal_enable(false);
-    }
-    else if (gas_pedal_enable_time == 0 || esp_timer_get_time_ms() > gas_pedal_enable_time) {
+    } else if (gas_pedal_enable_time == 0 || esp_timer_get_time_ms() > gas_pedal_enable_time) {
         gas_pedal_enable(true);
         // Reset time to 0 to prevent bugs when get_time_ms overflows
         gas_pedal_enable_time = 0;
