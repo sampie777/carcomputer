@@ -3,6 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "config.h"
 #include "state.h"
+#include "version.h"
 #include "tasks/task_primary.h"
 #include "tasks/task_secondary.h"
 
@@ -11,6 +12,8 @@
 
 // Setting up the different tasks
 void app_main(void) {
+    printf("APP_VERSION %s\n", APP_VERSION);
+
     static State state = {0};
     state.is_booting = true;
     state.power_off_count_down_sec = -1;
