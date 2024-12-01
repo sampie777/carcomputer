@@ -21,8 +21,8 @@ typedef enum {
 } ScreenMenuOptions;
 
 typedef enum {
-    GearNeutral = 0,
-    GearReverse,
+    GearReverse = -1,
+    GearNeutral,
     Gear1,
     Gear2,
     Gear3,
