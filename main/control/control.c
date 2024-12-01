@@ -115,27 +115,29 @@ void control_read_user_input(State* state) {
         case BUTTON_DOWN: printf("Button pressed: BUTTON_DOWN\n");
             break;
         case BUTTON_VOLUME_UP_LONG_PRESS: printf("Button pressed: BUTTON_VOLUME_UP_LONG_PRESS\n");
-            state->cruise_control.target_speed = state->cruise_control.previous_target_speed;
 
             if (!state->cruise_control.enabled) {
                 pid_increase_step *= 10;
+                return;
             }
+
+            state->cruise_control.target_speed += 10 - 1;
             break;
         case BUTTON_VOLUME_DOWN_LONG_PRESS: printf("Button pressed: BUTTON_VOLUME_DOWN_LONG_PRESS\n");
             if (!state->cruise_control.enabled) {
                 pid_increase_step *= 0.1;
+                return;
             }
+
+            state->cruise_control.target_speed -= 10 - 1;
+            if (state->cruise_control.target_speed < 0) state->cruise_control.target_speed = 0;
             break;
         case BUTTON_INFO_LONG_PRESS: printf("Button pressed: BUTTON_INFO_LONG_PRESS\n");
             break;
         case BUTTON_UP_LONG_PRESS: printf("Button pressed: BUTTON_UP_LONG_PRESS\n");
-            if (!state->cruise_control.enabled) return;
-            state->cruise_control.target_speed += 10;
+            state->cruise_control.target_speed = state->cruise_control.previous_target_speed;
             break;
         case BUTTON_DOWN_LONG_PRESS: printf("Button pressed: BUTTON_DOWN_LONG_PRESS\n");
-            if (!state->cruise_control.enabled) return;
-            state->cruise_control.target_speed -= 10;
-            if (state->cruise_control.target_speed < 0) state->cruise_control.target_speed = 0;
             break;
         default:
             break;
@@ -206,7 +208,7 @@ void control_car_gear(State* state) {
     state->car.estimated_gear = estimate_car_gear(&state->car);
 }
 
-void control_mpu_power(State *state) {
+void control_mpu_power(State* state) {
     static int64_t ignition_off_time = 0;
     if (state->car.is_ignition_on) {
         gpio_set_level(POWER_PIN, 1);

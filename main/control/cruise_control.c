@@ -91,7 +91,6 @@ void cruise_control_step(State* state) {
 
     if (state->cruise_control.target_speed != previous_target_speed) {
         printf("target speed: %lf\n", state->cruise_control.target_speed);
-        state->cruise_control.previous_target_speed = state->cruise_control.target_speed;
         previous_target_speed = state->cruise_control.target_speed;
     }
 
@@ -112,25 +111,29 @@ void cruise_control_step(State* state) {
     }
     car_was_connected = state->car.is_connected;
 
-    // Check if cruise control was just now enabled
-    if (state->cruise_control.enabled && state->cruise_control.enabled != cruise_control_was_enabled) {
-        state->cruise_control.target_speed = round(state->car.speed);
-        state->cruise_control.initial_control_value = state->car.gas_pedal;
-        state->cruise_control.virtual_gas_pedal = 0;
-        gas_pedal_enable_time = esp_timer_get_time_ms() + CAR_VIRTUAL_GAS_PEDAL_RISE_TIME_MS;
+    if (state->cruise_control.enabled != cruise_control_was_enabled) {
+        // Check if cruise control was just now enabled
+        if(state->cruise_control.enabled) {
+            state->cruise_control.target_speed = round(state->car.speed);
+            state->cruise_control.initial_control_value = state->car.gas_pedal;
+            state->cruise_control.virtual_gas_pedal = 0;
+            gas_pedal_enable_time = esp_timer_get_time_ms() + CAR_VIRTUAL_GAS_PEDAL_RISE_TIME_MS;
 
-        printf("Cruise control enabled. \n"
-               "\tpidKp = %lf; pidKi = %lf; pidKd = %lf\n"
-               "\ttarget_speed = %lf\n"
-               "\tinitial_control_value = %lf\n"
-               "\tvirtual_gas_pedal = %lf\n",
-               state->cruise_control.pidKp,
-               state->cruise_control.pidKi,
-               state->cruise_control.pidKd,
-               state->cruise_control.target_speed,
-               state->cruise_control.initial_control_value,
-               state->cruise_control.virtual_gas_pedal
-        );
+            printf("Cruise control enabled. \n"
+                   "\tpidKp = %lf; pidKi = %lf; pidKd = %lf\n"
+                   "\ttarget_speed = %lf\n"
+                   "\tinitial_control_value = %lf\n"
+                   "\tvirtual_gas_pedal = %lf\n",
+                   state->cruise_control.pidKp,
+                   state->cruise_control.pidKi,
+                   state->cruise_control.pidKd,
+                   state->cruise_control.target_speed,
+                   state->cruise_control.initial_control_value,
+                   state->cruise_control.virtual_gas_pedal
+            );
+        } else {
+            state->cruise_control.previous_target_speed = state->cruise_control.target_speed;
+        }
     }
     cruise_control_was_enabled = state->cruise_control.enabled;
 

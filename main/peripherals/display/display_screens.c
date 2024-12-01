@@ -26,7 +26,7 @@ void content_server_registration(State* state, SH1106Config* sh1106) {
 
 void content_cruise_control(State* state, SH1106Config* sh1106) {
     int offset_x = 5;
-    int offset_y = STATUS_BAR_HEIGHT + 17;
+    int offset_y = STATUS_BAR_HEIGHT + 10;
     char buffer[20];
     sprintf(buffer, "%3.0f%s ", state->car.speed, state->cruise_control.enabled ? "/" : " km/h");
     offset_x += sh1106_draw_string(sh1106, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
@@ -36,20 +36,20 @@ void content_cruise_control(State* state, SH1106Config* sh1106) {
         sh1106_draw_string(sh1106, offset_x, offset_y, FONT_LARGE, FONT_WHITE, buffer);
     }
 
-    offset_y += 10 * FONT_LARGE + 4;
+    offset_y += 10 * FONT_LARGE;
     offset_x = 5;
 
     switch (state->car.estimated_gear) {
         case GearNeutral:
-            sprintf(buffer, "N gear");
+            sprintf(buffer, "Gear: N");
             break;
         case GearReverse:
-            sprintf(buffer, "R gear");
+            sprintf(buffer, "Gear: R");
             break;
         default:
-            sprintf(buffer, "%dth gear", state->car.estimated_gear);
+            sprintf(buffer, "Gear: %d", state->car.estimated_gear);
     }
-    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_LARGE, FONT_WHITE, buffer);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     if (!state->cruise_control.enabled) return;
 

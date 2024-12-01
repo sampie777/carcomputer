@@ -19,7 +19,7 @@ extern "C" {
 
 // Detailed feature settings
 #define POWER_OFF_MAX_TIMEOUT_MS 90000
-#define POWER_OFF_MIN_TIMEOUT_MS 3000
+#define POWER_OFF_MIN_TIMEOUT_MS 4000
 #define POWER_PIN GPIO_NUM_23
 
 #define SPI_MOSI_PIN GPIO_NUM_12
@@ -84,8 +84,8 @@ extern "C" {
 #define BUTTONS_READ_INTERVAL_MS 67          // Only read the buttons once very X loops, to decrease the total time this takes
 #define BUTTON_AVERAGE_READ_SAMPLES 5
 #define BUTTON_MIN_PRESS_TIME_MS 80             // Minimum time the button must be pressed for it to register a valid press (ms)
-#define BUTTON_LONG_PRESS_MS 2000
-#define BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS 80   // Don't check the button after is has been pressed for this amount of time (ms)
+#define BUTTON_LONG_PRESS_MS 500
+#define BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS 50   // Don't check the button after is has been pressed for this amount of time (ms)
 
 #define LED_PIN GPIO_NUM_5
 

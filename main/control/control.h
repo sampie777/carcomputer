@@ -25,4 +25,6 @@ void control_car_gear(State *state);
 
 void control_led_indicator_step(State *state);
 
+void control_mpu_power(State *state);
+
 #endif //APP_TEMPLATE_CONTROL_H

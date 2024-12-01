@@ -38,10 +38,9 @@ _Noreturn void task_primary(void* args) {
         if (esp_timer_get_time_ms() > last_time + 1000) {
             last_time = esp_timer_get_time_ms();
 
-            printf("gas: %lf\t", state->car.gas_pedal);
-            printf("%lf / ", state->car.gas_pedal_0_volts);
-            printf("%lf V\t", state->car.gas_pedal_1_volts);
-            printf("speed: %lf / %lf (%lf %%) ", state->car.speed, state->cruise_control.target_speed, state->cruise_control.control_value);
+            printf("ign: %c\t", state->car.is_ignition_on ? 'Y' : 'N');
+            printf("pwr timer: %hd\t", state->power_off_count_down_sec);
+            printf("cc prev: %lf\t", state->cruise_control.previous_target_speed);
             printf("\n");
         }
 
@@ -51,6 +50,7 @@ _Noreturn void task_primary(void* args) {
         control_read_user_input(state);
 
         // Process data
+        control_mpu_power(state);
         control_cruise_control(state);
         control_car_gear(state);
         control_led_indicator_step(state);
