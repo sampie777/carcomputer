@@ -39,8 +39,8 @@ _Noreturn void task_primary(void* args) {
             last_time = esp_timer_get_time_ms();
 
             printf("ign: %c\t", state->car.is_ignition_on ? 'Y' : 'N');
-            printf("pwr timer: %hd\t", state->power_off_count_down_sec);
-            printf("cc prev: %lf\t", state->cruise_control.previous_target_speed);
+            printf("seatbelt: %c\t", state->car.is_seatbelt_on ? 'Y' : 'N');
+            printf("parking brake: %c\t", state->car.is_parking_brake_on ? 'Y' : 'N');
             printf("\n");
         }
 

@@ -74,6 +74,8 @@ typedef struct {
     bool is_other_doors_open;
     bool is_blower_on;
     bool is_locked;
+    bool is_parking_brake_on;
+    bool is_seatbelt_on;
 } CarState;
 
 typedef struct {
