@@ -90,49 +90,48 @@ void content_motion_sensors_data(const State *state, SH1106Config *sh1106) {
     offset_x += 9;
     offset_y = STATUS_BAR_HEIGHT + 5;
 
-    sh1106_draw_string(sh1106, offset_x + 1 * 5, offset_y, FONT_SMALL, FONT_WHITE, "Accel");
+    sh1106_draw_string(sh1106, offset_x + 1 * 5, offset_y, FONT_SMALL, FONT_WHITE, " Accel");
     offset_y += 10;
-    sprintf(buffer, " %7.3f", state->motion.accel_x);
+    sprintf(buffer, "%7.2f", state->motion.accel_x);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    sprintf(buffer, " %7.3f", state->motion.accel_y);
+    sprintf(buffer, "%7.2f", state->motion.accel_y);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    sprintf(buffer, " %7.3f", state->motion.accel_z);
+    sprintf(buffer, "%7.2f", state->motion.accel_z);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-    offset_x += 7 * 5;
-    offset_y += 10;
-
+    offset_x += 7 * 5 + 1;
     offset_y += 12;
+
     sprintf(buffer, "G: %6.2f", sqrt(state->motion.accel_x * state->motion.accel_x + state->motion.accel_y * state->motion.accel_y + state->motion.accel_z * state->motion.accel_z));
     sh1106_draw_string(sh1106, 0, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
-    sprintf(buffer, "Temp: %5.2f", state->motion.temperature);
+    sprintf(buffer, "  Temp:  %5.1f", state->motion.temperature);
     sh1106_draw_string(sh1106, 11 * 5, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y = STATUS_BAR_HEIGHT + 5;
 
-    sh1106_draw_string(sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, "Gyro");
+    sh1106_draw_string(sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, " Gyro");
     offset_y += 10;
-    sprintf(buffer, " %7.2f", state->motion.gyro_x);
+    sprintf(buffer, " %7.1f", state->motion.gyro_x);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    sprintf(buffer, " %7.2f", state->motion.gyro_y);
+    sprintf(buffer, " %7.1f", state->motion.gyro_y);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    sprintf(buffer, " %7.2f", state->motion.gyro_z);
+    sprintf(buffer, " %7.1f", state->motion.gyro_z);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-    offset_x += 7 * 5;
+    offset_x += 7 * 5 + 1;
     offset_y = STATUS_BAR_HEIGHT + 5;
 
-    sh1106_draw_string(sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, "Comp");
+    sh1106_draw_string(sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, " Comp");
     offset_y += 10;
-    sprintf(buffer, " %7.1f", state->motion.compass_x);
+    sprintf(buffer, " %7.0f", state->motion.compass_x);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    sprintf(buffer, " %7.1f", state->motion.compass_y);
+    sprintf(buffer, " %7.0f", state->motion.compass_y);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    sprintf(buffer, " %7.1f", state->motion.compass_z);
+    sprintf(buffer, " %7.0f", state->motion.compass_z);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
