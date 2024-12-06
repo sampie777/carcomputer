@@ -83,9 +83,54 @@ void cruise_control_apply_pid(State* state) {
     //        iteration_time);
 }
 
+void cruise_control_safety_checks(State* state, uint8_t car_was_connected) {
+    static int64_t gear_in_neutral_since_time = -1;
+
+    // Safety checks
+    if (!state->car.gas_pedal_connected) {
+        if (state->cruise_control.enabled) printf("Disconnecting cruise control because of disconnected gas pedal\n");
+        state->cruise_control.enabled = false;
+    }
+
+    if (!state->car.is_connected) {
+        if (car_was_connected) {
+            if (state->cruise_control.enabled) printf("Disconnecting cruise control because of disconnected car\n");
+            state->cruise_control.enabled = false;
+        }
+        return;
+    }
+
+    if (state->car.is_braking) {
+        if (state->cruise_control.enabled) printf("Disconnecting cruise control because of braking\n");
+        state->cruise_control.enabled = false;
+    }
+
+    if (state->car.rpm > CRUISE_CONTROL_MAX_RPM_LIMIT) {
+        if (state->cruise_control.enabled) printf("Disconnecting cruise control because of high refs\n");
+        state->cruise_control.enabled = false;
+    }
+
+    if (state->car.speed > 0 && state->car.estimated_gear == GearNeutral) {
+        // Disconnect CC if the car is out of gear for longer than 600 ms while driving
+        if (gear_in_neutral_since_time < 0) {
+            gear_in_neutral_since_time = esp_timer_get_time_ms();
+        } else if (esp_timer_get_time_ms() > gear_in_neutral_since_time + 600) {
+            if (state->cruise_control.enabled) printf("Disconnecting cruise control because of clutch depressed\n");
+            state->cruise_control.enabled = false;
+        }
+    } else {
+        gear_in_neutral_since_time = -1;
+    }
+
+    if (state->car.speed > 0 && state->car.is_parking_brake_on) {
+        if (state->cruise_control.enabled) printf("Disconnecting cruise control because of parking brake\n");
+        state->cruise_control.enabled = false;
+    }
+}
+
 void cruise_control_step(State* state) {
-    static uint8_t car_was_connected = false;
     static uint8_t cruise_control_was_enabled = false;
+    static uint8_t car_was_connected = false;
     static int64_t gas_pedal_enable_time = 0;
     static double previous_target_speed = 0; // Uses just to see if the current target speed has been updated
 
@@ -94,26 +139,12 @@ void cruise_control_step(State* state) {
         previous_target_speed = state->cruise_control.target_speed;
     }
 
-    // Safety checks
-    if (!state->car.gas_pedal_connected) {
-        if (state->cruise_control.enabled) printf("Disconnecting cruise control because of disconnected gas pedal\n");
-        state->cruise_control.enabled = false;
-    }
-
-    if (state->car.is_connected) {
-        if (state->car.is_braking || state->car.rpm > CRUISE_CONTROL_MAX_RPM_LIMIT) {
-            if (state->cruise_control.enabled) printf("Disconnecting cruise control because of braking or high refs\n");
-            state->cruise_control.enabled = false;
-        }
-    } else if (car_was_connected) {
-        if (state->cruise_control.enabled) printf("Disconnecting cruise control because of disconnected car\n");
-        state->cruise_control.enabled = false;
-    }
+    cruise_control_safety_checks(state, car_was_connected);
     car_was_connected = state->car.is_connected;
 
     if (state->cruise_control.enabled != cruise_control_was_enabled) {
         // Check if cruise control was just now enabled
-        if(state->cruise_control.enabled) {
+        if (state->cruise_control.enabled) {
             state->cruise_control.target_speed = round(state->car.speed);
             state->cruise_control.initial_control_value = state->car.gas_pedal;
             state->cruise_control.virtual_gas_pedal = 0;
