@@ -130,10 +130,10 @@ void control_mpu_power(State* state) {
     long remaining_ms = (long) (ignition_off_time + POWER_OFF_MIN_TIMEOUT_MS - esp_timer_get_time_ms());
     state->power_off_count_down_sec = (int16_t) (remaining_ms / 1000);
 
-    if (esp_timer_get_time_ms() < ignition_off_time + POWER_OFF_MIN_TIMEOUT_MS) return;
+    if (remaining_ms > 0 && esp_timer_get_time_ms() < ignition_off_time + POWER_OFF_MIN_TIMEOUT_MS) return;
 
     gpio_set_level(POWER_PIN, 0);
-    delay_ms(1000);
+    delay_ms(1000); // Don't return to main loop but wait a bit till we die
     ignition_off_time = 0;
 }
 
