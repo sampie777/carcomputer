@@ -8,22 +8,6 @@
 #include "../../utils.h"
 
 
-void content_server_registration(State* state, SH1106Config* sh1106) {
-    int offset_x = 5;
-    int offset_y = STATUS_BAR_HEIGHT + 5;
-
-    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "Please visit:");
-    offset_y += 10;
-
-    char* buffer = "car.sajansen.nl";
-    sh1106_draw_string(sh1106, (int) (sh1106->width - strlen(buffer) * 5) / 2, offset_y, FONT_SMALL, FONT_WHITE,
-                       buffer);
-    offset_y += 14;
-
-    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "Token:");
-    offset_y += 11;
-}
-
 void content_cruise_control(State* state, SH1106Config* sh1106) {
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 10;
@@ -92,6 +76,66 @@ void content_power_off_count_down(State* state, SH1106Config* sh1106) {
                        FONT_SMALL, FONT_BLACK, buffer);
 }
 
+void content_motion_sensors_data(const State *state, SH1106Config *sh1106) {
+    int offset_x = 0;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[20];
+
+    offset_y += 10;
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "x");
+    offset_y += 10;
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "y");
+    offset_y += 10;
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "z");
+    offset_x += 9;
+    offset_y = STATUS_BAR_HEIGHT + 5;
+
+    sh1106_draw_string(sh1106, offset_x + 1 * 5, offset_y, FONT_SMALL, FONT_WHITE, "Accel");
+    offset_y += 10;
+    sprintf(buffer, " %7.3f", state->motion.accel_x);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, " %7.3f", state->motion.accel_y);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, " %7.3f", state->motion.accel_z);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_x += 7 * 5;
+    offset_y += 10;
+
+    offset_y += 12;
+    sprintf(buffer, "G: %6.2f", sqrt(state->motion.accel_x * state->motion.accel_x + state->motion.accel_y * state->motion.accel_y + state->motion.accel_z * state->motion.accel_z));
+    sh1106_draw_string(sh1106, 0, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    sprintf(buffer, "Temp: %5.2f", state->motion.temperature);
+    sh1106_draw_string(sh1106, 11 * 5, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y = STATUS_BAR_HEIGHT + 5;
+
+    sh1106_draw_string(sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, "Gyro");
+    offset_y += 10;
+    sprintf(buffer, " %7.2f", state->motion.gyro_x);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, " %7.2f", state->motion.gyro_y);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, " %7.2f", state->motion.gyro_z);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_x += 7 * 5;
+    offset_y = STATUS_BAR_HEIGHT + 5;
+
+    sh1106_draw_string(sh1106, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, "Comp");
+    offset_y += 10;
+    sprintf(buffer, " %7.1f", state->motion.compass_x);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, " %7.1f", state->motion.compass_y);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, " %7.1f", state->motion.compass_z);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+}
+
 void draw_check_box(SH1106Config* sh1106, int x, int y, int size, bool checked) {
     sh1106_draw_rectangle(sh1106, x, y, size, size);
     if (!checked) return;
@@ -111,6 +155,8 @@ char* content_main_menu_get_option_text(ScreenMenuOptions option_index) {
     switch (option_index) {
         case ScreenMenuOption_CruiseControl:
             return "Cruise control";
+        case ScreenMenuOption_Sensors:
+            return "Sensors";
         default:
             return "";
     }

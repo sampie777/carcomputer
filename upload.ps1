@@ -7,7 +7,7 @@ Set-Content -Path .\main\version.h @"
 
 #endif //CARCOMPUTER_VERSION_H
 "@
-idf.py flash -p COM3
+idf.py flash -p COM7
 if ($?) {
-    idf.py monitor -p COM3
+    idf.py monitor -p COM7
 }

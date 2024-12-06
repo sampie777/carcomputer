@@ -6,6 +6,7 @@
 #include "../config.h"
 #include "control.h"
 #include "../peripherals/canbus/canbus.h"
+#include "../peripherals/mpu9250.h"
 #include "../return_codes.h"
 #include "../peripherals/buttons.h"
 #include "../utils.h"
@@ -29,6 +30,8 @@ void control_read_analog_sensors(State* state) {
     if (gas_pedal_read(state) == RESULT_DISCONNECTED) {
         set_error(state, ERROR_PEDAL_DISCONNECTED);
     }
+
+    mpu9250_read(state);
 }
 
 typedef enum {
@@ -175,6 +178,7 @@ void control_init(State* state) {
     canbus_init(state);
     gas_pedal_init(state, 0);
     buttons_init();
+    mpu9250_init();
 }
 
 CarGearPosition estimate_car_gear(CarState* car) {
@@ -230,4 +234,56 @@ void control_mpu_power(State* state) {
     gpio_set_level(POWER_PIN, 0);
     delay_ms(1000);
     ignition_off_time = 0;
+}
+
+void control_crash_detection(State *state) {
+    static int64_t last_sent = 0;
+    double total_force = sqrt(state->motion.accel_x * state->motion.accel_x + state->motion.accel_y * state->motion.accel_y + state->motion.accel_z * state->motion.accel_z);
+    if (total_force < CRASH_DETECTION_CRASH_MIN_G) return;
+
+    if (esp_timer_get_time_ms() < last_sent + CRASH_DETECTION_CRASH_MAX_DURATION_MS) return;
+    last_sent = esp_timer_get_time_ms();
+
+    printf("[LOG] control_crash_detection crash detected\n");
+
+#ifdef ICE_CONTACT_NUMBER
+    char message[158];   // Max SMS length
+
+    set_error(state, ERROR_CRASH_DETECTED);
+
+    char timestamp[64];
+    Time time = state->location.time.year > 2021 ? state->location.time : state->gsm.time;
+    if (time.year < 2000) {
+        timestamp[0] = '\0';
+    } else {
+        sprintf(timestamp, "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d",
+                time.year,
+                time.month,
+                time.day,
+                time.hours,
+                time.minutes,
+                time.seconds,
+                time.timezone);
+    }
+
+    printf("[LOG] control_crash_detection constructing message\n");
+    sprintf(message, "CRASH! Location: %.5f,%.5f at %s (accuracy: %d%%). Force: %.1f g.",
+            state->location.latitude,
+            state->location.longitude,
+            timestamp,
+            state->location.satellites / 4 * 100,
+            total_force
+    );
+
+    // Loop over all specified numbers and send them
+    char numbers[] = ICE_CONTACT_NUMBER;
+    char *number = strtok(numbers, ";");
+    while (number != NULL) {
+        printf("[LOG] control_crash_detection sending message\n");
+        gsm_send_sms(number, message);
+        number = strtok(NULL, ";");
+    }
+#else
+    set_error(state, ERROR_CRASH_NO_ICE);
+#endif
 }

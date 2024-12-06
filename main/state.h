@@ -13,10 +13,12 @@ typedef enum {
     Screen_Rebooting,
     Screen_Menu,
     Screen_CruiseControl,
+    Screen_Sensors,
 } Screen;
 
 typedef enum {
     ScreenMenuOption_CruiseControl,
+    ScreenMenuOption_Sensors,
     ScreenMenuOption_MAX_VALUE,
 } ScreenMenuOptions;
 
@@ -79,6 +81,20 @@ typedef struct {
 } CarState;
 
 typedef struct {
+    bool connected;
+    double accel_x;
+    double accel_y;
+    double accel_z;
+    double gyro_x;
+    double gyro_y;
+    double gyro_z;
+    double compass_x;
+    double compass_y;
+    double compass_z;
+    double temperature;
+} MotionState;
+
+typedef struct {
     bool is_booting;
     bool is_rebooting;
     int16_t power_off_count_down_sec;
@@ -87,6 +103,7 @@ typedef struct {
     CarState car;
     CruiseControlState cruise_control;
     DisplayState display;
+    MotionState motion;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

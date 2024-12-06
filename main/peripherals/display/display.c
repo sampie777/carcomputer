@@ -35,8 +35,8 @@ void show_error_message(State* state, SH1106Config* sh1106) {
     if (state->errors == 0) return;
 
     // After a timeout to show the previous error, determine the next error to show
-    if (last_error_message_time == 0 || esp_timer_get_time_ms() > last_error_message_time +
-        DISPLAY_ERROR_MESSAGE_TIME_MS) {
+    if (last_error_message_time == 0
+        || esp_timer_get_time_ms() > last_error_message_time + DISPLAY_ERROR_MESSAGE_TIME_MS) {
         // Get first error
         uint32_t new_error = 0;
         for (int i = 0; i < sizeof(state->errors) * 8; i++) {
@@ -144,7 +144,10 @@ void show_screen(State* state, SH1106Config* sh1106) {
             break;
         case Screen_CruiseControl:
             content_cruise_control(state, sh1106);
-            break;
+        break;
+        case Screen_Sensors:
+            content_motion_sensors_data(state, sh1106);
+        break;
     }
 }
 
