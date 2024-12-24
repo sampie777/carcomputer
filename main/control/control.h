@@ -27,4 +27,6 @@ void control_led_indicator_step(State *state);
 
 void control_mpu_power(State *state);
 
+void control_crash_detection(State *state);
+
 #endif //APP_TEMPLATE_CONTROL_H

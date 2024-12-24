@@ -9,15 +9,20 @@
 #include <driver/gpio.h>
 
 void led_init() {
+#ifdef LED_PIN
     gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
     led_set_off();
+#endif
 }
 
 void led_set(bool value) {
+#ifdef LED_PIN
     gpio_set_level(LED_PIN, value ? 1 : 0);
+#endif
 }
 
 void led_blink(unsigned long interval) {
+#ifdef LED_PIN
     static int64_t last_time = 0;
     static bool last_value = false;
 
@@ -27,4 +32,5 @@ void led_blink(unsigned long interval) {
     last_time = esp_timer_get_time_ms();
 
     last_value = !last_value;
+#endif
 }
