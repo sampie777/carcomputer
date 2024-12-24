@@ -51,27 +51,6 @@ void control_buttons_handle(State* state, Button button) {
         case BUTTON_VOLUME_UP:
             printf("Button pressed: BUTTON_VOLUME_UP\n");
             if (state->display.current_screen == Screen_Menu) {
-                state->display.menu_option_selection++;
-                if (state->display.menu_option_selection >= ScreenMenuOption_MAX_VALUE) {
-                    state->display.menu_option_selection = 0;
-                }
-                break;
-            }
-            if (state->display.current_screen == Screen_Actions) {
-                state->display.actions_option_selection++;
-                if (state->display.actions_option_selection >= ScreenActionsOptions_MAX_VALUE) {
-                    state->display.actions_option_selection = 0;
-                }
-                break;
-            }
-
-            if (state->display.current_screen == Screen_CruiseControl) {
-                state->cruise_control.target_speed++;
-            }
-            break;
-        case BUTTON_VOLUME_DOWN:
-            printf("Button pressed: BUTTON_VOLUME_DOWN\n");
-            if (state->display.current_screen == Screen_Menu) {
                 if (state->display.menu_option_selection <= 0) {
                     state->display.menu_option_selection = ScreenMenuOption_MAX_VALUE;
                 }
@@ -83,6 +62,27 @@ void control_buttons_handle(State* state, Button button) {
                     state->display.actions_option_selection = ScreenActionsOptions_MAX_VALUE;
                 }
                 state->display.actions_option_selection--;
+                break;
+            }
+
+            if (state->display.current_screen == Screen_CruiseControl) {
+                state->cruise_control.target_speed++;
+            }
+            break;
+        case BUTTON_VOLUME_DOWN:
+            printf("Button pressed: BUTTON_VOLUME_DOWN\n");
+            if (state->display.current_screen == Screen_Menu) {
+                state->display.menu_option_selection++;
+                if (state->display.menu_option_selection >= ScreenMenuOption_MAX_VALUE) {
+                    state->display.menu_option_selection = 0;
+                }
+                break;
+            }
+            if (state->display.current_screen == Screen_Actions) {
+                state->display.actions_option_selection++;
+                if (state->display.actions_option_selection >= ScreenActionsOptions_MAX_VALUE) {
+                    state->display.actions_option_selection = 0;
+                }
                 break;
             }
 
