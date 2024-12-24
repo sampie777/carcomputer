@@ -14,13 +14,21 @@ typedef enum {
     Screen_Menu,
     Screen_CruiseControl,
     Screen_Sensors,
+    Screen_Actions,
 } Screen;
 
 typedef enum {
     ScreenMenuOption_CruiseControl,
     ScreenMenuOption_Sensors,
+    ScreenMenuOption_Actions,
     ScreenMenuOption_MAX_VALUE,
 } ScreenMenuOptions;
+
+typedef enum {
+    ScreenActionsOptions_LockDoors,
+    ScreenActionsOptions_Reboot,
+    ScreenActionsOptions_MAX_VALUE,
+} ScreenActionsOptions;
 
 typedef enum {
     GearReverse = -1,
@@ -35,6 +43,7 @@ typedef enum {
 typedef struct {
     Screen current_screen;
     ScreenMenuOptions menu_option_selection;
+    ScreenActionsOptions actions_option_selection;
 } DisplayState;
 
 typedef struct {

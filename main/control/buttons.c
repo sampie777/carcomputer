@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include "buttons.h"
 
+#include "../utils.h"
+#include "../peripherals/canbus/canbus.h"
+
 void control_buttons_handle(State* state, Button button) {
     switch (button) {
         case BUTTON_NONE:
@@ -18,6 +21,22 @@ void control_buttons_handle(State* state, Button button) {
                         break;
                     case ScreenMenuOption_Sensors:
                         state->display.current_screen = Screen_Sensors;
+                        break;
+                    case ScreenMenuOption_Actions:
+                        state->display.current_screen = Screen_Actions;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            }
+            if (state->display.current_screen == Screen_Actions) {
+                switch (state->display.actions_option_selection) {
+                    case ScreenActionsOptions_LockDoors:
+                        canbus_send_lock_doors(state, true);
+                        break;
+                    case ScreenActionsOptions_Reboot:
+                        utils_reboot(state);
                         break;
                     default:
                         break;
@@ -38,6 +57,13 @@ void control_buttons_handle(State* state, Button button) {
                 }
                 break;
             }
+            if (state->display.current_screen == Screen_Actions) {
+                state->display.actions_option_selection++;
+                if (state->display.actions_option_selection >= ScreenActionsOptions_MAX_VALUE) {
+                    state->display.actions_option_selection = 0;
+                }
+                break;
+            }
 
             if (state->display.current_screen == Screen_CruiseControl) {
                 state->cruise_control.target_speed++;
@@ -50,6 +76,13 @@ void control_buttons_handle(State* state, Button button) {
                     state->display.menu_option_selection = ScreenMenuOption_MAX_VALUE;
                 }
                 state->display.menu_option_selection--;
+                break;
+            }
+            if (state->display.current_screen == Screen_Actions) {
+                if (state->display.actions_option_selection <= 0) {
+                    state->display.actions_option_selection = ScreenActionsOptions_MAX_VALUE;
+                }
+                state->display.actions_option_selection--;
                 break;
             }
 
@@ -66,9 +99,14 @@ void control_buttons_handle(State* state, Button button) {
                 state->display.menu_option_selection = 0;
                 break;
             }
+            if (state->display.current_screen == Screen_Actions) {
+                state->display.actions_option_selection = 0;
+                break;
+            }
 
             if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl) ||
-                state->display.current_screen == Screen_Sensors) {
+                state->display.current_screen == Screen_Sensors ||
+                state->display.current_screen == Screen_Actions) {
                 state->display.current_screen = Screen_Menu;
             } else if (state->display.current_screen == Screen_CruiseControl) {
                 if (state->cruise_control.enabled) printf("Disconnecting cruise control because of user input\n");

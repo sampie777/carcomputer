@@ -148,6 +148,9 @@ void show_screen(State* state, SH1106Config* sh1106) {
         case Screen_Sensors:
             content_motion_sensors_data(state, sh1106);
         break;
+        case Screen_Actions:
+            content_actions(state, sh1106);
+        break;
     }
 }
 

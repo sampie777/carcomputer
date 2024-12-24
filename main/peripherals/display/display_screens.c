@@ -8,6 +8,21 @@
 #include "../../utils.h"
 
 
+void draw_check_box(SH1106Config* sh1106, int x, int y, int size, bool checked) {
+    sh1106_draw_rectangle(sh1106, x, y, size, size);
+    if (!checked) return;
+    sh1106_draw_filled_rectangle(sh1106, x + 2, y + 2, max(0, size - 2 * 2), max(0, size - 2 * 2));
+}
+
+void content_main_menu_option(SH1106Config* sh1106, int y, int height, const char* text, bool highlighted) {
+    if (highlighted) {
+        sh1106_draw_filled_rectangle(sh1106, 0, y,
+                                     sh1106->width, height);
+    }
+    sh1106_draw_string(sh1106, 5, y + (height - 8) / 2,
+                       FONT_SMALL, highlighted ? FONT_BLACK : FONT_WHITE, text);
+}
+
 void content_cruise_control(State* state, SH1106Config* sh1106) {
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 10;
@@ -135,19 +150,40 @@ void content_motion_sensors_data(const State *state, SH1106Config *sh1106) {
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
-void draw_check_box(SH1106Config* sh1106, int x, int y, int size, bool checked) {
-    sh1106_draw_rectangle(sh1106, x, y, size, size);
-    if (!checked) return;
-    sh1106_draw_filled_rectangle(sh1106, x + 2, y + 2, max(0, size - 2 * 2), max(0, size - 2 * 2));
+char* content_actions_get_option_text(ScreenActionsOptions option_index) {
+    switch (option_index) {
+        case ScreenActionsOptions_LockDoors:
+            return "Lock doors";
+        case ScreenActionsOptions_Reboot:
+            return "Reboot";
+        default:
+            return "";
+    }
 }
 
-void content_main_menu_option(SH1106Config* sh1106, int y, int height, const char* text, bool highlighted) {
-    if (highlighted) {
-        sh1106_draw_filled_rectangle(sh1106, 0, y,
-                                     sh1106->width, height);
+void content_actions(const State *state, SH1106Config *sh1106) {
+    static int options_start_index = 0;
+    const int selection_item_height = 12;
+    const int options_total_height = sh1106->height - STATUS_BAR_HEIGHT - 2;
+    const int total_displayable_options = options_total_height / selection_item_height;
+    char* buffer = NULL;
+
+    // Move window so it fits the selected option
+    if (state->display.actions_option_selection >= options_start_index + total_displayable_options) {
+        // If selection is beyond <start index> + <total amount of displayable options>, increase the <start index>
+        options_start_index = (int) state->display.actions_option_selection - total_displayable_options + 1;
+    } else if (state->display.actions_option_selection < options_start_index) {
+        // If selection is less than the <start index>, decrease the <start index>
+        options_start_index = state->display.actions_option_selection;
     }
-    sh1106_draw_string(sh1106, 5, y + (height - 8) / 2,
-                       FONT_SMALL, highlighted ? FONT_BLACK : FONT_WHITE, text);
+
+    // Iterate up to options size, in order to force text overflow at the bottom of the display
+    for (int i = 0; i <= total_displayable_options; i++) {
+        int y = STATUS_BAR_HEIGHT + 2 + i * selection_item_height;
+        buffer = content_actions_get_option_text(options_start_index + i);
+        content_main_menu_option(sh1106, y, selection_item_height, buffer,
+                                 state->display.actions_option_selection == options_start_index + i);
+    }
 }
 
 char* content_main_menu_get_option_text(ScreenMenuOptions option_index) {
@@ -156,6 +192,8 @@ char* content_main_menu_get_option_text(ScreenMenuOptions option_index) {
             return "Cruise control";
         case ScreenMenuOption_Sensors:
             return "Sensors";
+        case ScreenMenuOption_Actions:
+            return "Actions";
         default:
             return "";
     }

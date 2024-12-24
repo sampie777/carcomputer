@@ -185,7 +185,11 @@ int canbus_send_lock_doors(const State* state, bool lock_doors) {
             }
         };
 
-    return canbus_send(&message);
+    printf("Locking doors... ");
+    int result = canbus_send(&message);
+    if (result !=RESULT_OK) printf("failed");
+    printf("\n");
+    return result;
 }
 
 int canbus_generate_speed_and_brake_message(double speed, bool is_braking, bool is_ignition_on) {
