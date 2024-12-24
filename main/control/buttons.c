@@ -100,6 +100,7 @@ void control_buttons_handle(State* state, Button button) {
                 break;
             }
             if (state->display.current_screen == Screen_Actions) {
+                state->display.current_screen = Screen_Menu;
                 state->display.actions_option_selection = 0;
                 break;
             }
