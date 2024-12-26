@@ -109,6 +109,9 @@ extern "C" {
 #define CRASH_DETECTION_CRASH_MIN_G 30
 #define CRASH_DETECTION_CRASH_MAX_DURATION_MS 30000
 
+#define SD_CHIP_SELECT_PIN GPIO_NUM_15
+#define DATA_LOGGER_LOG_INTERVAL_MS 500
+
 #ifdef __cplusplus
 }
 #endif

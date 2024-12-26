@@ -104,15 +104,22 @@ typedef struct {
 } MotionState;
 
 typedef struct {
+    bool is_connected;
+    char filename[32];
+} SDState;
+
+typedef struct {
     bool is_booting;
     bool is_rebooting;
     int16_t power_off_count_down_sec;
     uint32_t logging_session_id;
     uint32_t errors;
+    char *device_name;
     CarState car;
     CruiseControlState cruise_control;
     DisplayState display;
     MotionState motion;
+    SDState storage;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

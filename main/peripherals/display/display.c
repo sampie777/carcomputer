@@ -106,6 +106,12 @@ void show_statusbar(State* state, SH1106Config* sh1106) {
 
     int offset_right = sh1106->width + 1;
 
+    offset_right -= 3 + icon_sd_width;
+    if (state->storage.is_connected) {
+        sh1106_draw_icon(sh1106, offset_right, 1,
+                         icon_sd, sizeof(icon_sd), icon_sd_width, FONT_WHITE);
+    }
+
     offset_right -= 3 + icon_car_width;
     if (state->car.is_connected || (long_blink_state && state->car.is_controller_connected)) {
         sh1106_draw_icon(sh1106, offset_right, 1,

@@ -10,6 +10,7 @@
 #include "../connectivity/i2c.h"
 #include "../control/control.h"
 #include "../connectivity/spi.h"
+#include "../control/data_logger.h"
 #include "task_primary.h"
 
 void init(State* state) {
@@ -17,6 +18,7 @@ void init(State* state) {
     i2c_init();
     spi_init(state);
     control_init(state);
+    data_logger_init(state);
 
     state->is_booting = false;
 
@@ -54,6 +56,7 @@ _Noreturn void task_primary(void* args) {
         control_cruise_control(state);
         control_car_gear(state);
         control_led_indicator_step(state);
+        data_logger_process(state);
     }
 
     vTaskDelete(NULL);
