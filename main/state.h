@@ -5,8 +5,9 @@
 #ifndef APP_TEMPLATE_STATE_H
 #define APP_TEMPLATE_STATE_H
 
-#include <stdint.h>
+#include <esp_http_client.h>
 #include <stdbool.h>
+#include "peripherals/gpsgsm/definitions.h"
 
 typedef enum {
     Screen_Booting = 0,
@@ -108,6 +109,41 @@ typedef struct {
     char filename[32];
 } SDState;
 
+
+typedef struct {
+    uint8_t seconds;
+    uint8_t minutes;
+    uint8_t hours;
+    int8_t timezone;
+    uint8_t day;
+    uint8_t month;
+    uint16_t year;
+} Time;
+
+typedef struct {
+    bool is_gps_on;
+    uint8_t quality;
+    uint8_t satellites;
+    bool is_effective_positioning;
+    double latitude;
+    double longitude;
+    double altitude;        // m
+    double ground_speed;    // km/h
+    double ground_heading;
+
+    Time time;
+    int64_t gngga_last_updated;
+    int64_t gnrmc_last_updated;
+} GpsState;
+
+typedef struct {
+    bool is_uploading;
+    esp_http_client_method_t request_type;
+    int64_t upload_start_time;
+
+    Time time;
+} GsmState;
+
 typedef struct {
     bool is_booting;
     bool is_rebooting;
@@ -120,6 +156,9 @@ typedef struct {
     DisplayState display;
     MotionState motion;
     SDState storage;
+    GpsState location;
+    GsmState gsm;
+    A9GState a9g;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H
