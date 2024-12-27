@@ -118,6 +118,12 @@ void show_statusbar(State* state, SH1106Config* sh1106) {
                          icon_car, sizeof(icon_car), icon_car_width, FONT_WHITE);
     }
 
+    offset_right -= 3 + icon_location_width;
+    if (state->location.quality > 0 || (long_blink_state && state->location.is_gps_on)) {
+        sh1106_draw_icon(sh1106, offset_right, 1,
+                         icon_location, sizeof(icon_location), icon_location_width, FONT_WHITE);
+    }
+
     sh1106_draw_horizontal_line(sh1106, 0, STATUS_BAR_HEIGHT, sh1106->width);
 }
 
@@ -156,6 +162,9 @@ void show_screen(State* state, SH1106Config* sh1106) {
         break;
         case Screen_Actions:
             content_actions(state, sh1106);
+        break;
+        case Screen_GPS:
+            content_location_data(state, sh1106);
         break;
     }
 }

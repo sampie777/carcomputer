@@ -16,11 +16,14 @@ typedef enum {
     Screen_CruiseControl,
     Screen_Sensors,
     Screen_Actions,
+    Screen_GPS,
 } Screen;
 
+// This also deterimines the order in which the options are shown on the display
 typedef enum {
     ScreenMenuOption_CruiseControl,
     ScreenMenuOption_Sensors,
+    ScreenMenuOption_GPS,
     ScreenMenuOption_Actions,
     ScreenMenuOption_MAX_VALUE,
 } ScreenMenuOptions;

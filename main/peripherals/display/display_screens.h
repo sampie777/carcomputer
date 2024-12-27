@@ -16,6 +16,8 @@ void content_motion_sensors_data(const State *state, SH1106Config *sh1106);
 
 void content_actions(const State *state, SH1106Config *sh1106);
 
+void content_location_data(const State *state, SH1106Config *sh1106);
+
 void content_main_menu(const State *state, SH1106Config *sh1106);
 
 #endif //CARCOMPUTER_DISPLAY_SCREENS_H

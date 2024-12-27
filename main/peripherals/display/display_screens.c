@@ -186,6 +186,56 @@ void content_actions(const State *state, SH1106Config *sh1106) {
     }
 }
 
+void content_location_data(const State *state, SH1106Config *sh1106) {
+    int offset_x = 0;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[32];
+
+    if (!state->a9g.gps_logging_started) {
+        if (state->a9g.gps_logging_enabled) {
+            sprintf(buffer, "Waiting for GPS logs...");
+        } else if (state->a9g.agps_enabled) {
+            sprintf(buffer, "Enabling GPS logging...");
+        } else if (state->a9g.pnp_activated) {
+            sprintf(buffer, "Enabling GPS...");
+        } else if (state->a9g.pnp_parameters_set) {
+            sprintf(buffer, "Activating PNP...");
+        } else if (state->a9g.network_attached) {
+            sprintf(buffer, "Setting PNP parameters...");
+        } else if (state->a9g.initialized) {
+            sprintf(buffer, "Attaching to network...");
+        } else {
+            sprintf(buffer, "GPS module booting...");
+        }
+        sh1106_draw_string(sh1106, 1, offset_y + 5, FONT_SMALL, FONT_WHITE, buffer);
+        return;
+    }
+
+    sprintf(buffer, "%d:%02d:%02d    %d-%02d-%04d",
+            state->location.time.hours,
+            state->location.time.minutes,
+            state->location.time.seconds,
+            state->location.time.day,
+            state->location.time.month,
+            state->location.time.year
+    );
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+
+    sprintf(buffer, "%.5lf, %.5lf", state->location.latitude, state->location.longitude);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, "Q:%d S:%d E:%d A:%.0lf",
+            state->location.quality,
+            state->location.satellites,
+            state->location.is_effective_positioning,
+            state->location.altitude);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, "%6.2lf km/h @ %6.1lf*", state->location.ground_speed, state->location.ground_heading);
+    sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+}
+
 char* content_main_menu_get_option_text(ScreenMenuOptions option_index) {
     switch (option_index) {
         case ScreenMenuOption_CruiseControl:
@@ -194,6 +244,8 @@ char* content_main_menu_get_option_text(ScreenMenuOptions option_index) {
             return "Sensors";
         case ScreenMenuOption_Actions:
             return "Actions";
+        case ScreenMenuOption_GPS:
+            return "GPS";
         default:
             return "";
     }
