@@ -7,6 +7,10 @@
 
 #include "../../state.h"
 
+#define A9G_UART_BUFFER_SIZE (1024)
+
+extern QueueHandle_t uart_queue;
+
 void gpsgsm_init(A9GState *a9g_state);
 
 void gpsgsm_process(State *state);

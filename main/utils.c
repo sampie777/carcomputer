@@ -64,6 +64,32 @@ void string_char_remove(char** source, char needle) {
     free(out);
 }
 
+void string_strip_char(char** input, const char needle) {
+    int length = strlen(*input);
+
+    // Strip all trailing \n character from last_message:
+    for (int j = length - 1; j >= 0; j--) {
+        if ((*input)[j] == needle) {
+            (*input)[j] = '\0';
+        } else {
+            break;
+        }
+    }
+
+    // Strip all preceding \n characters from last_message:
+    for (int j = 0; j < length; j++) {
+        if ((*input)[j] == needle) {
+            for (int k = j; k < length; k++) {
+                (*input)[k] = (*input)[k + 1];
+            }
+            length--;
+            (*input)[length] = '\0';
+        } else {
+            break;
+        }
+    }
+}
+
 void string_escape(const char* input, char** destination) {
     size_t escaped_size = 0;
     size_t input_size = strlen(input);

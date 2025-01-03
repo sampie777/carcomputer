@@ -22,6 +22,8 @@ static enum A9GCommand last_command_send = A9GCommand_Skip;
 static char *http_request_url = NULL;
 static char *http_request_body = NULL;
 
+QueueHandle_t uart_queue;
+
 // static void (*http_request_callback)(State *state, const HttpResponseMessage *response) = NULL;
 
 void process_gngga_message(State *state, const char *message) {
@@ -532,11 +534,10 @@ void gpsgsm_init(A9GState *a9g_state) {
     ESP_ERROR_CHECK(uart_set_pin(GPSGSM_UART_NUMBER, GPSGSM_UART_TX_PIN, GPSGSM_UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
 
     // Setup UART buffered IO with event queue
-    const int uart_buffer_size = (1024 * 2);
-    QueueHandle_t uart_queue;
     // Install UART driver using an event queue here
-    ESP_ERROR_CHECK(uart_driver_install(GPSGSM_UART_NUMBER, uart_buffer_size, \
-                                        uart_buffer_size, 10, &uart_queue, 0));
+    // Multiplying the BUF_SIZE by a factor of 2 in the uart_driver_install function call is done to allocate a larger buffer for both the transmit and receive buffers. This helps to ensure that there is enough space to handle the data being transmitted and received, reducing the risk of buffer overflows and data loss, especially when dealing with high data rates or large amounts of data.
+    ESP_ERROR_CHECK(uart_driver_install(GPSGSM_UART_NUMBER, A9G_UART_BUFFER_SIZE * 2, \
+                                        A9G_UART_BUFFER_SIZE * 2, 10, &uart_queue, 0));
 
     a9g_state->initialized = A9Status_Requested;
     printf("[GPS] Init done\n");

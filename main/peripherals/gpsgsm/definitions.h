@@ -7,17 +7,20 @@
 
 #include <stdbool.h>
 
-#define A9G_CGATT_DISABLE "AT+CGATT=0\r"
-#define A9G_CGATT_ENABLE "AT+CGATT=1\r"
-#define A9G_CGDCONT_DISABLE "AT+CGDCONT=0\r"
-#define A9G_CGDCONT_ENABLE "AT+CGDCONT=1,\"IP\",\"internet\",\"0.0.0.0\",0,0\r"
-#define A9G_CGACT_PNP_DISABLE "AT+CGACT=0\r"
-#define A9G_CGACT_PNP_ENABLE "AT+CGACT=1,1\r"
-#define A9G_AGPS_DISABLE "AT+AGPS=0\r"
-#define A9G_AGPS_ENABLE "AT+AGPS=1\r"
-#define A9G_GPSRD_ENABLE "AT+GPSRD=1\r"
-#define A9G_GET_SIGNAL_QUALITY "AT+CSQ\r"
-#define A9G_RESET "AT+RST=1\r"
+#define A9G_INIT "Init..."
+#define A9G_CGATT_DISABLE "AT+CGATT=0"
+#define A9G_CGATT_ENABLE "AT+CGATT=1"
+#define A9G_CGDCONT_DISABLE "AT+CGDCONT=0"
+#define A9G_CGDCONT_ENABLE "AT+CGDCONT=1,\"IP\",\"internet\",\"0.0.0.0\",0,0"
+#define A9G_CGACT_PNP_DISABLE "AT+CGACT=0"
+#define A9G_CGACT_PNP_ENABLE "AT+CGACT=1,1"
+#define A9G_AGPS_DISABLE "AT+AGPS=0"
+#define A9G_AGPS_ENABLE "AT+AGPS=1"
+#define A9G_GPS_ENABLE "AT+GPS=1"
+#define A9G_GPS_DISABLE "AT+GPS=0"
+#define A9G_GPSRD_ENABLE "AT+GPSRD=1"
+#define A9G_GET_SIGNAL_QUALITY "AT+CSQ"
+#define A9G_RESET "AT+RST=1"
 
 typedef struct {
     double timestamp;
