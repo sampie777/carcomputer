@@ -90,82 +90,33 @@ void process_ctzv_message(State *state, const char *message) {
     );
 }
 
-void transmit(const char *data, uint8_t with_break) {
-    if (with_break) {
-        uart_write_bytes_with_break(GPSGSM_UART_NUMBER, data, strlen(data), 50);
-    } else {
-        uart_write_bytes(GPSGSM_UART_NUMBER, data, strlen(data));
-    }
-}
-
-/**
- * Send the data string in smaller pieces at a time to reduce risk for lengthy transfers
- * @param data
- * @param max_transfer_size
- */
-void transmit_safe(const char *data, size_t max_transfer_size, uint8_t with_break) {
-    size_t length = strlen(data);
-    for (size_t i = 0; i < length; i += max_transfer_size) {
-        if (with_break && i + max_transfer_size > length) {
-            uart_write_bytes_with_break(GPSGSM_UART_NUMBER, &data[i], min(max_transfer_size, length - i), 50);
-        } else {
-            uart_write_bytes(GPSGSM_UART_NUMBER, &data[i], min(max_transfer_size, length - i));
-        }
-    }
-}
-
 void send_command(A9GState *a9g_state, enum A9GCommand command) {
     last_command_send = command;
     switch (command) {
         case A9GCommand_CGATT_Disable:
             printf("[GSM] Detach to network\n");
-            transmit(A9G_CGATT_DISABLE, true);
+            // transmit(A9G_CGATT_DISABLE, true);
             a9g_state->network_attached = A9Status_Disabled;
-            break;
-        case A9GCommand_CGATT_Enable:
-            printf("[GSM] Attach to network\n");
-            transmit(A9G_CGATT_ENABLE, true);
-            a9g_state->network_attached = A9Status_Requested;
             break;
         case A9GCommand_CGACT_PNP_Disable:
             printf("[GSM] De-activate PNP\n");
-            transmit(A9G_CGACT_PNP_DISABLE, true);
+            // transmit(A9G_CGACT_PNP_DISABLE, true);
             a9g_state->pnp_activated = A9Status_Disabled;
-            break;
-        case A9GCommand_CGACT_PNP_Enable:
-            printf("[GSM] Activate PNP\n");
-            transmit(A9G_CGACT_PNP_ENABLE, true);
-            a9g_state->pnp_activated = A9Status_Requested;
             break;
         case A9GCommand_CGDCONT_Disable:
             printf("[GSM] Unset PNP parameters\n");
-            transmit(A9G_CGDCONT_DISABLE, true);
+            // transmit(A9G_CGDCONT_DISABLE, true);
             a9g_state->pnp_parameters_set = A9Status_Disabled;
-            break;
-        case A9GCommand_CGDCONT_Enable:
-            printf("[GSM] Set PNP parameters\n");
-            transmit(A9G_CGDCONT_ENABLE, true);
-            a9g_state->pnp_parameters_set = A9Status_Requested;
             break;
         case A9GCommand_AGPS_Disable:
             printf("[GPS] Disable AGPS\n");
-            transmit(A9G_AGPS_DISABLE, true);
-            a9g_state->agps_enabled = A9Status_Requested;
-            break;
-        case A9GCommand_AGPS_Enable:
-            printf("[GPS] Enable AGPS\n");
-            transmit(A9G_AGPS_ENABLE, true);
+            // transmit(A9G_AGPS_DISABLE, true);
             a9g_state->agps_enabled = A9Status_Requested;
             break;
         case A9GCommand_GPSRD_Enable:
             printf("[GPS] Enable GPS logging\n");
-            transmit(A9G_GPSRD_ENABLE, true);
+            // transmit(A9G_GPSRD_ENABLE, true);
             a9g_state->gps_logging_enabled = A9Status_Requested;
-            break;
-        case A9GCommand_Reset_Software:
-            printf("[GPS] Reset A9G chip\n");
-            transmit(A9G_RESET, true);
-            a9g_state_reset(a9g_state);
             break;
         default:
             break;
@@ -292,13 +243,8 @@ void process_message(State *state, const char *message) {
     }
 
     if (strstr(stripped_message, "$GNGGA") != NULL) {
-        state->a9g.gps_logging_started = true;
-        state->a9g.gps_logging_enabled = A9Status_Ok;
-        process_gngga_message(state, stripped_message);
     } else if (strstr(stripped_message, "$GNRMC") != NULL) {
-        process_gnrmc_message(state, stripped_message);
     } else if (starts_with(stripped_message, "+CTZV:")) {
-        process_ctzv_message(state, stripped_message);
     } else if (strcmp(stripped_message, "failure, pelase check your network or certificate!") == 0) {
         state->a9g.network_error_count++;
 
@@ -313,51 +259,6 @@ void process_message(State *state, const char *message) {
     free(stripped_message);
 }
 
-void read_messages(State *state) {
-    static char *last_message = NULL;
-    static int last_message_index = 0;
-    static bool line_end_new_line_removed = false;
-
-    // Initialize static pointer
-    if (last_message == NULL) {
-        last_message = malloc(MESSAGE_MAX_LENGTH);
-    }
-
-    // Read data from UART.
-    int length = 0;
-    ESP_ERROR_CHECK(uart_get_buffered_data_len(GPSGSM_UART_NUMBER, (size_t *) &length));
-    if (length == 0) {
-        return;
-    }
-
-    char data[MESSAGE_MAX_LENGTH];
-    length = uart_read_bytes(GPSGSM_UART_NUMBER, data, min(length, MESSAGE_MAX_LENGTH), 100);
-
-    for (int i = 0; i < length; i++) {
-        if (last_message_index >= MESSAGE_MAX_LENGTH) {
-            printf("[GPS] Max message length reached\n");
-            last_message[MESSAGE_MAX_LENGTH - 1] = '\0';
-            process_message(state, last_message);
-            last_message_index = 0;
-            continue;
-        }
-
-        if (data[i] == '\n' && !line_end_new_line_removed) {
-            line_end_new_line_removed = true;
-            continue;
-        }
-
-        if (data[i] == '\r') {
-            last_message[last_message_index] = '\0';
-            process_message(state, last_message);
-            last_message_index = 0;
-            line_end_new_line_removed = false;
-            continue;
-        }
-
-        last_message[last_message_index++] = data[i];
-    }
-}
 
 void proceed_device_init(State *state) {
     static int64_t state_start_time = 0;
@@ -452,72 +353,48 @@ void gpsgsm_process(State *state) {
 
     proceed_device_init(state);
 
-    if (sms_state == Sending) {
-        if (sms_sent_time == 0) {
-            sms_sent_time = esp_timer_get_time_ms();
-        } else if (esp_timer_get_time_ms() > sms_sent_time + GPSGSM_SMS_SENT_MAX_TIMEOUT_MS) {
-            sms_state = SentFailed;
-        }
-    } else if (sms_state == SentSuccess) {
-        sms_state = Idle;
-        sms_sent_time = 0;
-    } else if (sms_state == SentFailed) {
-        set_error(state, ERROR_SMS_FAILED);
-        sms_state = Idle;
-        sms_sent_time = 0;
-    }
+    // if (sms_state == Sending) {
+    //     if (sms_sent_time == 0) {
+    //         sms_sent_time = esp_timer_get_time_ms();
+    //     } else if (esp_timer_get_time_ms() > sms_sent_time + GPSGSM_SMS_SENT_MAX_TIMEOUT_MS) {
+    //         sms_state = SentFailed;
+    //     }
+    // } else if (sms_state == SentSuccess) {
+    //     sms_state = Idle;
+    //     sms_sent_time = 0;
+    // } else if (sms_state == SentFailed) {
+    //     set_error(state, ERROR_SMS_FAILED);
+    //     sms_state = Idle;
+    //     sms_sent_time = 0;
+    // }
 
-    read_messages(state);
+    // if (state->gsm.is_uploading && esp_timer_get_time_ms() > state->gsm.upload_start_time + 5000) {
+    //     // Send data to the server
+    //     switch (state->gsm.request_type) {
+    //         case HTTP_METHOD_GET:
+    //             transmit("AT+HTTPGET=\"", false);
+    //             transmit_safe(http_request_url, 8, false);
+    //             transmit("\"\r", true);
+    //             break;
+    //         case HTTP_METHOD_POST: {
+    //             transmit("AT+HTTPPOST=\"", false);
+    //             transmit_safe(http_request_url, 8, false);
+    //             transmit("\",\"application/json\",\"", false);
+    //             transmit_safe(http_request_body, 8, false);
+    //             transmit("\"\r", true);
+    //             break;
+    //         }
+    //         default:
+    //             printf("[GSM] Unhandled HTTP request type: %d\n", state->gsm.request_type);
+    //     }
+    //
+    //     if (http_request_url != NULL) free(http_request_url);
+    //     http_request_url = NULL;
+    //     if (http_request_body != NULL) free(http_request_body);
+    //     http_request_body = NULL;
+    //     state->gsm.is_uploading = false;
+    // }
 
-    state->location.is_gps_on = state->a9g.gps_logging_started;
-
-    if (state->gsm.is_uploading && esp_timer_get_time_ms() > state->gsm.upload_start_time + 5000) {
-        // Send data to the server
-        switch (state->gsm.request_type) {
-            case HTTP_METHOD_GET:
-                transmit("AT+HTTPGET=\"", false);
-                transmit_safe(http_request_url, 8, false);
-                transmit("\"\r", true);
-                break;
-            case HTTP_METHOD_POST: {
-                transmit("AT+HTTPPOST=\"", false);
-                transmit_safe(http_request_url, 8, false);
-                transmit("\",\"application/json\",\"", false);
-                transmit_safe(http_request_body, 8, false);
-                transmit("\"\r", true);
-                break;
-            }
-            default:
-                printf("[GSM] Unhandled HTTP request type: %d\n", state->gsm.request_type);
-        }
-
-        if (http_request_url != NULL) free(http_request_url);
-        http_request_url = NULL;
-        if (http_request_body != NULL) free(http_request_body);
-        http_request_body = NULL;
-        state->gsm.is_uploading = false;
-    }
-
-    update_time(state);
-
-    // Reset location data after it becomes invalid (expires)
-    if (esp_timer_get_time_ms() > state->location.gngga_last_updated + GPSGSM_LOCATION_MAX_VALID_TIME_MS) {
-        state->location.latitude = 0;
-        state->location.longitude = 0;
-        state->location.altitude = 0;
-        state->location.quality = 0;
-        state->location.satellites = 0;
-
-        state->location.time.minutes = 0;
-        state->location.time.seconds = 0;
-        state->location.time.hours = 0;
-    }
-
-    if (esp_timer_get_time_ms() > state->location.gnrmc_last_updated + GPSGSM_LOCATION_MAX_VALID_TIME_MS) {
-        state->location.is_effective_positioning = false;
-        state->location.ground_speed = 0;
-        state->location.ground_heading = 0;
-    }
 }
 
 void gpsgsm_init(A9GState *a9g_state) {
@@ -546,29 +423,29 @@ void gpsgsm_init(A9GState *a9g_state) {
     printf("[GPS] Init done\n");
 }
 
-void gsm_send_sms(const char *number, const char *message) {
-    printf("[GSM] Sending SMS to %s with content: '%s'\n", number, message);
-
-    char buffer[32];
-    // Enable text mode
-    transmit("AT+CMGF=1\r", true);
-    delay_ms(100);
-
-    // Start SMS to number
-    sprintf(buffer, "AT+CMGS=%s\r", number);
-    transmit(buffer, true);
-    delay_ms(500);
-
-    // Insert SMS message
-    transmit_safe(message, 8, false);
-    transmit("\r", true);
-    delay_ms(500);
-
-    // Send SMS
-    sprintf(buffer, "%c\r", 0x1a);
-    transmit(buffer, true);
-    sms_state = Sending;
-}
+// void gsm_send_sms(const char *number, const char *message) {
+//     printf("[GSM] Sending SMS to %s with content: '%s'\n", number, message);
+//
+//     char buffer[32];
+//     // Enable text mode
+//     transmit("AT+CMGF=1\r", true);
+//     delay_ms(100);
+//
+//     // Start SMS to number
+//     sprintf(buffer, "AT+CMGS=%s\r", number);
+//     transmit(buffer, true);
+//     delay_ms(500);
+//
+//     // Insert SMS message
+//     transmit_safe(message, 8, false);
+//     transmit("\r", true);
+//     delay_ms(500);
+//
+//     // Send SMS
+//     sprintf(buffer, "%c\r", 0x1a);
+//     transmit(buffer, true);
+//     sms_state = Sending;
+// }
 
 // void gsm_http_get(State *state, const char *url, void (*callback)(State *state, const HttpResponseMessage *response)) {
 //     printf("[GSM] HTTP GET request to %s\n", url);

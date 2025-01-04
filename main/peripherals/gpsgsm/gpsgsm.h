@@ -20,6 +20,7 @@ void gsm_send_sms(const char* number, const char* message);
 void process_gngga_message(State* state, const char* message);
 void process_gnrmc_message(State* state, const char* message);
 void process_ctzv_message(State* state, const char* message);
+void update_time(State *state);
 
 // void gsm_http_get(State *state, const char *url, void (*callback)(State *state, const HttpResponseMessage *response));
 

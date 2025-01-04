@@ -163,7 +163,7 @@ bool a9g_send_and_wait_for_command(const char* command) {
     int command_sent_index = message_logs_contains_transmitted(command);
 
     if (command_sent_index < 0) {
-        printf("Command not send, sending now\n");
+        printf("Command %s not send, sending now\n", command);
         a9g_transmit(command, true);
         return false;
     }
@@ -173,17 +173,50 @@ bool a9g_send_and_wait_for_command(const char* command) {
 
     printf("%d / %d\t", command_received_index, message_log_length);
     if (command_received_index < 0 || message_log_length <= command_received_index + 1) {
-        printf("Command not received\n");
+        printf("Command %s not received\n", command);
         return false;
     }
 
     bool command_is_ok = strcmp(message_log[command_received_index + 1], "OK") == 0;
     if (command_is_ok) {
-        printf("Command is OK\n");
+        printf("Command %s is OK\n", command);
     } else {
-        printf("Command is not OK: %d '%s'\n", command_received_index, message_log[command_received_index + 1]);
+        printf("Command %s is not OK: %d '%s'\n", command, command_received_index,
+               message_log[command_received_index + 1]);
     }
     return command_is_ok;
+}
+
+bool a9g_check_if_network_attached(const bool force) {
+    static bool init_finished = false;
+    if (force || !init_finished) {
+        init_finished = a9g_send_and_wait_for_command(A9G_CGATT_ENABLE);
+    }
+    return init_finished;
+}
+
+bool a9g_check_if_pnp_parameters_set(const bool force) {
+    static bool init_finished = false;
+    if (force || !init_finished) {
+        init_finished = a9g_send_and_wait_for_command(A9G_CGDCONT_ENABLE);
+    }
+    return init_finished;
+}
+
+bool a9g_check_if_pnp_activated(const bool force) {
+    static bool init_finished = false;
+    if (force || !init_finished) {
+        init_finished = a9g_send_and_wait_for_command(A9G_CGACT_PNP_ENABLE);
+    }
+    return init_finished;
+}
+
+bool a9g_check_if_agps_enabled(const bool force) {
+    static bool init_finished = false;
+    if (force || !init_finished) {
+        init_finished = a9g_send_and_wait_for_command(A9G_AGPS_ENABLE);
+    }
+    return init_finished;
 }
 
 bool a9g_check_if_gps_enabled(const bool force) {
@@ -202,14 +235,14 @@ bool a9g_check_if_gps_logging_enabled(const bool force) {
     return init_finished;
 }
 
-void a9g_proceed_device_init() {
+void a9g_proceed_device_init(State* state) {
     if (message_log_length == 0) return;
 
     if (!a9g_check_if_init_done()) return;
-    // if (!a9g_check_if_network_attached()) return;
-    // if (!a9g_check_if_pnp_parameters_set()) return;
-    // if (!a9g_check_if_pnp_activated()) return;
-    // if (!a9g_check_if_agps_enabled()) return;
+    // if (!a9g_check_if_network_attached(false)) return;
+    // if (!a9g_check_if_pnp_parameters_set(false)) return;
+    // if (!a9g_check_if_pnp_activated(false)) return;
+    // if (!a9g_check_if_agps_enabled(false)) return;
     if (!a9g_check_if_gps_enabled(false)) return;
     if (!a9g_check_if_gps_logging_enabled(false)) return;
 }
@@ -221,11 +254,13 @@ void a9g_process_messages(State* state) {
 
     for (int i = message_log_length - 1; i >= 0; i--) {
         if (!process_gngga_message_done && starts_with(message_log[i], "$GNGGA")) {
+            state->location.is_gps_on = true;
             process_gngga_message(state, message_log[i]);
             process_gngga_message_done = true;
             continue;
         }
         if (!process_gnrmc_message_done && starts_with(message_log[i], "$GNRMC")) {
+            state->location.is_gps_on = true;
             process_gnrmc_message(state, message_log[i]);
             process_gnrmc_message_done = true;
             continue;
@@ -238,11 +273,36 @@ void a9g_process_messages(State* state) {
     }
 }
 
+void a9g_validate_location_data(State* state) {
+    // Reset location data after it becomes invalid (expires)
+    if (esp_timer_get_time_ms() > state->location.gngga_last_updated + GPSGSM_LOCATION_MAX_VALID_TIME_MS) {
+        state->location.latitude = 0;
+        state->location.longitude = 0;
+        state->location.altitude = 0;
+        state->location.quality = 0;
+        state->location.satellites = 0;
+
+        state->location.time.minutes = 0;
+        state->location.time.seconds = 0;
+        state->location.time.hours = 0;
+    }
+
+    if (esp_timer_get_time_ms() > state->location.gnrmc_last_updated + GPSGSM_LOCATION_MAX_VALID_TIME_MS) {
+        state->location.is_effective_positioning = false;
+        state->location.ground_speed = 0;
+        state->location.ground_heading = 0;
+    }
+}
+
 void a9g_process(State* state) {
     a9g_receive();
+
+    update_time(state);
+    a9g_validate_location_data(state);
+
     if (message_log_length == 0) return;
 
-    a9g_proceed_device_init();
+    a9g_proceed_device_init(state);
     a9g_process_messages(state);
 }
 
