@@ -15,67 +15,8 @@
 #include "gpsgsm.h"
 
 #define MESSAGE_MAX_LENGTH (A9G_UART_BUFFER_SIZE)
-//
-// #define UART_NUM UART_NUM_1
-// #define BUF_SIZE (1024)
-// #define RD_BUF_SIZE (BUF_SIZE)
-// #define GPS_INIT_CMD "AT+CGPS=1\r"
-// #define GPS_CHECK_CMD "AT+CGPS?\r"
-// #define RESET_CMD "AT+RST\r"
-// #define MAX_MESSAGES 100
-// #define MESSAGE_LENGTH 128
-// #define MAX_RETRIES 3
-// #define RETRY_DELAY_MS 1000
-//
-// static const char *TAG = "A9G";
-// static QueueHandle_t uart_queue;
-// char messages[MAX_MESSAGES][MESSAGE_LENGTH];
-// int message_index = 0;
-//
-//
-// bool check_boot_status() {
-//     for (int i = 0; i < message_index; i++) {
-//         if (strstr(messages[i], "BOOT_OK")) {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
-//
-// bool send_command_with_retries(const char *cmd) {
-//     for (int i = 0; i < MAX_RETRIES; i++) {
-//         uart_write_bytes(UART_NUM, cmd, strlen(cmd));
-//         ESP_LOGI(TAG, "Sent command: %s", cmd);
-//         vTaskDelay(RETRY_DELAY_MS / portTICK_PERIOD_MS);
-//
-//         // Check for response (this is a placeholder, implement your own response check)
-//         if (check_response()) {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
-//
-// bool check_response() {
-//     // Implement your own logic to check for a valid response from the A9G module
-//     // For example, you can check the messages array for an expected response
-//     return true; // Placeholder
-// }
-//
-// void send_reset() {
-//     if (!send_command_with_retries(RESET_CMD)) {
-//         ESP_LOGE(TAG, "Failed to send reset command after %d retries", MAX_RETRIES);
-//     }
-// }
-//
-// void init_gps() {
-//     if (!send_command_with_retries(GPS_INIT_CMD)) {
-//         ESP_LOGE(TAG, "Failed to send GPS init command after %d retries", MAX_RETRIES);
-//     }
-// }
-//
-
 #define MESSAGE_LOG_MAX_LENGTH 32
+
 char message_log[MESSAGE_LOG_MAX_LENGTH][MESSAGE_MAX_LENGTH];
 int message_log_length = 0;
 
@@ -261,8 +202,7 @@ bool a9g_check_if_gps_logging_enabled(const bool force) {
     return init_finished;
 }
 
-void a9g_process() {
-    a9g_receive();
+void a9g_proceed_device_init() {
     if (message_log_length == 0) return;
 
     if (!a9g_check_if_init_done()) return;
@@ -272,4 +212,40 @@ void a9g_process() {
     // if (!a9g_check_if_agps_enabled()) return;
     if (!a9g_check_if_gps_enabled(false)) return;
     if (!a9g_check_if_gps_logging_enabled(false)) return;
+}
+
+void a9g_process_messages(State* state) {
+    bool process_gngga_message_done = false;
+    bool process_gnrmc_message_done = false;
+    bool process_ctzv_message_done = false;
+
+    for (int i = message_log_length - 1; i >= 0; i--) {
+        if (!process_gngga_message_done && starts_with(message_log[i], "$GNGGA")) {
+            process_gngga_message(state, message_log[i]);
+            process_gngga_message_done = true;
+            continue;
+        }
+        if (!process_gnrmc_message_done && starts_with(message_log[i], "$GNRMC")) {
+            process_gnrmc_message(state, message_log[i]);
+            process_gnrmc_message_done = true;
+            continue;
+        }
+        if (!process_ctzv_message_done && starts_with(message_log[i], "+CTZV:")) {
+            process_ctzv_message(state, message_log[i]);
+            process_ctzv_message_done = true;
+            continue;
+        }
+    }
+}
+
+void a9g_process(State* state) {
+    a9g_receive();
+    if (message_log_length == 0) return;
+
+    a9g_proceed_device_init();
+    a9g_process_messages(state);
+}
+
+void a9g_init(State* state) {
+    gpsgsm_init(&state->a9g);
 }

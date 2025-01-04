@@ -27,42 +27,45 @@ QueueHandle_t uart_queue;
 // static void (*http_request_callback)(State *state, const HttpResponseMessage *response) = NULL;
 
 void process_gngga_message(State *state, const char *message) {
-    NmeaGNGGAMessage gga_message = {0};
-    extract_GNGGA_message(message, &gga_message);
-    if (nmea_calculate_checksum(message) != gga_message.checksum) {
+    NmeaGNGGAMessage decoded_message = {0};
+    extract_GNGGA_message(message, &decoded_message);
+    if (nmea_calculate_checksum(message) != decoded_message.checksum) {
         // Checksum failed
         return;
     }
 
-    state->location.latitude = nmea_coordinates_to_degrees(gga_message.latitude, gga_message.latitude_direction);
-    state->location.longitude = nmea_coordinates_to_degrees(gga_message.longitude, gga_message.longitude_direction);
-    state->location.altitude = gga_message.altitude;
-    state->location.quality = gga_message.quality;
-    state->location.satellites = gga_message.satellites;
+    state->location.latitude = nmea_coordinates_to_degrees(decoded_message.latitude, decoded_message.latitude_direction);
+    state->location.longitude = nmea_coordinates_to_degrees(decoded_message.longitude, decoded_message.longitude_direction);
+    state->location.altitude = decoded_message.altitude;
+    state->location.quality = decoded_message.quality;
+    state->location.satellites = decoded_message.satellites;
 
-    int hours = (int) (gga_message.timestamp / 10000);
-    state->location.time.minutes = (int) (gga_message.timestamp / 100) - hours * 100;
-    state->location.time.seconds = (int) gga_message.timestamp - hours * 10000 - state->location.time.minutes * 100;
+    int hours = (int) (decoded_message.timestamp / 10000);
+    state->location.time.minutes = (int) (decoded_message.timestamp / 100) - hours * 100;
+    state->location.time.seconds = (int) decoded_message.timestamp - hours * 10000 - state->location.time.minutes * 100;
     state->location.time.hours = hours;
 
     state->location.gngga_last_updated = esp_timer_get_time_ms();
 }
 
 void process_gnrmc_message(State *state, const char *message) {
-    NmeaGNRMCMessage rmc_message = {0};
-    extract_GNRMC_message(message, &rmc_message);
-    if (nmea_calculate_checksum(message) != rmc_message.checksum) {
+    NmeaGNRMCMessage decoded_message = {0};
+    extract_GNRMC_message(message, &decoded_message);
+    if (nmea_calculate_checksum(message) != decoded_message.checksum) {
         // Checksum failed
         return;
     }
 
-    state->location.is_effective_positioning = rmc_message.status == 'A';
-    state->location.ground_speed = rmc_message.ground_speed * 1.852;    // knots -> km/h
-    state->location.ground_heading = rmc_message.ground_heading;
+    state->location.latitude = nmea_coordinates_to_degrees(decoded_message.latitude, decoded_message.latitude_direction);
+    state->location.longitude = nmea_coordinates_to_degrees(decoded_message.longitude, decoded_message.longitude_direction);
 
-    uint8_t day = rmc_message.date / 10000;
-    uint8_t month = rmc_message.date / 100 - day * 100;
-    uint16_t year = 2000 + rmc_message.date - day * 10000 - month * 100;
+    state->location.is_effective_positioning = decoded_message.status == 'A';
+    state->location.ground_speed = decoded_message.ground_speed * 1.852;    // knots -> km/h
+    state->location.ground_heading = decoded_message.ground_heading;
+
+    uint8_t day = decoded_message.date / 10000;
+    uint8_t month = decoded_message.date / 100 - day * 100;
+    uint16_t year = 2000 + decoded_message.date - day * 10000 - month * 100;
 
     if (year > 2021 && year < 2079) {
         state->location.time.day = day;

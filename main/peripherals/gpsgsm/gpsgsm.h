@@ -7,15 +7,19 @@
 
 #include "../../state.h"
 
-#define A9G_UART_BUFFER_SIZE (1024)
+#define A9G_UART_BUFFER_SIZE (256)
 
 extern QueueHandle_t uart_queue;
 
-void gpsgsm_init(A9GState *a9g_state);
+void gpsgsm_init(A9GState* a9g_state);
 
-void gpsgsm_process(State *state);
+void gpsgsm_process(State* state);
 
-void gsm_send_sms(const char *number, const char *message);
+void gsm_send_sms(const char* number, const char* message);
+
+void process_gngga_message(State* state, const char* message);
+void process_gnrmc_message(State* state, const char* message);
+void process_ctzv_message(State* state, const char* message);
 
 // void gsm_http_get(State *state, const char *url, void (*callback)(State *state, const HttpResponseMessage *response));
 

@@ -11,7 +11,6 @@
 #include "../control/control.h"
 #include "../connectivity/spi.h"
 #include "../control/data_logger.h"
-#include "../peripherals/gpsgsm/gpsgsm.h"
 #include "../peripherals/gpsgsm/a9g.h"
 #include "task_primary.h"
 
@@ -20,7 +19,7 @@ void init(State* state) {
     i2c_init();
     spi_init(state);
     control_init(state);
-    gpsgsm_init(&state->a9g);
+    a9g_init(state);
     data_logger_init(state);
 
     state->is_booting = false;
@@ -89,7 +88,7 @@ _Noreturn void task_primary(void* args) {
         control_read_analog_sensors(state);
         control_read_user_input(state);
         gpsgsm_process(state);
-        a9g_process();
+        a9g_process(state);
 
         // Process data
         control_mpu_power(state);
