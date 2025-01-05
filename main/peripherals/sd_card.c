@@ -14,7 +14,7 @@
 #include "../utils.h"
 
 static const char* TAG = "SD";
-#define MOUNT_POINT "/sdcard"
+#define MOUNT_POINT "/sd"
 const char mount_point[] = MOUNT_POINT;
 
 sdmmc_host_t host = SDSPI_HOST_DEFAULT();
@@ -77,14 +77,18 @@ void sd_card_test() {
 
 int sd_card_file_append(const char* file_name, const char* line) {
     char path[64];
-    sprintf(path, "%s/%s", MOUNT_POINT, file_name);
+    snprintf(path, sizeof(path), "%s/%s", MOUNT_POINT, file_name);
 
     FILE* file = fopen(path, "a");
     if (file == NULL) {
         ESP_LOGE(TAG, "Failed to open file for writing: %s", path);
         return RESULT_FAILED;
     }
-    fputs(line, file);
+    if (fputs(line, file) == EOF) {
+        ESP_LOGE(TAG, "Failed to write to file: %s", path);
+        fclose(file);
+        return RESULT_FAILED;
+    }
     fclose(file);
     return RESULT_OK;
 }
@@ -102,7 +106,7 @@ void sd_card_create_directory(const char* directory, char* created_directory) {
     string_char_replace(directory_safe_name, '#', '_');
     string_char_replace(directory_safe_name, '.', '_');
 
-    sprintf(path, "%s/%s", MOUNT_POINT, directory_safe_name);
+    snprintf(path, sizeof(path), "%s/%s", MOUNT_POINT, directory_safe_name);
 
     struct stat st;
     if (stat(path, &st) != 0) {
@@ -126,13 +130,12 @@ int sd_card_create_file_incremental(const char* directory, const char* base_file
     char path[128];
     char created_directory[32];
     char new_file_name[64];
-    struct stat st;
 
     sd_card_create_directory(directory, created_directory);
 
     for (uint16_t i = 0; i < 65535; i++) {
-        sprintf(new_file_name, "%s/%s-%d.%s", created_directory, base_file_name, i, base_file_extension);
-        sprintf(path, "%s/%s", MOUNT_POINT, new_file_name);
+        snprintf(new_file_name, sizeof(new_file_name), "%s/%s-%d.%s", created_directory, base_file_name, i, base_file_extension);
+        snprintf(path, sizeof(path), "%s/%s", MOUNT_POINT, new_file_name);
 
         if (access(path, F_OK) != 0) {
             memcpy(file_name_out, new_file_name, 32);
@@ -140,7 +143,7 @@ int sd_card_create_file_incremental(const char* directory, const char* base_file
         }
     }
 
-    sprintf(new_file_name, "%s/%s-overflow.%s", created_directory, base_file_name, base_file_extension);
+    snprintf(new_file_name, sizeof(new_file_name), "%s/%s-overflow.%s", created_directory, base_file_name, base_file_extension);
     memcpy(file_name_out, new_file_name, 32);
     return RESULT_OVERFLOW;
 }

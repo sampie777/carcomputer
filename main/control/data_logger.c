@@ -24,7 +24,7 @@ uint32_t generate_session_id() {
  * Collect data and write to SD card
  * @param state
  */
-void data_logger_log_current(State *state) {
+void data_logger_log_current(State* state) {
     static int64_t last_log_time = 0;
 
     // Don't log if car isn't on and on the move, so SD card can be swapped safely
@@ -33,63 +33,97 @@ void data_logger_log_current(State *state) {
     if (esp_timer_get_time_ms() < last_log_time + DATA_LOGGER_LOG_INTERVAL_MS) return;
     last_log_time = esp_timer_get_time_ms();
 
-    char buffer[256];
-    sprintf(buffer,
-            "%lld;"         // esp_timer_get_time_ms()
-            "%lu;"           // state->logging_session_id
-            "%d;"           // state->car.is_connected
-            "%d;"           // state->car.is_controller_connected
-            "%d;"           // state->car.is_braking
-            "%d;"           // state->car.is_ignition_on
-            "%.3f;"         // state->car.speed
-            "%.1f;"         // state->car.rpm
-            "%lu;"           // state->car.odometer
-            "%d;"           // state->car.gas_pedal_connected
-            "%.5f;"         // state->car.gas_pedal
-            "%d;"           // state->cruise_control.enabled
-            "%.3f;"         // state->cruise_control.target_speed
-            "%.5f;"         // state->cruise_control.virtual_gas_pedal
-            "%.5f;"         // state->cruise_control.control_value
-            "%d;"           // state->motion.connected
-            "%.3f;"         // state->motion.accel_x
-            "%.3f;"         // state->motion.accel_y
-            "%.3f;"         // state->motion.accel_z
-            "%.3f;"         // state->motion.gyro_x
-            "%.3f;"         // state->motion.gyro_y
-            "%.3f;"         // state->motion.gyro_z
-            "%.3f;"         // state->motion.compass_x
-            "%.3f;"         // state->motion.compass_y
-            "%.3f;"         // state->motion.compass_z
-            "%.3f;"         // state->motion.temperature
-            "%lu;"           // state->errors
-            "\n",
-            esp_timer_get_time_ms(),
-            state->logging_session_id,
-            state->car.is_connected,
-            state->car.is_controller_connected,
-            state->car.is_braking,
-            state->car.is_ignition_on,
-            state->car.speed,
-            state->car.rpm,
-            state->car.odometer,
-            state->car.gas_pedal_connected,
-            state->car.gas_pedal,
-            state->cruise_control.enabled,
-            state->cruise_control.target_speed,
-            state->cruise_control.virtual_gas_pedal,
-            state->cruise_control.control_value,
-            state->motion.connected,
-            state->motion.accel_x,
-            state->motion.accel_y,
-            state->motion.accel_z,
-            state->motion.gyro_x,
-            state->motion.gyro_y,
-            state->motion.gyro_z,
-            state->motion.compass_x,
-            state->motion.compass_y,
-            state->motion.compass_z,
-            state->motion.temperature,
-            state->errors
+    char buffer[512];
+    snprintf(buffer, sizeof(buffer),
+             "%lld;" // esp_timer_get_time_ms()
+             "%lu;" // state->logging_session_id
+             "%d;" // state->car.is_connected
+             "%d;" // state->car.is_controller_connected
+             "%d;" // state->car.is_braking
+             "%d;" // state->car.is_ignition_on
+             "%.3f;" // state->car.speed
+             "%.1f;" // state->car.rpm
+             "%lu;" // state->car.odometer
+             "%d;" // state->car.gas_pedal_connected
+             "%.5f;" // state->car.gas_pedal
+             "%d;" // state->cruise_control.enabled
+             "%.3f;" // state->cruise_control.target_speed
+             "%.5f;" // state->cruise_control.virtual_gas_pedal
+             "%.5f;" // state->cruise_control.control_value
+             "%d;" // state->motion.connected
+             "%.3f;" // state->motion.accel_x
+             "%.3f;" // state->motion.accel_y
+             "%.3f;" // state->motion.accel_z
+             "%.3f;" // state->motion.gyro_x
+             "%.3f;" // state->motion.gyro_y
+             "%.3f;" // state->motion.gyro_z
+             "%.3f;" // state->motion.compass_x
+             "%.3f;" // state->motion.compass_y
+             "%.3f;" // state->motion.compass_z
+             "%.3f;" // state->motion.temperature
+             "%d;" // state->location.is_gps_on
+             "%d;" // state->location.quality
+             "%d;" // state->location.satellites
+             "%d;" // state->location.is_effective_positioning
+             "%.5f;" // state->location.latitude
+             "%.5f;" // state->location.longitude
+             "%.1f;" // state->location.altitude
+             "%.3f;" // state->location.ground_speed
+             "%.2f;" // state->location.ground_heading
+             "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d;" // state->location.time
+             "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d;" // state->gsm.time
+             "%lu;" // state->errors
+             "\n",
+             esp_timer_get_time_ms(),
+             state->logging_session_id,
+             state->car.is_connected,
+             state->car.is_controller_connected,
+             state->car.is_braking,
+             state->car.is_ignition_on,
+             state->car.speed,
+             state->car.rpm,
+             state->car.odometer,
+             state->car.gas_pedal_connected,
+             state->car.gas_pedal,
+             state->cruise_control.enabled,
+             state->cruise_control.target_speed,
+             state->cruise_control.virtual_gas_pedal,
+             state->cruise_control.control_value,
+             state->motion.connected,
+             state->motion.accel_x,
+             state->motion.accel_y,
+             state->motion.accel_z,
+             state->motion.gyro_x,
+             state->motion.gyro_y,
+             state->motion.gyro_z,
+             state->motion.compass_x,
+             state->motion.compass_y,
+             state->motion.compass_z,
+             state->motion.temperature,
+             state->location.is_gps_on,
+             state->location.quality,
+             state->location.satellites,
+             state->location.is_effective_positioning,
+             state->location.latitude,
+             state->location.longitude,
+             state->location.altitude,
+             state->location.ground_speed,
+             state->location.ground_heading,
+             state->location.time.year,
+             state->location.time.month,
+             state->location.time.day,
+             state->location.time.hours,
+             state->location.time.minutes,
+             state->location.time.seconds,
+             state->location.time.timezone,
+             state->gsm.time.year,
+             state->gsm.time.month,
+             state->gsm.time.day,
+             state->gsm.time.hours,
+             state->gsm.time.minutes,
+             state->gsm.time.seconds,
+             state->gsm.time.timezone,
+             state->errors
     );
 
     if (sd_card_file_append(state->storage.filename, buffer) == RESULT_OK) {
@@ -99,7 +133,7 @@ void data_logger_log_current(State *state) {
     }
 }
 
-void data_logger_process(State *state) {
+void data_logger_process(State* state) {
     static int64_t last_init_time = 0;
     if (state->storage.is_connected == false) {
         if (esp_timer_get_time_ms() > last_init_time + 3000) {
@@ -111,7 +145,25 @@ void data_logger_process(State *state) {
     data_logger_log_current(state);
 }
 
-void data_logger_init(State *state) {
+void data_logger_init_log_file(State* state) {
+    char* device_name = state->device_name == NULL || state->device_name[0] == '\0' || state->device_name[0] == 0
+                            ? "Default"
+                            : state->device_name;
+
+    if (sd_card_create_file_incremental(device_name, "data", "csv", state->storage.filename) == RESULT_OVERFLOW) {
+        set_error(state, ERROR_SD_FULL);
+    }
+    printf("[SD] Using file: %s\n", state->storage.filename);
+
+    sd_card_file_append(state->storage.filename, "timestamp;session_id;"
+                        "car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;"
+                        "cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;"
+                        "motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;"
+                        "location_is_gps_on;location_quality;location_satellites;location_is_effective_positioning;location_latitude;location_longitude;location_altitude;location_ground_speed;location_ground_heading;location_datetime;gsm_datetime;"
+                        "errors;\n");
+}
+
+void data_logger_init(State* state) {
     printf("[DataLogger] Initializing...\n");
 
     while (state->logging_session_id == 0) {
@@ -126,18 +178,7 @@ void data_logger_init(State *state) {
     state->storage.is_connected = true;
 
     if (state->storage.filename[0] == 0x00) {
-        char *device_name = state->device_name == NULL || state->device_name[0] == '\0' || state->device_name[0] == 0 ? "Default" : state->device_name;
-
-        if (sd_card_create_file_incremental(device_name, "data", "csv", state->storage.filename) == RESULT_OVERFLOW) {
-            set_error(state, ERROR_SD_FULL);
-        }
-        printf("[SD] Using file: %s\n", state->storage.filename);
-
-        sd_card_file_append(state->storage.filename, "timestamp;session_id;"
-                                                     "car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;"
-                                                     "cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;"
-                                                     "motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;"
-                                                     "errors;\n");
+        data_logger_init_log_file(state);
     }
 
     printf("[DataLogger] Init done\n");

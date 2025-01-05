@@ -29,26 +29,6 @@ void init(State* state) {
     debug_state(state);
 }
 
-void log_status(enum A9Status status) {
-    switch (status) {
-        case A9Status_Unknown:
-            printf("Unknown");
-            break;
-        case A9Status_Requested:
-            printf("A9Status_Requested");
-            break;
-        case A9Status_Ok:
-            printf("A9Status_Ok");
-            break;
-        case A9Status_Error:
-            printf("A9Status_Error");
-            break;
-        case A9Status_Disabled:
-            printf("A9Status_Disabled");
-            break;
-    }
-}
-
 _Noreturn void task_primary(void* args) {
     printf("Primary task started on core: %d\n", xPortGetCoreID());
     State* state = args;
@@ -64,7 +44,7 @@ _Noreturn void task_primary(void* args) {
 
             debug_print_message_log();
 
-            printf("%d:%02d:%02d  %d-%02d-%04d; ",
+            printf("%d:%02d:%02d  %d-%d-%04d; ",
                     state->location.time.hours,
                     state->location.time.minutes,
                     state->location.time.seconds,
