@@ -5,6 +5,7 @@
 #include "a9g.h"
 #include "../../config.h"
 #include "../../utils.h"
+#include "../../error_codes.h"
 #include "driver/uart.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
@@ -13,11 +14,13 @@
 #include <os/os.h>
 
 #include "gpsgsm.h"
+#include "utils.h"
 
 #define MESSAGE_MAX_LENGTH (A9G_UART_BUFFER_SIZE)
 #define MESSAGE_LOG_MAX_LENGTH 32
 
 char message_log[MESSAGE_LOG_MAX_LENGTH][MESSAGE_MAX_LENGTH];
+int64_t message_log_timestamps[MESSAGE_LOG_MAX_LENGTH];
 int message_log_length = 0;
 
 void debug_print_message_log() {
@@ -26,7 +29,7 @@ void debug_print_message_log() {
         return;
     }
     for (int i = 0; i < message_log_length; i++) {
-        printf("[GPS] Log: [%d] '%s' %d\n", i, message_log[i], strlen(message_log[i]));
+        printf("[GPS] Log: %d [%lld] '%s' %d\n", i, message_log_timestamps[i], message_log[i], strlen(message_log[i]));
     }
 }
 
@@ -35,11 +38,14 @@ void a9g_log_message(const char* message) {
         // Shift all messages one up
         for (int i = 0; i < MESSAGE_LOG_MAX_LENGTH - 1; i++) {
             strcpy(message_log[i], message_log[i + 1]);
+            message_log_timestamps[i] = message_log_timestamps[i + 1];
         }
         message_log_length = MESSAGE_LOG_MAX_LENGTH - 1;
     }
 
-    strcpy(message_log[message_log_length++], message);
+    strcpy(message_log[message_log_length], message);
+    message_log_timestamps[message_log_length] = esp_timer_get_time_ms();
+    message_log_length++;
 }
 
 void a9g_transmit(const char* data, uint8_t with_break) {
@@ -57,12 +63,14 @@ void a9g_transmit(const char* data, uint8_t with_break) {
     free(buffer);
 }
 
-void a9g_reset() {
+void a9g_reset(State* state) {
     printf("[GPS] Reset A9G chip\n");
     a9g_transmit(A9G_RESET, true);
+    state->location.is_gps_on = false;
+    a9g_state_reset(&state->a9g);
 }
 
-void a9g_receive() {
+void a9g_receive(A9GState* state) {
     static char* last_message = NULL;
     static int last_message_index = 0;
 
@@ -97,6 +105,7 @@ void a9g_receive() {
 
     if (event.size > strlen(A9G_INIT) && strstr(data, A9G_INIT) != NULL) {
         message_log_length = 0; // Start with a new log as all previous commands are reset
+        a9g_state_reset(state);
     }
 
     // Use event.size as the data may contain \0 characters
@@ -153,9 +162,18 @@ int message_logs_contains_transmitted(const char* message) {
     return result;
 }
 
-bool a9g_check_if_init_done() {
+bool a9g_check_if_init_done(A9GState* state) {
+    if (state->initialized) return true;
+
     // Check if Init message is found in the messages logs
-    return message_logs_contains("+CREG: 3") >= 0;
+    int init_message_index = message_logs_contains(A9G_INIT);
+    int ready_message_index = max(message_logs_contains("+CREG: 3"), message_logs_contains("READY"));
+    if (ready_message_index < 0) {
+        state->initialized = false;
+    } else {
+        state->initialized = init_message_index < ready_message_index;
+    }
+    return state->initialized;
 }
 
 bool a9g_send_and_wait_for_command(const char* command) {
@@ -187,67 +205,60 @@ bool a9g_send_and_wait_for_command(const char* command) {
     return command_is_ok;
 }
 
-bool a9g_check_if_network_attached(const bool force) {
-    static bool init_finished = false;
-    if (force || !init_finished) {
-        init_finished = a9g_send_and_wait_for_command(A9G_CGATT_ENABLE);
-    }
-    return init_finished;
+bool a9g_check_if_network_attached(A9GState* state) {
+    if (state->network_attached) return true;
+    state->network_attached = a9g_send_and_wait_for_command(A9G_CGATT_ENABLE);
+    return state->network_attached;
 }
 
-bool a9g_check_if_pnp_parameters_set(const bool force) {
-    static bool init_finished = false;
-    if (force || !init_finished) {
-        init_finished = a9g_send_and_wait_for_command(A9G_CGDCONT_ENABLE);
-    }
-    return init_finished;
+bool a9g_check_if_pnp_parameters_set(A9GState* state) {
+    if (state->pnp_parameters_set) return true;
+    state->pnp_parameters_set = a9g_send_and_wait_for_command(A9G_CGDCONT_ENABLE);
+    return state->pnp_parameters_set;
 }
 
-bool a9g_check_if_pnp_activated(const bool force) {
-    static bool init_finished = false;
-    if (force || !init_finished) {
-        init_finished = a9g_send_and_wait_for_command(A9G_CGACT_PNP_ENABLE);
-    }
-    return init_finished;
+bool a9g_check_if_pnp_activated(A9GState* state) {
+    if (state->pnp_activated) return true;
+    state->pnp_activated = a9g_send_and_wait_for_command(A9G_CGACT_PNP_ENABLE);
+    return state->pnp_activated;
 }
 
-bool a9g_check_if_agps_enabled(const bool force) {
-    static bool init_finished = false;
-    if (force || !init_finished) {
-        init_finished = a9g_send_and_wait_for_command(A9G_AGPS_ENABLE);
-    }
-    return init_finished;
+bool a9g_check_if_agps_enabled(A9GState* state) {
+    if (state->agps_enabled) return true;
+    state->agps_enabled = a9g_send_and_wait_for_command(A9G_AGPS_ENABLE);
+    return state->agps_enabled;
 }
 
-bool a9g_check_if_gps_enabled(const bool force) {
-    static bool init_finished = false;
-    if (force || !init_finished) {
-        init_finished = a9g_send_and_wait_for_command(A9G_GPS_ENABLE);
-    }
-    return init_finished;
+bool a9g_check_if_gps_enabled(A9GState* state) {
+    if (state->gps_enabled) return true;
+    state->gps_enabled = a9g_send_and_wait_for_command(A9G_GPS_ENABLE);
+    return state->gps_enabled;
 }
 
-bool a9g_check_if_gps_logging_enabled(const bool force) {
-    static bool init_finished = false;
-    if (force || !init_finished) {
-        init_finished = a9g_send_and_wait_for_command(A9G_GPSRD_ENABLE);
-    }
-    return init_finished;
+bool a9g_check_if_gps_logging_enabled(A9GState* state) {
+    if (state->gps_logging_enabled) return true;
+    state->gps_logging_enabled = a9g_send_and_wait_for_command(A9G_GPSRD_ENABLE);
+    return state->gps_logging_enabled;
 }
 
-void a9g_proceed_device_init(State* state) {
+void a9g_proceed_device_init(A9GState* state) {
     if (message_log_length == 0) return;
 
-    if (!a9g_check_if_init_done()) return;
-    // if (!a9g_check_if_network_attached(false)) return;
-    // if (!a9g_check_if_pnp_parameters_set(false)) return;
-    // if (!a9g_check_if_pnp_activated(false)) return;
-    // if (!a9g_check_if_agps_enabled(false)) return;
-    if (!a9g_check_if_gps_enabled(false)) return;
-    if (!a9g_check_if_gps_logging_enabled(false)) return;
+    if (!a9g_check_if_init_done(state)) {
+        a9g_state_reset(state);
+        return;
+    }
+    // if (!a9g_check_if_network_attached(state)) return;
+    // if (!a9g_check_if_pnp_parameters_set(state)) return;
+    // if (!a9g_check_if_pnp_activated(state)) return;
+    // if (!a9g_check_if_agps_enabled(state)) return;
+    if (!a9g_check_if_gps_enabled(state)) return;
+    if (!a9g_check_if_gps_logging_enabled(state)) return;
 }
 
 void a9g_process_messages(State* state) {
+    if (message_log_length == 0) return;
+
     bool process_gngga_message_done = false;
     bool process_gnrmc_message_done = false;
     bool process_ctzv_message_done = false;
@@ -294,15 +305,78 @@ void a9g_validate_location_data(State* state) {
     }
 }
 
+void a9g_check_messages_timeout(State* state) {
+    // Get last received message index
+    int last_message_index = message_log_length - 1;
+    while (last_message_index >= 0) {
+        if (message_log[last_message_index][0] != '>') break;
+        last_message_index--;
+    }
+
+    int64_t last_message_timestamp = 0;
+    if (last_message_index >= 0) {
+        last_message_timestamp = message_log_timestamps[last_message_index];
+
+        if (esp_timer_get_time_ms() < last_message_timestamp + GPSGSM_MESSAGE_MAX_TIMEOUT_MS) {
+            reset_error(state, ERROR_GPS_TIMEOUT);
+            return;
+        }
+
+        printf("Last message has timed out: [%d] %lld >= %lld + %d: %s\n",
+               last_message_index,
+               esp_timer_get_time_ms(),
+               last_message_timestamp,
+               GPSGSM_MESSAGE_MAX_TIMEOUT_MS,
+               message_log[last_message_index]);
+    }
+
+    // Check if reset was send
+    int last_reset_message_index = message_logs_contains_transmitted(A9G_RESET);
+    int64_t last_reset_message_timestamp = 0;
+    if (last_reset_message_index >= 0) {
+        last_reset_message_timestamp = message_log_timestamps[last_reset_message_index];
+
+        if (esp_timer_get_time_ms() < last_reset_message_timestamp + GPSGSM_MESSAGE_MAX_TIMEOUT_MS) {
+            reset_error(state, ERROR_GPS_TIMEOUT);
+            return;
+        }
+
+        printf("Last reset message has timed out: [%d] %lld >= %lld + %d: %s\n",
+               last_reset_message_index,
+               esp_timer_get_time_ms(),
+               last_reset_message_timestamp,
+               GPSGSM_MESSAGE_MAX_TIMEOUT_MS,
+               message_log[last_reset_message_index]);
+    }
+
+    if (message_log_length == 0 && esp_timer_get_time_ms() < GPSGSM_INIT_MAX_TIMEOUT_MS) {
+        return;
+    }
+    if (message_log_length == 0) {
+        printf("Last reset message has timed out: [%d] %lld no messages\n",
+               message_log_length,
+               esp_timer_get_time_ms());
+    } else {
+        printf("Last reset message has timed out: [%d] %lld unknown reason %d %d\n",
+               message_log_length,
+               esp_timer_get_time_ms(),
+               last_message_index,
+               last_reset_message_index);
+    }
+
+    debug_print_message_log();
+    set_error(state, ERROR_GPS_TIMEOUT);
+    a9g_reset(state);
+}
+
 void a9g_process(State* state) {
-    a9g_receive();
+    a9g_receive(&state->a9g);
 
     update_time(state);
     a9g_validate_location_data(state);
+    a9g_check_messages_timeout(state);
 
-    if (message_log_length == 0) return;
-
-    a9g_proceed_device_init(state);
+    a9g_proceed_device_init(&state->a9g);
     a9g_process_messages(state);
 }
 

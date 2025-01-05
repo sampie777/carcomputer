@@ -91,36 +91,6 @@ void process_ctzv_message(State *state, const char *message) {
 }
 
 void send_command(A9GState *a9g_state, enum A9GCommand command) {
-    last_command_send = command;
-    switch (command) {
-        case A9GCommand_CGATT_Disable:
-            printf("[GSM] Detach to network\n");
-            // transmit(A9G_CGATT_DISABLE, true);
-            a9g_state->network_attached = A9Status_Disabled;
-            break;
-        case A9GCommand_CGACT_PNP_Disable:
-            printf("[GSM] De-activate PNP\n");
-            // transmit(A9G_CGACT_PNP_DISABLE, true);
-            a9g_state->pnp_activated = A9Status_Disabled;
-            break;
-        case A9GCommand_CGDCONT_Disable:
-            printf("[GSM] Unset PNP parameters\n");
-            // transmit(A9G_CGDCONT_DISABLE, true);
-            a9g_state->pnp_parameters_set = A9Status_Disabled;
-            break;
-        case A9GCommand_AGPS_Disable:
-            printf("[GPS] Disable AGPS\n");
-            // transmit(A9G_AGPS_DISABLE, true);
-            a9g_state->agps_enabled = A9Status_Requested;
-            break;
-        case A9GCommand_GPSRD_Enable:
-            printf("[GPS] Enable GPS logging\n");
-            // transmit(A9G_GPSRD_ENABLE, true);
-            a9g_state->gps_logging_enabled = A9Status_Requested;
-            break;
-        default:
-            break;
-    }
 }
 
 void process_http_response(State *state, const char *message, const char *stripped_message) {
@@ -205,41 +175,8 @@ void process_message(State *state, const char *message) {
         printf("[GPS] Processing: '%s' with length: %d\n", stripped_message, strlen(stripped_message));
     }
 
-    if (strcmp(stripped_message, "Init...") == 0) {
-        a9g_state_reset(&state->a9g);
-        state->a9g.initialized = A9Status_Requested;
-        state->a9g.gps_logging_started = false;
-    } else if (starts_with(stripped_message, "READY") || starts_with(stripped_message, "Ai_Thinker_Co")) {
-        a9g_state_reset(&state->a9g);
-        state->a9g.initialized = A9Status_Ok;
-        state->a9g.gps_logging_started = false;
-    } else if (starts_with(stripped_message, "+CMGS=")) {
+    if (starts_with(stripped_message, "+CMGS=")) {
         sms_state = SentSuccess;
-    }
-
-    if (strcmp(stripped_message, "OK") == 0 || strstr(stripped_message, "GPD OK") != NULL) {
-        switch (last_command_send) {
-            case A9GCommand_CGATT_Enable:
-                state->a9g.network_attached = A9Status_Ok;
-                break;
-            case A9GCommand_CGACT_PNP_Enable:
-                state->a9g.pnp_activated = A9Status_Ok;
-                break;
-            case A9GCommand_CGDCONT_Enable:
-                state->a9g.pnp_parameters_set = A9Status_Ok;
-                break;
-            case A9GCommand_AGPS_Disable:
-                state->a9g.agps_enabled = A9Status_Disabled;
-                break;
-            case A9GCommand_AGPS_Enable:
-                state->a9g.agps_enabled = A9Status_Ok;
-                break;
-            case A9GCommand_GPSRD_Enable:
-                state->a9g.gps_logging_enabled = A9Status_Ok;
-                break;
-            default:
-                break;
-        }
     }
 
     if (strstr(stripped_message, "$GNGGA") != NULL) {
@@ -259,56 +196,6 @@ void process_message(State *state, const char *message) {
     free(stripped_message);
 }
 
-
-void proceed_device_init(State *state) {
-    static int64_t state_start_time = 0;
-    static A9GState previous_state = {};
-
-    if (state->a9g.gps_logging_started) return;
-
-    if (!a9g_state_compare(&state->a9g, &previous_state)) {
-        state_start_time = esp_timer_get_time_ms();
-        a9g_state_clone(&state->a9g, &previous_state);
-    }
-
-    if (state->a9g.initialized == A9Status_Unknown || state->a9g.initialized == A9Status_Requested) {
-        if (esp_timer_get_time_ms() > state_start_time + GPSGSM_INIT_MAX_TIMEOUT_MS) {
-            printf("[GPS] WARNING: Init timeout\n");
-            state->a9g.initialized = A9Status_Ok;
-        }
-    } else if (state->a9g.network_attached != A9Status_Ok) {
-        if (state->a9g.network_attached != A9Status_Requested) {
-            send_command(&state->a9g, A9GCommand_CGATT_Enable);
-        }
-    } else if (state->a9g.pnp_parameters_set != A9Status_Ok) {
-        if (state->a9g.pnp_parameters_set != A9Status_Requested) {
-            send_command(&state->a9g, A9GCommand_CGDCONT_Enable);
-        }
-    } else if (state->a9g.pnp_activated != A9Status_Ok) {
-        if (state->a9g.pnp_activated != A9Status_Requested) {
-            send_command(&state->a9g, A9GCommand_CGACT_PNP_Enable);
-        }
-    } else if (state->a9g.agps_enabled == A9Status_Unknown || state->a9g.agps_enabled == A9Status_Error) {
-        if (state->a9g.agps_enabled != A9Status_Requested) {
-            send_command(&state->a9g, A9GCommand_AGPS_Disable);
-        }
-    } else if (state->a9g.agps_enabled != A9Status_Ok) {
-        if (state->a9g.agps_enabled != A9Status_Requested) {
-            send_command(&state->a9g, A9GCommand_AGPS_Enable);
-        }
-    } else if (state->a9g.gps_logging_enabled != A9Status_Ok) {
-        if (state->a9g.gps_logging_enabled != A9Status_Requested) {
-            send_command(&state->a9g, A9GCommand_GPSRD_Enable);
-        }
-    } else if (!state->a9g.gps_logging_started && esp_timer_get_time_ms() > state_start_time + GPSGSM_MESSAGE_MAX_TIMEOUT_MS) {
-        printf("[GPS] ERROR: Initial NMEA message timeout\n");
-        set_error(state, ERROR_GPS_TIMEOUT);
-
-        // Retry GPS initiation
-        a9g_state_reset(&state->a9g);
-        state->a9g.initialized = A9Status_Error;
-    }
-}
 
 void update_time(State *state) {
     static int64_t last_update_time = 0;
@@ -350,8 +237,6 @@ void update_time(State *state) {
 
 void gpsgsm_process(State *state) {
     static int64_t sms_sent_time = 0;
-
-    proceed_device_init(state);
 
     // if (sms_state == Sending) {
     //     if (sms_sent_time == 0) {
@@ -399,7 +284,7 @@ void gpsgsm_process(State *state) {
 
 void gpsgsm_init(A9GState *a9g_state) {
     printf("[GPS] Initializing...\n");
-    a9g_state->initialized = A9Status_Unknown;
+    a9g_state->initialized = false;
 
     uart_config_t uart_config = {
             .baud_rate = GPSGSM_UART_BAUD_RATE,
@@ -419,7 +304,6 @@ void gpsgsm_init(A9GState *a9g_state) {
     ESP_ERROR_CHECK(uart_driver_install(GPSGSM_UART_NUMBER, A9G_UART_BUFFER_SIZE * 2, \
                                         A9G_UART_BUFFER_SIZE * 2, 10, &uart_queue, 0));
 
-    a9g_state->initialized = A9Status_Requested;
     printf("[GPS] Init done\n");
 }
 

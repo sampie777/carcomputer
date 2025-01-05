@@ -56,21 +56,14 @@ typedef struct {
     unsigned int checksum;
 } NmeaGNRMCMessage;
 
-enum A9Status {
-    A9Status_Unknown = 0,
-    A9Status_Requested,
-    A9Status_Ok,
-    A9Status_Error,
-    A9Status_Disabled,
-};
-
 typedef struct {
-    enum A9Status initialized;
-    enum A9Status network_attached;
-    enum A9Status pnp_parameters_set;
-    enum A9Status pnp_activated;
-    enum A9Status agps_enabled;
-    enum A9Status gps_logging_enabled;
+    bool initialized;
+    bool network_attached;
+    bool pnp_parameters_set;
+    bool pnp_activated;
+    bool agps_enabled;
+    bool gps_enabled;
+    bool gps_logging_enabled;
     bool gps_logging_started;
     uint8_t network_error_count;
 } A9GState;

@@ -1,3 +1,9 @@
+To flash custom code to the A9G module, see: 
+- https://www.hackster.io/aman-shaikh/compact-gprs-module-programming-a9g-9a4a26
+- https://github.com/Ai-Thinker-Open/GPRS_C_SDK/tree/master
+- https://ai-thinker-open.github.io/GPRS_C_SDK_DOC/en/hardware/a9g.html
+
+
 This document stores some logging information about the GMS unit.
 
 ## Receiving a call

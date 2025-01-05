@@ -166,12 +166,13 @@ void a9g_state_clone(A9GState *source, A9GState *destination) {
 }
 
 void a9g_state_reset(A9GState *source) {
-    source->initialized = A9Status_Unknown;
-    source->network_attached = A9Status_Unknown;
-    source->pnp_parameters_set = A9Status_Unknown;
-    source->pnp_activated = A9Status_Unknown;
-    source->agps_enabled = A9Status_Unknown;
-    source->gps_logging_enabled = A9Status_Unknown;
+    source->initialized = false;
+    source->network_attached = false;
+    source->pnp_parameters_set = false;
+    source->pnp_activated = false;
+    source->agps_enabled = false;
+    source->gps_enabled = false;
+    source->gps_logging_enabled = false;
     source->gps_logging_started = false;
     source->network_error_count = 0;
 }

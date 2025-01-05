@@ -31,6 +31,7 @@ void string_strip_char(char** input, char needle);
 void string_escape(const char* input, char** destination);
 
 void set_error(State* state, uint32_t error_code);
+void reset_error(State* state, uint32_t error_code);
 
 void invert_array(const uint8_t* array, uint8_t* output_array, int length);
 

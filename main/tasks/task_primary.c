@@ -87,7 +87,6 @@ _Noreturn void task_primary(void* args) {
         control_read_can_bus(state);
         control_read_analog_sensors(state);
         control_read_user_input(state);
-        gpsgsm_process(state);
         a9g_process(state);
 
         // Process data
