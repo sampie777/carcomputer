@@ -19,6 +19,12 @@
 #define MESSAGE_MAX_LENGTH (A9G_UART_BUFFER_SIZE)
 #define MESSAGE_LOG_MAX_LENGTH 32
 
+enum SimStatus {
+    SIM_UNKNOWN,
+    SIM_NOT_PRESENT,
+    SIM_PRESENT,
+};
+
 char message_log[MESSAGE_LOG_MAX_LENGTH][MESSAGE_MAX_LENGTH];
 int64_t message_log_timestamps[MESSAGE_LOG_MAX_LENGTH];
 int message_log_length = 0;
@@ -46,6 +52,9 @@ void a9g_log_message(const char* message) {
     strcpy(message_log[message_log_length], message);
     message_log_timestamps[message_log_length] = esp_timer_get_time_ms();
     message_log_length++;
+
+    debug_print_message_log();
+    printf("\n");
 }
 
 void a9g_transmit(const char* data, uint8_t with_break) {
@@ -143,20 +152,27 @@ void a9g_receive(A9GState* state) {
     free(data);
 }
 
-int message_logs_contains(const char* message) {
+int message_logs_contains(const char* message, const bool exact_match) {
     for (int i = message_log_length - 1; i >= 0; i--) {
-        if (strcmp(message_log[i], message) == 0) {
+        if (exact_match && strcmp(message_log[i], message) == 0) {
+            return i;
+        }
+        if (!exact_match && starts_with(message_log[i], message)) {
             return i;
         }
     }
     return -1;
 }
 
+int message_logs_contains_exact(const char* message) {
+    return message_logs_contains(message, true);
+}
+
 int message_logs_contains_transmitted(const char* message) {
     char* buffer = malloc(strlen(message) + 2);
     sprintf(buffer, ">%s", message);
 
-    int result = message_logs_contains(buffer);
+    int result = message_logs_contains_exact(buffer);
 
     free(buffer);
     return result;
@@ -166,8 +182,8 @@ bool a9g_check_if_init_done(A9GState* state) {
     if (state->initialized) return true;
 
     // Check if Init message is found in the messages logs
-    int init_message_index = message_logs_contains(A9G_INIT);
-    int ready_message_index = max(message_logs_contains("+CREG: 3"), message_logs_contains("READY"));
+    int init_message_index = message_logs_contains_exact(A9G_INIT);
+    int ready_message_index = max(message_logs_contains_exact("+CREG: 3"), message_logs_contains_exact("READY"));
     if (ready_message_index < 0) {
         state->initialized = false;
     } else {
@@ -176,18 +192,28 @@ bool a9g_check_if_init_done(A9GState* state) {
     return state->initialized;
 }
 
-bool a9g_send_and_wait_for_command(const char* command) {
+/**
+ *
+ * @param command
+ * @return Returns true if command had to be sent, false if it was already sent
+ */
+bool send_command_if_not_already_sent(const char* command) {
     // Check if we need to send the command
     int command_sent_index = message_logs_contains_transmitted(command);
 
     if (command_sent_index < 0) {
         printf("Command %s not send, sending now\n", command);
         a9g_transmit(command, true);
-        return false;
+        return true;
     }
+    return false;
+}
+
+bool a9g_send_and_wait_for_command(const char* command) {
+    if (send_command_if_not_already_sent(command)) return false;
 
     // Check if we got a response already
-    int command_received_index = message_logs_contains(command);
+    int command_received_index = message_logs_contains_exact(command);
 
     printf("%d / %d\t", command_received_index, message_log_length);
     if (command_received_index < 0 || message_log_length <= command_received_index + 1) {
@@ -205,8 +231,46 @@ bool a9g_send_and_wait_for_command(const char* command) {
     return command_is_ok;
 }
 
+bool a9g_check_if_we_have_network_connection() {
+    if (send_command_if_not_already_sent("AT+CREG?")) return false;
+
+    int command_received_index;
+    for (command_received_index = message_log_length - 1; command_received_index >= 0; command_received_index--) {
+        if (starts_with(message_log[command_received_index], "+CREG: ") && strlen(message_log[command_received_index]) >= strlen("+CREG: 0,1")) {
+            break;
+        }
+    }
+
+    if (command_received_index < 0) return false;
+
+    char *message = message_log[command_received_index];
+    char status_code_char = message[strlen(message) - 1];
+    int status_code = (int) status_code_char - 48;
+
+    return status_code != 3 && status_code > -1;
+}
+
+enum SimStatus a9g_check_if_has_sim() {
+    if (send_command_if_not_already_sent("AT+CPIN?")) return SIM_UNKNOWN;
+
+    int command_received_index = message_logs_contains("+CPIN:", false);
+    if (command_received_index < 0) return SIM_UNKNOWN;
+
+    char *message = malloc(strlen(message_log[command_received_index]) + 1);
+    char *original_message = message; // Store the original pointer
+    strcpy(message, message_log[command_received_index]);
+    extract_string(&message, NULL, ":");
+
+    bool has_sim = strcmp(message, "READY") == 0;
+    free(original_message); // Free the original pointer
+
+    return has_sim ? SIM_PRESENT : SIM_NOT_PRESENT;
+}
+
 bool a9g_check_if_network_attached(A9GState* state) {
     if (state->network_attached) return true;
+
+    if (!a9g_check_if_we_have_network_connection()) return false;
     state->network_attached = a9g_send_and_wait_for_command(A9G_CGATT_ENABLE);
     return state->network_attached;
 }
@@ -248,12 +312,21 @@ void a9g_proceed_device_init(A9GState* state) {
         a9g_state_reset(state);
         return;
     }
-    // if (!a9g_check_if_network_attached(state)) return;
+    enum SimStatus sim_status = a9g_check_if_has_sim();
+    if (sim_status == SIM_UNKNOWN) return;
+
+    if (sim_status == SIM_NOT_PRESENT) {
+        if (!a9g_check_if_gps_enabled(state)) return;
+        if (!a9g_check_if_gps_logging_enabled(state)) return;
+        return;
+    }
+
+    if (!a9g_check_if_network_attached(state)) return;
     // if (!a9g_check_if_pnp_parameters_set(state)) return;
     // if (!a9g_check_if_pnp_activated(state)) return;
     // if (!a9g_check_if_agps_enabled(state)) return;
-    if (!a9g_check_if_gps_enabled(state)) return;
-    if (!a9g_check_if_gps_logging_enabled(state)) return;
+    // if (!a9g_check_if_gps_enabled(state)) return;
+    // if (!a9g_check_if_gps_logging_enabled(state)) return;
 }
 
 void a9g_process_messages(State* state) {

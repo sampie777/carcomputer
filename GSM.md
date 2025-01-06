@@ -6,6 +6,32 @@ To flash custom code to the A9G module, see:
 
 This document stores some logging information about the GMS unit.
 
+## Errors
+Verbose error logging:
+```
+AT+CMEE=2
+```
+
+## Network
+
+To check the network status, send the following command:
+```
+AT+CREG?
+```
+
+If the connection is successful, the response will be `+CREG: 1,0`, else `+CREG: 1,3` if not successful.
+
+Wait for CREG to be successfully registered, before attaching to the GPRS network:
+```
+AT+CGATT=1
+
+# If registered, returns: 
+OK
+# Else (like if no SIM inserted), returns:
+COMMAND NO RESPONS!
+```
+
+
 ## Receiving a call
 
 The serial receive buffer will receive the following lines when a call starts: 

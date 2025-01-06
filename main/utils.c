@@ -38,6 +38,7 @@ double average_read_channel(adc1_channel_t channel, int sample_count) {
 }
 
 uint8_t starts_with(const char* source, const char* needle) {
+    if (strlen(source) < strlen(needle)) return false;
     return strncmp(needle, source, strlen(needle)) == 0;
 }
 
