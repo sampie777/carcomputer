@@ -29,4 +29,6 @@ void control_mpu_power(State *state);
 
 void control_crash_detection(State *state);
 
+void control_read_error_codes(State* state);
+
 #endif //APP_TEMPLATE_CONTROL_H

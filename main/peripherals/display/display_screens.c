@@ -91,7 +91,7 @@ void content_power_off_count_down(State* state, SH1106Config* sh1106) {
                        FONT_SMALL, FONT_BLACK, buffer);
 }
 
-void content_motion_sensors_data(const State *state, SH1106Config *sh1106) {
+void content_motion_sensors_data(const State* state, SH1106Config* sh1106) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[20];
@@ -118,7 +118,9 @@ void content_motion_sensors_data(const State *state, SH1106Config *sh1106) {
     offset_x += 7 * 5 + 1;
     offset_y += 12;
 
-    sprintf(buffer, "G: %6.2f", sqrt(state->motion.accel_x * state->motion.accel_x + state->motion.accel_y * state->motion.accel_y + state->motion.accel_z * state->motion.accel_z));
+    sprintf(buffer, "G: %6.2f",
+            sqrt(state->motion.accel_x * state->motion.accel_x + state->motion.accel_y * state->motion.accel_y + state->
+                motion.accel_z * state->motion.accel_z));
     sh1106_draw_string(sh1106, 0, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     sprintf(buffer, "  Temp:  %5.1f", state->motion.temperature);
@@ -150,10 +152,12 @@ void content_motion_sensors_data(const State *state, SH1106Config *sh1106) {
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
-char* content_actions_get_option_text(ScreenActionsOptions option_index) {
+char* content_actions_get_option_text(ActionsScreenOptions option_index) {
     switch (option_index) {
         case ScreenActionsOptions_LockDoors:
             return "Lock doors";
+        case ScreenActionsOptions_ErrorCodes:
+            return "Read error codes";
         case ScreenActionsOptions_Reboot:
             return "Reboot";
         default:
@@ -161,7 +165,7 @@ char* content_actions_get_option_text(ScreenActionsOptions option_index) {
     }
 }
 
-void content_actions(const State *state, SH1106Config *sh1106) {
+void content_actions(const State* state, SH1106Config* sh1106) {
     static int options_start_index = 0;
     const int selection_item_height = 12;
     const int options_total_height = sh1106->height - STATUS_BAR_HEIGHT - 2;
@@ -186,7 +190,7 @@ void content_actions(const State *state, SH1106Config *sh1106) {
     }
 }
 
-void content_location_data(const State *state, SH1106Config *sh1106) {
+void content_location_data(const State* state, SH1106Config* sh1106) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[32];
@@ -236,7 +240,46 @@ void content_location_data(const State *state, SH1106Config *sh1106) {
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
-char* content_main_menu_get_option_text(ScreenMenuOptions option_index) {
+void content_error_codes(const State* state, SH1106Config* display) {
+    int offset_x = 0;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[64];
+
+    int countdown = (int) ceil(state->error_codes.wait_timer_end - esp_timer_get_time_ms());
+
+    switch (state->error_codes.status) {
+        case ErrorCodes_IgnitionOff:
+            snprintf(buffer, sizeof buffer, "Turn ignition off.");
+            break;
+        case ErrorCodes_IgnitionOffWait3Sec:
+            snprintf(buffer, sizeof buffer, "Turn ignition on in\n%d seconds...", countdown);
+            break;
+        case ErrorCodes_IgnitionOn:
+            snprintf(buffer, sizeof buffer, "Turn ignition on.");
+            break;
+        case ErrorCodes_IgnitionOnWait3Sec:
+            snprintf(buffer, sizeof buffer, "Waiting %d seconds...", countdown);
+            break;
+        case ErrorCodes_DepressPedal5Times:
+            snprintf(buffer, sizeof buffer, "Depressing pedal 5 times.\n%d seconds left...", countdown);
+            break;
+        case ErrorCodes_OnWait7Sec:
+            snprintf(buffer, sizeof buffer, "Waiting %d seconds...", countdown);
+            break;
+        case ErrorCodes_DepressPedal10Sec:
+            snprintf(buffer, sizeof buffer, "Depressing pedal.\n%d seconds left...", countdown);
+            break;
+        case ErrorCodes_ReleasePedal:
+            snprintf(buffer, sizeof buffer, "Done.");
+            break;
+        default:
+            break;
+    }
+
+    sh1106_draw_string(display, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
+}
+
+char* content_main_menu_get_option_text(MainMenuScreenOptions option_index) {
     switch (option_index) {
         case ScreenMenuOption_CruiseControl:
             return "Cruise control";

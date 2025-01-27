@@ -17,22 +17,24 @@ typedef enum {
     Screen_Sensors,
     Screen_Actions,
     Screen_GPS,
+    Screen_ErrorCodes,
 } Screen;
 
-// This also deterimines the order in which the options are shown on the display
+// This also determines the order in which the options are shown on the display
 typedef enum {
     ScreenMenuOption_CruiseControl,
     ScreenMenuOption_Sensors,
     ScreenMenuOption_GPS,
     ScreenMenuOption_Actions,
     ScreenMenuOption_MAX_VALUE,
-} ScreenMenuOptions;
+} MainMenuScreenOptions;
 
 typedef enum {
     ScreenActionsOptions_LockDoors,
+    ScreenActionsOptions_ErrorCodes,
     ScreenActionsOptions_Reboot,
     ScreenActionsOptions_MAX_VALUE,
-} ScreenActionsOptions;
+} ActionsScreenOptions;
 
 typedef enum {
     GearReverse = -1,
@@ -46,8 +48,8 @@ typedef enum {
 
 typedef struct {
     Screen current_screen;
-    ScreenMenuOptions menu_option_selection;
-    ScreenActionsOptions actions_option_selection;
+    MainMenuScreenOptions menu_option_selection;
+    ActionsScreenOptions actions_option_selection;
 } DisplayState;
 
 typedef struct {
@@ -147,13 +149,30 @@ typedef struct {
     Time time;
 } GsmState;
 
+typedef enum {
+    ErrorCodes_Off = 0,
+    ErrorCodes_IgnitionOff,
+    ErrorCodes_IgnitionOffWait3Sec,
+    ErrorCodes_IgnitionOn,
+    ErrorCodes_IgnitionOnWait3Sec,
+    ErrorCodes_DepressPedal5Times,
+    ErrorCodes_OnWait7Sec,
+    ErrorCodes_DepressPedal10Sec,
+    ErrorCodes_ReleasePedal,
+} ErrorCodesStatus;
+
+typedef struct {
+    ErrorCodesStatus status;
+    int64_t wait_timer_end;
+} ErrorCodes;
+
 typedef struct {
     bool is_booting;
     bool is_rebooting;
     int16_t power_off_count_down_sec;
     uint32_t logging_session_id;
     uint32_t errors;
-    char *device_name;
+    char* device_name;
     CarState car;
     CruiseControlState cruise_control;
     DisplayState display;
@@ -162,6 +181,7 @@ typedef struct {
     GpsState location;
     GsmState gsm;
     A9GState a9g;
+    ErrorCodes error_codes;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "buttons.h"
 
+#include "control.h"
 #include "../utils.h"
 #include "../peripherals/canbus/canbus.h"
 
@@ -34,6 +35,9 @@ void control_buttons_handle(State* state, Button button) {
                 switch (state->display.actions_option_selection) {
                     case ScreenActionsOptions_LockDoors:
                         canbus_send_lock_doors(state, true);
+                        break;
+                    case ScreenActionsOptions_ErrorCodes:
+                        state->error_codes.status = ErrorCodes_Off + 1;
                         break;
                     case ScreenActionsOptions_Reboot:
                         utils_reboot(state);
@@ -102,6 +106,10 @@ void control_buttons_handle(State* state, Button button) {
             if (state->display.current_screen == Screen_Actions) {
                 state->display.current_screen = Screen_Menu;
                 state->display.actions_option_selection = 0;
+                break;
+            }
+            if (state->display.current_screen == Screen_ErrorCodes) {
+                state->error_codes.status = ErrorCodes_Off;
                 break;
             }
 

@@ -156,16 +156,19 @@ void show_screen(State* state, SH1106Config* sh1106) {
             break;
         case Screen_CruiseControl:
             content_cruise_control(state, sh1106);
-        break;
+            break;
         case Screen_Sensors:
             content_motion_sensors_data(state, sh1106);
-        break;
+            break;
         case Screen_Actions:
             content_actions(state, sh1106);
-        break;
+            break;
         case Screen_GPS:
             content_location_data(state, sh1106);
-        break;
+            break;
+        case Screen_ErrorCodes:
+            content_error_codes(state, sh1106);
+            break;
     }
 }
 

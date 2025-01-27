@@ -118,6 +118,7 @@ _Noreturn void task_primary(void* args) {
         control_car_gear(state);
         control_led_indicator_step(state);
         data_logger_process(state);
+        control_read_error_codes(state);
     }
 
     vTaskDelete(NULL);
