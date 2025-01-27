@@ -242,32 +242,32 @@ void content_location_data(const State* state, SH1106Config* sh1106) {
 
 void content_error_codes(const State* state, SH1106Config* display) {
     int offset_x = 0;
-    int offset_y = STATUS_BAR_HEIGHT + 5;
-    char buffer[64];
+    int offset_y = STATUS_BAR_HEIGHT + 5 + 10;
+    char buffer[32] = {0};
+    char buffer2[32] = {0};
 
-    int countdown = (int) ceil(state->error_codes.wait_timer_end - esp_timer_get_time_ms());
+    int countdown = (int) ceil((double) (state->error_codes.wait_timer_end - esp_timer_get_time_ms()) / 1000.0);
 
     switch (state->error_codes.status) {
         case ErrorCodes_IgnitionOff:
             snprintf(buffer, sizeof buffer, "Turn ignition off.");
             break;
-        case ErrorCodes_IgnitionOffWait3Sec:
-            snprintf(buffer, sizeof buffer, "Turn ignition on in\n%d seconds...", countdown);
-            break;
         case ErrorCodes_IgnitionOn:
             snprintf(buffer, sizeof buffer, "Turn ignition on.");
             break;
         case ErrorCodes_IgnitionOnWait3Sec:
-            snprintf(buffer, sizeof buffer, "Waiting %d seconds...", countdown);
+            snprintf(buffer2, sizeof buffer2, "Waiting %d seconds...", countdown);
             break;
         case ErrorCodes_DepressPedal5Times:
-            snprintf(buffer, sizeof buffer, "Depressing pedal 5 times.\n%d seconds left...", countdown);
+            snprintf(buffer, sizeof buffer, "Depressing pedal 5 times.");
+            snprintf(buffer2, sizeof buffer2, "%d seconds left...", countdown);
             break;
         case ErrorCodes_OnWait7Sec:
-            snprintf(buffer, sizeof buffer, "Waiting %d seconds...", countdown);
+            snprintf(buffer2, sizeof buffer2, "%d seconds left...", countdown);
             break;
         case ErrorCodes_DepressPedal10Sec:
-            snprintf(buffer, sizeof buffer, "Depressing pedal.\n%d seconds left...", countdown);
+            snprintf(buffer, sizeof buffer, "Depressing pedal.");
+            snprintf(buffer2, sizeof buffer2, "%d seconds left...", countdown);
             break;
         case ErrorCodes_ReleasePedal:
             snprintf(buffer, sizeof buffer, "Done.");
@@ -276,7 +276,9 @@ void content_error_codes(const State* state, SH1106Config* display) {
             break;
     }
 
-    sh1106_draw_string(display, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer2);
 }
 
 char* content_main_menu_get_option_text(MainMenuScreenOptions option_index) {
