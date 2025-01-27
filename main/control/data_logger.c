@@ -34,7 +34,7 @@ void data_logger_log_current(State *state) {
     last_log_time = esp_timer_get_time_ms();
 
     char buffer[256];
-    sprintf(buffer,
+    snprintf(buffer, sizeof buffer,
             "%lld;"         // esp_timer_get_time_ms()
             "%lu;"           // state->logging_session_id
             "%d;"           // state->car.is_connected

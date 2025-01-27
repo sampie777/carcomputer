@@ -158,7 +158,7 @@ void control_crash_detection(State* state) {
     if (time.year < 2000) {
         timestamp[0] = '\0';
     } else {
-        sprintf(timestamp, "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d",
+        snprintf(timestamp, sizeof timestamp, "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d",
                 time.year,
                 time.month,
                 time.day,
@@ -169,7 +169,7 @@ void control_crash_detection(State* state) {
     }
 
     printf("[LOG] control_crash_detection constructing message\n");
-    sprintf(message, "CRASH! Location: %.5f,%.5f at %s (accuracy: %d%%). Force: %.1f g.",
+    snprintf(message, sizeof message, "CRASH! Location: %.5f,%.5f at %s (accuracy: %d%%). Force: %.1f g.",
             state->location.latitude,
             state->location.longitude,
             timestamp,

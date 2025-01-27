@@ -26,7 +26,7 @@ void content_cruise_control(State* state, SH1106Config* sh1106) {
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 10;
     char buffer[20];
-    sprintf(buffer, "%3.0f%s ", state->car.speed, state->cruise_control.enabled ? "/" : " km/h");
+    snprintf(buffer, sizeof buffer, "%3.0f%s ", state->car.speed, state->cruise_control.enabled ? "/" : " km/h");
     offset_x += sh1106_draw_string(sh1106, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
 
     if (state->cruise_control.enabled) {
@@ -45,7 +45,7 @@ void content_cruise_control(State* state, SH1106Config* sh1106) {
             sprintf(buffer, "Gear: R");
             break;
         default:
-            sprintf(buffer, "Gear: %d", state->car.estimated_gear);
+            snprintf(buffer, sizeof buffer, "Gear: %d", state->car.estimated_gear);
     }
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
@@ -81,7 +81,7 @@ void content_power_off_count_down(State* state, SH1106Config* sh1106) {
     sh1106_draw_string(sh1106, offset_x, offset_y + margin,
                        FONT_SMALL, FONT_BLACK, buffer);
 
-    sprintf(buffer, "%d", state->power_off_count_down_sec);
+    snprintf(buffer, sizeof buffer, "%d", state->power_off_count_down_sec);
     offset_x = (sh1106->width - length * 5) / 2;
     offset_y += row_height;
     sh1106_draw_filled_rectangle(sh1106, offset_x - margin, offset_y,
@@ -122,7 +122,7 @@ void content_motion_sensors_data(const State* state, SH1106Config* sh1106) {
                 motion.accel_z * state->motion.accel_z));
     sh1106_draw_string(sh1106, 0, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
-    sprintf(buffer, "  Temp:  %5.1f", state->motion.temperature);
+    snprintf(buffer, sizeof buffer, "  Temp:  %5.1f", state->motion.temperature);
     sh1106_draw_string(sh1106, 11 * 5, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y = STATUS_BAR_HEIGHT + 5;
 
@@ -214,7 +214,7 @@ void content_location_data(const State* state, SH1106Config* sh1106) {
         return;
     }
 
-    sprintf(buffer, "%d:%02d:%02d    %d-%02d-%04d",
+    snprintf(buffer, sizeof buffer, "%d:%02d:%02d    %d-%02d-%04d",
             state->location.time.hours,
             state->location.time.minutes,
             state->location.time.seconds,
@@ -225,17 +225,17 @@ void content_location_data(const State* state, SH1106Config* sh1106) {
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
 
-    sprintf(buffer, "%.5lf, %.5lf", state->location.latitude, state->location.longitude);
+    snprintf(buffer, sizeof buffer, "%.5lf, %.5lf", state->location.latitude, state->location.longitude);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    sprintf(buffer, "Q:%d S:%d E:%d A:%.0lf",
+    snprintf(buffer, sizeof buffer, "Q:%d S:%d E:%d A:%.0lf",
             state->location.quality,
             state->location.satellites,
             state->location.is_effective_positioning,
             state->location.altitude);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    sprintf(buffer, "%6.2lf km/h @ %6.1lf*", state->location.ground_speed, state->location.ground_heading);
+    snprintf(buffer, sizeof buffer, "%6.2lf km/h @ %6.1lf*", state->location.ground_speed, state->location.ground_heading);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
