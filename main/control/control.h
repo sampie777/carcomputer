@@ -7,6 +7,12 @@
 
 #include "../state.h"
 
+#define ERROR_CODES_1_WAIT3SEC_MS 3000
+#define ERROR_CODES_2_DEPRESS_PEDAL_COUNT 5
+#define ERROR_CODES_2_DEPRESS_PEDAL_INTERVAL 400
+#define ERROR_CODES_3_WAIT7SEC_MS 7000
+#define ERROR_CODES_4_DEPRESS_PEDAL_FULLY_TIME 10000
+
 void control_init(State *state);
 
 void control_read_can_bus(State *state);

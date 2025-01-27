@@ -162,7 +162,8 @@ typedef enum {
 
 typedef struct {
     ErrorCodesStatus status;
-    int64_t wait_timer_end;
+    int64_t process_start_time;
+    int64_t process_estimated_end_time;
 } ErrorCodes;
 
 typedef struct {

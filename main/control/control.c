@@ -192,7 +192,8 @@ void control_crash_detection(State* state) {
 
 void control_read_error_codes(State* state) {
     static ErrorCodesStatus previous_status = ErrorCodes_Off;
-    static int64_t timer_start = 0;
+    static int64_t wait_timer_end = 0;
+    static int64_t press_timer_start = 0;
     static int8_t depressed_count = 0;
 
     if (state->error_codes.status != previous_status) {
@@ -202,11 +203,11 @@ void control_read_error_codes(State* state) {
             // Go back to Actions screen
             state->display.current_screen = Screen_Actions;
         } else if (previous_status == ErrorCodes_Off) {
+            // Start of a new process cycle
             state->display.current_screen = Screen_ErrorCodes;
-            printf("[ErrorCodes] ErrorCodes_IgnitionOff\n");
         }
 
-        state->error_codes.wait_timer_end = 0;
+        wait_timer_end = 0;
         previous_status = state->error_codes.status;
     }
 
@@ -216,7 +217,12 @@ void control_read_error_codes(State* state) {
 
     // Check if ignition is off before going to the next state
     if (state->error_codes.status == ErrorCodes_IgnitionOff) {
+        gas_pedal_enable(false);
         if (state->car.is_ignition_on) return;
+
+        state->cruise_control.virtual_gas_pedal = 0;
+        gas_pedal_write(state);
+        gas_pedal_enable(true);
 
         state->error_codes.status++;
         return;
@@ -226,32 +232,44 @@ void control_read_error_codes(State* state) {
         if (!state->car.is_ignition_on) return;
 
         state->error_codes.status++;
+        state->error_codes.process_start_time = esp_timer_get_time_ms();
+        state->error_codes.process_estimated_end_time = state->error_codes.process_start_time +
+            ERROR_CODES_1_WAIT3SEC_MS +
+            ERROR_CODES_2_DEPRESS_PEDAL_COUNT * 2 * ERROR_CODES_2_DEPRESS_PEDAL_INTERVAL +
+            ERROR_CODES_3_WAIT7SEC_MS +
+            ERROR_CODES_4_DEPRESS_PEDAL_FULLY_TIME;
+
+        return;
+    }
+
+    if (!state->car.is_ignition_on) {
+        printf("[ErrorCodes] Ignition unexpectedly turned off\n");
+        state->error_codes.status = ErrorCodes_IgnitionOff;
         return;
     }
 
     if (state->error_codes.status == ErrorCodes_IgnitionOnWait3Sec) {
-        if (state->error_codes.wait_timer_end <= 0) {
-            printf("[ErrorCodes] ErrorCodes_IgnitionOnWait3Sec\n");
-            state->error_codes.wait_timer_end = esp_timer_get_time_ms() + 3000;
+        if (wait_timer_end <= 0) {
+            wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_1_WAIT3SEC_MS;
         }
 
-        if (esp_timer_get_time_ms() >= state->error_codes.wait_timer_end) {
+        if (esp_timer_get_time_ms() >= wait_timer_end) {
             state->error_codes.status++;
             return;
         }
     }
 
     if (state->error_codes.status == ErrorCodes_DepressPedal5Times) {
-        if (state->error_codes.wait_timer_end <= 0) {
-            printf("[ErrorCodes] ErrorCodes_DepressPedal5Times\n");
-            state->error_codes.wait_timer_end = esp_timer_get_time_ms() + 5 * 2 * 400;
-            timer_start = 0;
+        if (wait_timer_end <= 0) {
+            wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_2_DEPRESS_PEDAL_COUNT * 2 *
+                ERROR_CODES_2_DEPRESS_PEDAL_INTERVAL;
+            press_timer_start = 0;
             depressed_count = 0;
         }
 
-        if (depressed_count < 5) {
-            if (esp_timer_get_time_ms() < timer_start + 400) return;
-            timer_start = esp_timer_get_time_ms();
+        if (depressed_count < ERROR_CODES_2_DEPRESS_PEDAL_COUNT) {
+            if (esp_timer_get_time_ms() < press_timer_start + ERROR_CODES_2_DEPRESS_PEDAL_INTERVAL) return;
+            press_timer_start = esp_timer_get_time_ms();
 
             if (state->cruise_control.virtual_gas_pedal < 0.5) {
                 printf("[ErrorCodes] Pedal in...\n");
@@ -271,40 +289,38 @@ void control_read_error_codes(State* state) {
     }
 
     if (state->error_codes.status == ErrorCodes_OnWait7Sec) {
-        if (state->error_codes.wait_timer_end <= 0) {
-            printf("[ErrorCodes] ErrorCodes_OnWait7Sec\n");
-            state->error_codes.wait_timer_end = esp_timer_get_time_ms() + 7000;
+        if (wait_timer_end <= 0) {
+            wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_3_WAIT7SEC_MS;
         }
 
-        if (esp_timer_get_time_ms() >= state->error_codes.wait_timer_end) {
+        if (esp_timer_get_time_ms() >= wait_timer_end) {
             state->error_codes.status++;
             return;
         }
     }
 
     if (state->error_codes.status == ErrorCodes_DepressPedal10Sec) {
-        if (state->error_codes.wait_timer_end <= 0) {
-            printf("[ErrorCodes] ErrorCodes_DepressPedal10Sec\n");
+        if (wait_timer_end <= 0) {
             state->cruise_control.virtual_gas_pedal = 1;
             gas_pedal_write(state);
-            state->error_codes.wait_timer_end = esp_timer_get_time_ms() + 11000;
+            // Add some extra time (1000 ms) to make sure
+            wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_4_DEPRESS_PEDAL_FULLY_TIME + 1000;
         }
 
-        if (esp_timer_get_time_ms() >= state->error_codes.wait_timer_end) {
+        if (esp_timer_get_time_ms() >= wait_timer_end) {
             state->error_codes.status++;
             return;
         }
     }
 
     if (state->error_codes.status == ErrorCodes_ReleasePedal) {
-        if (state->error_codes.wait_timer_end <= 0) {
-            printf("[ErrorCodes] ErrorCodes_ReleasePedal\n");
-            state->error_codes.wait_timer_end = esp_timer_get_time_ms() + 3000;
+        if (wait_timer_end <= 0) {
+            wait_timer_end = esp_timer_get_time_ms() + 3000;
             state->cruise_control.virtual_gas_pedal = 0;
             gas_pedal_write(state);
         }
 
-        if (esp_timer_get_time_ms() >= state->error_codes.wait_timer_end) {
+        if (esp_timer_get_time_ms() >= wait_timer_end) {
             state->error_codes.status = ErrorCodes_Off;
             return;
         }

@@ -85,7 +85,7 @@ void show_error_message(State* state, SH1106Config* sh1106) {
     }
 
     sh1106_draw_filled_rectangle(sh1106, 5, 5, sh1106->width - 10, sh1106->height - 10);
-    sh1106_draw_string(sh1106, sh1106->width / 2 - 5 * 2, 7, FONT_SMALL, FONT_BLACK, "ERROR");
+    sh1106_draw_string_centered_horizontally(sh1106, 7, FONT_SMALL, FONT_BLACK, "ERROR");
     sh1106_draw_string(sh1106, 10, 18, FONT_SMALL, FONT_BLACK, buffer);
 }
 
@@ -139,15 +139,15 @@ void show_content_overlay(State* state, SH1106Config* sh1106) {
 void show_screen(State* state, SH1106Config* sh1106) {
     switch (state->display.current_screen) {
         case Screen_Booting:
-            sh1106_draw_string(sh1106, (sh1106->width - 5 * 10) / 2,
+            sh1106_draw_string_centered_horizontally(sh1106,
                                STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2 - 4,
                                FONT_SMALL, FONT_WHITE, "Booting...");
-            sh1106_draw_string(sh1106, (sh1106->width - 5 * (int) strlen(APP_VERSION)) / 2,
+            sh1106_draw_string_centered_horizontally(sh1106,
                                STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
                                FONT_SMALL, FONT_WHITE, APP_VERSION);
             break;
         case Screen_Rebooting:
-            sh1106_draw_string(sh1106, (sh1106->width - 5 * 12) / 2,
+            sh1106_draw_string_centered_horizontally(sh1106,
                                STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2,
                                FONT_SMALL, FONT_WHITE, "Rebooting...");
             break;
