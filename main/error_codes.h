@@ -14,5 +14,6 @@
 #define ERROR_SMS_FAILED (1 << 4)
 #define ERROR_SD_FULL (1 << 5)
 #define ERROR_CRASH_DETECTED (1 << 6)
+#define ERROR_CAR_DISCONNECTED (1 << 7)
 
 #endif //CARCOMPUTER_ERROR_CODES_H

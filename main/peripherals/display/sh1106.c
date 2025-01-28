@@ -164,7 +164,7 @@ int sh1106_draw_string(SH1106Config* config, int x, int y, FontSize size, FontCo
     return sh1106_draw_string_with_spacing(config, x, y, size, color, c, 0);
 }
 
-int sh1106_draw_string_centered_horizontally(SH1106Config* config, int y, FontSize size, FontColor color,
+int sh1106_draw_string_centered_x(SH1106Config* config, int y, FontSize size, FontColor color,
                                              const char* c) {
     int length = (int) strlen(c);
     int x = (config->width - length * 5 * size) / 2;

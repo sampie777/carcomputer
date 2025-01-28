@@ -215,27 +215,31 @@ void content_location_data(const State* state, SH1106Config* sh1106) {
     }
 
     snprintf(buffer, sizeof buffer, "%d:%02d:%02d    %d-%02d-%04d",
-            state->location.time.hours,
-            state->location.time.minutes,
-            state->location.time.seconds,
-            state->location.time.day,
-            state->location.time.month,
-            state->location.time.year
+             state->location.time.hours,
+             state->location.time.minutes,
+             state->location.time.seconds,
+             state->location.time.day,
+             state->location.time.month,
+             state->location.time.year
     );
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
 
-    snprintf(buffer, sizeof buffer, "%.5lf, %.5lf", state->location.latitude, state->location.longitude);
+    snprintf(buffer, sizeof buffer, "%.5lf, %.5lf",
+             state->location.latitude,
+             state->location.longitude);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
     snprintf(buffer, sizeof buffer, "Q:%d S:%d E:%d A:%.0lf",
-            state->location.quality,
-            state->location.satellites,
-            state->location.is_effective_positioning,
-            state->location.altitude);
+             state->location.quality,
+             state->location.satellites,
+             state->location.is_effective_positioning,
+             state->location.altitude);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
-    snprintf(buffer, sizeof buffer, "%6.2lf km/h @ %6.1lf*", state->location.ground_speed, state->location.ground_heading);
+    snprintf(buffer, sizeof buffer, "%6.2lf km/h @ %6.1lf*",
+             state->location.ground_speed,
+             state->location.ground_heading);
     sh1106_draw_string(sh1106, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
@@ -246,16 +250,21 @@ void content_error_codes(const State* state, SH1106Config* display) {
 
     switch (state->error_codes.status) {
         case ErrorCodes_IgnitionOff:
-            sh1106_draw_string_centered_horizontally(display, offset_y, FONT_SMALL, FONT_WHITE, "Turn ignition off.");
+            if (state->car.speed > 0 || !state->car.is_parking_brake_on) {
+                sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Park the car.");
+            } else if (state->car.is_braking) {
+                sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Release the brakes.");
+            } else {
+                sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Turn ignition off.");
+            }
             return;
         case ErrorCodes_IgnitionOn:
-            sh1106_draw_string_centered_horizontally(display, offset_y, FONT_SMALL, FONT_WHITE, "Turn ignition on.");
+            sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Turn ignition on.");
             offset_y += 15;
-            sh1106_draw_string_centered_horizontally(display, offset_y, FONT_SMALL, FONT_WHITE,
-                                                     "Do NOT start the car!");
+            sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Do NOT start the car!");
             return;
         case ErrorCodes_ReleasePedal:
-            sh1106_draw_string_centered_horizontally(display, offset_y, FONT_SMALL, FONT_WHITE, "Done.");
+            sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Done.");
             return;
         default:
             break;
@@ -267,7 +276,7 @@ void content_error_codes(const State* state, SH1106Config* display) {
     double progress = min(1.0, max(0, current_time / total_time));
     double remaining_time = (double) max(0, (state->error_codes.process_estimated_end_time - esp_timer_get_time_ms()));
 
-    sh1106_draw_string_centered_horizontally(display, offset_y, FONT_SMALL, FONT_WHITE, "Running sequence...");
+    sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Running procedure...");
     offset_y += 10;
 
     // Animate progress
@@ -287,10 +296,10 @@ void content_error_codes(const State* state, SH1106Config* display) {
     offset_y += 10;
 
     snprintf(buffer, sizeof buffer, "%.0f seconds remaining...", ceil(remaining_time / 1000));
-    sh1106_draw_string_centered_horizontally(display, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     offset_y += 15;
-    sh1106_draw_string_centered_horizontally(display, offset_y, FONT_SMALL, FONT_WHITE, "Do NOT start the car!");
+    sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Do NOT start the car!");
 }
 
 char* content_main_menu_get_option_text(MainMenuScreenOptions option_index) {

@@ -102,6 +102,8 @@ void set_error(State* state, uint32_t error_code) {
             break;
         case ERROR_CRASH_DETECTED: printf("ERROR_CRASH_DETECTED");
             break;
+        case ERROR_CAR_DISCONNECTED: printf("ERROR_CAR_DISCONNECTED");
+            break;
         default: printf("unknown");
         }
         printf("\n");

@@ -215,10 +215,36 @@ void control_read_error_codes(State* state) {
         return;
     }
 
+    // Init checks
+    if (!state->car.is_connected) {
+        printf("[ErrorCodes] Car not connected\n");
+        set_error(state, ERROR_CAR_DISCONNECTED);
+        state->error_codes.status = ErrorCodes_Off;
+        return;
+    }
+
+    if (!state->car.is_controller_connected) {
+        printf("[ErrorCodes] Car controller not connected\n");
+        set_error(state, ERROR_CAR_DISCONNECTED);
+        state->error_codes.status = ErrorCodes_Off;
+        return;
+    }
+
+    if (!state->car.gas_pedal_connected) {
+        printf("[ErrorCodes] Gas pedal not connected\n");
+        set_error(state, ERROR_PEDAL_DISCONNECTED);
+        state->error_codes.status = ErrorCodes_Off;
+        return;
+    }
+
     // Check if ignition is off before going to the next state
     if (state->error_codes.status == ErrorCodes_IgnitionOff) {
         gas_pedal_enable(false);
         if (state->car.is_ignition_on) return;
+        if (state->car.speed > 0) return;
+        if (state->car.rpm > 0) return;
+        if (!state->car.is_parking_brake_on) return;
+        if (state->car.is_braking) return;
 
         state->cruise_control.virtual_gas_pedal = 0;
         gas_pedal_write(state);
@@ -228,6 +254,7 @@ void control_read_error_codes(State* state) {
         return;
     }
 
+    // Put car in reset/boot mode
     if (state->error_codes.status == ErrorCodes_IgnitionOn) {
         if (!state->car.is_ignition_on) return;
 
@@ -242,12 +269,20 @@ void control_read_error_codes(State* state) {
         return;
     }
 
+    // Safety checks
     if (!state->car.is_ignition_on) {
         printf("[ErrorCodes] Ignition unexpectedly turned off\n");
         state->error_codes.status = ErrorCodes_IgnitionOff;
         return;
     }
 
+    if (state->car.rpm > 0) {
+        printf("[ErrorCodes] Engine unexpectedly turned on\n");
+        state->error_codes.status = ErrorCodes_IgnitionOff;
+        return;
+    }
+
+    // Continue normal procedure
     if (state->error_codes.status == ErrorCodes_IgnitionOnWait3Sec) {
         if (wait_timer_end <= 0) {
             wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_1_WAIT3SEC_MS;
@@ -267,25 +302,25 @@ void control_read_error_codes(State* state) {
             depressed_count = 0;
         }
 
-        if (depressed_count < ERROR_CODES_2_DEPRESS_PEDAL_COUNT) {
-            if (esp_timer_get_time_ms() < press_timer_start + ERROR_CODES_2_DEPRESS_PEDAL_INTERVAL) return;
-            press_timer_start = esp_timer_get_time_ms();
-
-            if (state->cruise_control.virtual_gas_pedal < 0.5) {
-                printf("[ErrorCodes] Pedal in...\n");
-                state->cruise_control.virtual_gas_pedal = 1;
-            } else {
-                printf("[ErrorCodes] Pedal out...\n");
-                state->cruise_control.virtual_gas_pedal = 0;
-                depressed_count++;
-            }
-            gas_pedal_write(state);
-        } else {
+        if (depressed_count >= ERROR_CODES_2_DEPRESS_PEDAL_COUNT) {
             state->cruise_control.virtual_gas_pedal = 0;
             gas_pedal_write(state);
             state->error_codes.status++;
             return;
         }
+
+        if (esp_timer_get_time_ms() < press_timer_start + ERROR_CODES_2_DEPRESS_PEDAL_INTERVAL) return;
+        press_timer_start = esp_timer_get_time_ms();
+
+        if (state->cruise_control.virtual_gas_pedal < 0.5) {
+            printf("[ErrorCodes] Pedal in...\n");
+            state->cruise_control.virtual_gas_pedal = 1;
+        } else {
+            printf("[ErrorCodes] Pedal out...\n");
+            state->cruise_control.virtual_gas_pedal = 0;
+            depressed_count++;
+        }
+        gas_pedal_write(state);
     }
 
     if (state->error_codes.status == ErrorCodes_OnWait7Sec) {

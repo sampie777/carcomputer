@@ -59,33 +59,28 @@ void show_error_message(State* state, SH1106Config* sh1106) {
 
     char buffer[32];
     switch (current_error_to_show) {
-        case ERROR_PEDAL_DISCONNECTED:
-            strcpy(buffer, "Pedal disconnected");
+        case ERROR_PEDAL_DISCONNECTED: strcpy(buffer, "Pedal disconnected");
             break;
-        case ERROR_SPI_FAILED:
-            strcpy(buffer, "SPI failed");
+        case ERROR_SPI_FAILED: strcpy(buffer, "SPI failed");
             break;
-        case ERROR_CRASH_NO_ICE:
-            strcpy(buffer, "CRASH, no ICE!");
+        case ERROR_CRASH_NO_ICE: strcpy(buffer, "CRASH, no ICE!");
             break;
-        case ERROR_CRASH_DETECTED:
-            strcpy(buffer, "CRASH detected!");
+        case ERROR_CRASH_DETECTED: strcpy(buffer, "CRASH detected!");
             break;
-        case ERROR_GPS_TIMEOUT:
-            strcpy(buffer, "GPS timeout");
+        case ERROR_GPS_TIMEOUT: strcpy(buffer, "GPS timeout");
             break;
-        case ERROR_SMS_FAILED:
-            strcpy(buffer, "SMS failed");
+        case ERROR_SMS_FAILED: strcpy(buffer, "SMS failed");
             break;
-        case ERROR_SD_FULL:
-            strcpy(buffer, "SD car full");
+        case ERROR_SD_FULL: strcpy(buffer, "SD car full");
+            break;
+        case ERROR_CAR_DISCONNECTED: strcpy(buffer, "Car disconnected");
             break;
         default:
             sprintf(buffer, "Code: %lu", state->errors);
     }
 
     sh1106_draw_filled_rectangle(sh1106, 5, 5, sh1106->width - 10, sh1106->height - 10);
-    sh1106_draw_string_centered_horizontally(sh1106, 7, FONT_SMALL, FONT_BLACK, "ERROR");
+    sh1106_draw_string_centered_x(sh1106, 7, FONT_SMALL, FONT_BLACK, "ERROR");
     sh1106_draw_string(sh1106, 10, 18, FONT_SMALL, FONT_BLACK, buffer);
 }
 
@@ -139,17 +134,14 @@ void show_content_overlay(State* state, SH1106Config* sh1106) {
 void show_screen(State* state, SH1106Config* sh1106) {
     switch (state->display.current_screen) {
         case Screen_Booting:
-            sh1106_draw_string_centered_horizontally(sh1106,
-                               STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2 - 4,
-                               FONT_SMALL, FONT_WHITE, "Booting...");
-            sh1106_draw_string_centered_horizontally(sh1106,
-                               STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
-                               FONT_SMALL, FONT_WHITE, APP_VERSION);
+            sh1106_draw_string_centered_x(sh1106, STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2 - 4,
+                                          FONT_SMALL, FONT_WHITE, "Booting...");
+            sh1106_draw_string_centered_x(sh1106, STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
+                                          FONT_SMALL, FONT_WHITE, APP_VERSION);
             break;
         case Screen_Rebooting:
-            sh1106_draw_string_centered_horizontally(sh1106,
-                               STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2,
-                               FONT_SMALL, FONT_WHITE, "Rebooting...");
+            sh1106_draw_string_centered_x(sh1106, STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2,
+                                          FONT_SMALL, FONT_WHITE, "Rebooting...");
             break;
         case Screen_Menu:
             content_main_menu(state, sh1106);
