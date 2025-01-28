@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/unistd.h>
 #include "sd_card.h"
+#include <sys/dirent.h>
 #include "../config.h"
 #include "../return_codes.h"
 #include "../utils.h"
@@ -105,6 +106,7 @@ void sd_card_create_directory(const char* directory, char* created_directory) {
 }
 
 void sd_card_delete_file(const char* file_name) {
+    printf("[SD] Deleting file %s\n", file_name);
     char path[SD_PATH_MAX_LENGTH * 2];
     snprintf(path, sizeof path, "%s/%s", MOUNT_POINT, file_name);
 
@@ -148,6 +150,17 @@ int sd_card_file_append(const char* file_name, const char* line) {
     return RESULT_OK;
 }
 
+int sd_card_does_filename_exists(const char* directory,
+                                 const char* base_file_name,
+                                 uint16_t i,
+                                 const char* base_file_extension) {
+    char path[SD_PATH_MAX_LENGTH * 2];
+    char new_file_name[SD_PATH_MAX_LENGTH];
+    sprintf(new_file_name, "%s/%s-%d.%s", directory, base_file_name, i, base_file_extension);
+    sprintf(path, "%s/%s", MOUNT_POINT, new_file_name);
+    return access(path, F_OK) == 0;
+}
+
 /**
  * Create a file with given name and extension. If filename already exists, increment new filename with a number until unique.
  * The new filename will be stored in the file_name parameter.
@@ -156,9 +169,10 @@ int sd_card_file_append(const char* file_name, const char* line) {
   * @param base_file_name
   * @param file_name_out    The new file name will be stored in here (size: PATH_MAX_LENGTH)
   */
-int sd_card_create_file_incremental(const char* directory, const char* base_file_name, const char* base_file_extension,
+int sd_card_create_file_incremental(const char* directory,
+                                    const char* base_file_name,
+                                    const char* base_file_extension,
                                     char* file_name_out) {
-    char path[SD_PATH_MAX_LENGTH * 2];
     char created_directory[SD_DIRECTORY_MAX_LENGTH];
     char new_file_name[SD_PATH_MAX_LENGTH];
 
@@ -166,13 +180,16 @@ int sd_card_create_file_incremental(const char* directory, const char* base_file
 
     // Optimize the search for the next available file name using binary search
     int32_t x = 1 << 15;
+
+    // Cut search time drastically as we don't expect 65000 trips
+    if (!sd_card_does_filename_exists(created_directory, base_file_name, 1 << 9, base_file_extension)) {
+        x = 1 << 8;
+    }
+
     uint16_t i = x;
     while (x >= 1) {
-        sprintf(new_file_name, "%s/%s-%d.%s", created_directory, base_file_name, i, base_file_extension);
-        sprintf(path, "%s/%s", MOUNT_POINT, new_file_name);
-
         x /= 2;
-        if (access(path, F_OK) != 0) {
+        if (!sd_card_does_filename_exists(created_directory, base_file_name, i, base_file_extension)) {
             if (x == 0) break;
             i -= x;
         } else {
@@ -182,9 +199,8 @@ int sd_card_create_file_incremental(const char* directory, const char* base_file
     }
 
     sprintf(new_file_name, "%s/%s-%d.%s", created_directory, base_file_name, i, base_file_extension);
-    sprintf(path, "%s/%s", MOUNT_POINT, new_file_name);
 
-    if (access(path, F_OK) != 0) {
+    if (!sd_card_does_filename_exists(created_directory, base_file_name, i, base_file_extension)) {
         memcpy(file_name_out, new_file_name, SD_PATH_MAX_LENGTH);
         return RESULT_OK;
     }
@@ -199,6 +215,21 @@ void sd_card_deinit(State* state) {
     esp_vfs_fat_sdcard_unmount(mount_point, card);
     ESP_LOGI(TAG, "Card unmounted");
     state->storage.is_connected = false;
+}
+
+void list_files_on_sd_card(const char* directory) {
+    DIR* dir;
+    struct dirent* entry;
+
+    if ((dir = opendir(directory)) == NULL) {
+        perror("opendir() error");
+    } else {
+        printf("Contents of %s:\n", directory);
+        while ((entry = readdir(dir)) != NULL) {
+            printf("%s\n", entry->d_name);
+        }
+        closedir(dir);
+    }
 }
 
 int sd_card_init() {

@@ -200,6 +200,8 @@ void data_logger_process(State* state) {
     data_logger_manage_file_name(state);
 
     data_logger_log_current(state);
+
+    data_logger_deinit(state);
 }
 
 void data_logger_init(State* state) {
