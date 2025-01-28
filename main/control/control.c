@@ -208,6 +208,8 @@ void control_read_error_codes(State* state) {
         }
 
         wait_timer_end = 0;
+        press_timer_start = 0;
+        depressed_count = 0;
         previous_status = state->error_codes.status;
     }
 
@@ -239,18 +241,35 @@ void control_read_error_codes(State* state) {
 
     // Check if ignition is off before going to the next state
     if (state->error_codes.status == ErrorCodes_IgnitionOff) {
-        gas_pedal_enable(false);
+        state->cruise_control.virtual_gas_pedal = 0;
+        gas_pedal_write(state);
+        gas_pedal_enable(true);
+
         if (state->car.is_ignition_on) return;
         if (state->car.speed > 0) return;
         if (state->car.rpm > 0) return;
         if (!state->car.is_parking_brake_on) return;
         if (state->car.is_braking) return;
 
-        state->cruise_control.virtual_gas_pedal = 0;
-        gas_pedal_write(state);
-        gas_pedal_enable(true);
-
         state->error_codes.status++;
+        return;
+    }
+
+    if (state->error_codes.status == ErrorCodes_IgnitionOffWait5Sec) {
+        if (wait_timer_end <= 0) {
+            wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_0_WAIT5SEC_MS;
+        }
+
+        if (esp_timer_get_time_ms() >= wait_timer_end) {
+            state->error_codes.status++;
+            return;
+        }
+
+        if (state->car.is_ignition_on) {
+            printf("[ErrorCodes] Ignition unexpectedly turned on\n");
+            state->error_codes.status = ErrorCodes_IgnitionOff;
+            return;
+        }
         return;
     }
 
@@ -295,13 +314,6 @@ void control_read_error_codes(State* state) {
     }
 
     if (state->error_codes.status == ErrorCodes_DepressPedal5Times) {
-        if (wait_timer_end <= 0) {
-            wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_2_DEPRESS_PEDAL_COUNT * 2 *
-                ERROR_CODES_2_DEPRESS_PEDAL_INTERVAL;
-            press_timer_start = 0;
-            depressed_count = 0;
-        }
-
         if (depressed_count >= ERROR_CODES_2_DEPRESS_PEDAL_COUNT) {
             state->cruise_control.virtual_gas_pedal = 0;
             gas_pedal_write(state);
@@ -353,6 +365,7 @@ void control_read_error_codes(State* state) {
             wait_timer_end = esp_timer_get_time_ms() + 3000;
             state->cruise_control.virtual_gas_pedal = 0;
             gas_pedal_write(state);
+            gas_pedal_enable(false);
         }
 
         if (esp_timer_get_time_ms() >= wait_timer_end) {

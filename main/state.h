@@ -152,6 +152,7 @@ typedef struct {
 typedef enum {
     ErrorCodes_Off = 0,
     ErrorCodes_IgnitionOff,
+    ErrorCodes_IgnitionOffWait5Sec,
     ErrorCodes_IgnitionOn,
     ErrorCodes_IgnitionOnWait3Sec,
     ErrorCodes_DepressPedal5Times,

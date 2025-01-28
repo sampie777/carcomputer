@@ -245,9 +245,10 @@ void content_location_data(const State* state, SH1106Config* sh1106) {
 
 void content_error_codes(const State* state, SH1106Config* display) {
     int offset_x = 0;
-    int offset_y = STATUS_BAR_HEIGHT + 5 + 10;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[32] = {0};
 
+    offset_y += 10;
     switch (state->error_codes.status) {
         case ErrorCodes_IgnitionOff:
             if (state->car.speed > 0 || !state->car.is_parking_brake_on) {
@@ -257,6 +258,9 @@ void content_error_codes(const State* state, SH1106Config* display) {
             } else {
                 sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Turn ignition off.");
             }
+            return;
+        case ErrorCodes_IgnitionOffWait5Sec:
+            sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Just a moment...");
             return;
         case ErrorCodes_IgnitionOn:
             sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Turn ignition on.");
@@ -269,36 +273,34 @@ void content_error_codes(const State* state, SH1106Config* display) {
         default:
             break;
     }
+    offset_y -= 10;
 
     double total_time = (double) (state->error_codes.process_estimated_end_time -
         state->error_codes.process_start_time);
     double current_time = (double) (esp_timer_get_time_ms() - state->error_codes.process_start_time);
     double progress = min(1.0, max(0, current_time / total_time));
-    double remaining_time = (double) max(0, (state->error_codes.process_estimated_end_time - esp_timer_get_time_ms()));
 
     sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Running procedure...");
-    offset_y += 10;
+    offset_y += 15;
 
     // Animate progress
     // Draw the container
     int virtual_pedal_container_x = 20;
     int virtual_pedal_container_width = display->width - virtual_pedal_container_x * 2;
     sh1106_draw_horizontal_line(display, virtual_pedal_container_x, offset_y, virtual_pedal_container_width);
-    sh1106_draw_horizontal_line(display, virtual_pedal_container_x, offset_y + 4, virtual_pedal_container_width);
-    sh1106_draw_vertical_line(display, virtual_pedal_container_x - 1, offset_y, 3);
-    sh1106_draw_vertical_line(display, virtual_pedal_container_x + virtual_pedal_container_width, offset_y, 3);
+    sh1106_draw_horizontal_line(display, virtual_pedal_container_x, offset_y + 5, virtual_pedal_container_width);
+    sh1106_draw_vertical_line(display, virtual_pedal_container_x - 1, offset_y + 1, 4);
+    sh1106_draw_vertical_line(display, virtual_pedal_container_x + virtual_pedal_container_width, offset_y + 1, 4);
 
     // Draw the value
-    int virtual_pedal_value_width = (int) (progress * virtual_pedal_container_width);
-    int virtual_pedal_value_x = virtual_pedal_container_x + virtual_pedal_container_width - virtual_pedal_value_width;
+    int virtual_pedal_value_width = (int) (progress * (virtual_pedal_container_width - 2));
+    int virtual_pedal_value_x = virtual_pedal_container_x + 1;
     sh1106_draw_filled_rectangle(display, virtual_pedal_value_x, offset_y + 2, virtual_pedal_value_width, 2);
 
-    offset_y += 10;
-
-    snprintf(buffer, sizeof buffer, "%.0f seconds remaining...", ceil(remaining_time / 1000));
-    sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-
     offset_y += 15;
+
+
+    offset_y += 13;
     sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Do NOT start the car!");
 }
 

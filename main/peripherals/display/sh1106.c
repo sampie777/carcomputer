@@ -6,6 +6,9 @@
 #include <driver/i2c.h>
 #include <string.h>
 #include "sh1106.h"
+
+#include <math.h>
+
 #include "font.h"
 #include "../../utils.h"
 
@@ -167,7 +170,7 @@ int sh1106_draw_string(SH1106Config* config, int x, int y, FontSize size, FontCo
 int sh1106_draw_string_centered_x(SH1106Config* config, int y, FontSize size, FontColor color,
                                              const char* c) {
     int length = (int) strlen(c);
-    int x = (config->width - length * 5 * size) / 2;
+    int x = (int) round((config->width - (length + 1) * 5 * size) / 2.0);
     return sh1106_draw_string(config, x, y, size, color, c);
 }
 
