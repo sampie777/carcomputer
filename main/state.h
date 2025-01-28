@@ -27,10 +27,9 @@ typedef enum {
 typedef enum {
     ScreenMenuOption_CruiseControl,
     ScreenMenuOption_Sensors,
-    ScreenMenuOption_GPS,
     ScreenMenuOption_Actions,
     ScreenMenuOption_About,
-    ScreenMenuOption_MAX_VALUE,
+    ScreenMenuOption_MAX_VALUE, ScreenMenuOption_GPS,
 } MainMenuScreenOptions;
 
 typedef enum {
