@@ -20,6 +20,7 @@ typedef enum {
     Screen_Actions,
     Screen_GPS,
     Screen_ErrorCodes,
+    Screen_About,
 } Screen;
 
 // This also determines the order in which the options are shown on the display
@@ -28,6 +29,7 @@ typedef enum {
     ScreenMenuOption_Sensors,
     ScreenMenuOption_GPS,
     ScreenMenuOption_Actions,
+    ScreenMenuOption_About,
     ScreenMenuOption_MAX_VALUE,
 } MainMenuScreenOptions;
 

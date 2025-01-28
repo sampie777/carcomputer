@@ -26,6 +26,9 @@ void control_buttons_handle(State* state, Button button) {
                     case ScreenMenuOption_Actions:
                         state->display.current_screen = Screen_Actions;
                         break;
+                    case ScreenMenuOption_About:
+                        state->display.current_screen = Screen_About;
+                        break;
                     default:
                         break;
                 }
@@ -115,7 +118,8 @@ void control_buttons_handle(State* state, Button button) {
 
             if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl) ||
                 state->display.current_screen == Screen_Sensors ||
-                state->display.current_screen == Screen_Actions) {
+                state->display.current_screen == Screen_Actions ||
+                state->display.current_screen == Screen_About) {
                 state->display.current_screen = Screen_Menu;
             } else if (state->display.current_screen == Screen_CruiseControl) {
                 if (state->cruise_control.enabled) printf("Disconnecting cruise control because of user input\n");

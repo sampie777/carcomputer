@@ -193,3 +193,11 @@ void wdt_feed(int max_timeout_ms) {
     *last_fed = esp_timer_get_time_ms();
     vTaskDelay(1);
 }
+
+void format_time(int64_t milliseconds, char* output_string) {
+    unsigned long total_seconds = milliseconds / 1000;
+    unsigned long hours = total_seconds / 3600;
+    uint8_t minutes = (total_seconds - hours * 3600) / 60;
+    uint8_t seconds = total_seconds - hours * 3600 - minutes * 60;
+    sprintf(output_string, "%s%lu:%02u:%02u", hours == 0 ? " " : "", hours, minutes, seconds);
+}

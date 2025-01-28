@@ -32,6 +32,8 @@ char* content_main_menu_get_option_text(MainMenuScreenOptions option_index) {
             return "Actions";
         case ScreenMenuOption_GPS:
             return "GPS";
+        case ScreenMenuOption_About:
+            return "About";
         default:
             return "";
     }
@@ -342,3 +344,36 @@ void content_error_codes(const State* state, SH1106Config* display) {
     sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Do NOT start the car!");
 }
 
+void content_about(const State* state, SH1106Config* display) {
+    int offset_x = 0;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[64];
+
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "SD card file:");
+    offset_y += 9;
+
+    if (strlen(state->storage.filename) < display->width / FONT_SMALL) {
+        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, state->storage.filename);
+    } else {
+        int max_string_length = min(sizeof buffer, display->width / FONT_SMALL + 1);
+
+        strcpy(buffer, state->storage.filename);
+        buffer[max_string_length] = '\0';
+        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+        offset_y += 9;
+        strcpy(buffer, state->storage.filename + max_string_length);
+        buffer[max_string_length] = '\0';
+        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    }
+
+    offset_y += 9;
+    sprintf(buffer, "Session ID: %lu", state->logging_session_id);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_y += 12;
+    char runtime[32];
+    format_time(esp_timer_get_time_ms(), runtime);
+    sprintf(buffer, "Runtime: %s", runtime);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+}

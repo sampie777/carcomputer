@@ -22,4 +22,6 @@ void content_location_data(const State* state, SH1106Config* display);
 
 void content_error_codes(const State* state, SH1106Config* display);
 
+void content_about(const State* state, SH1106Config* display);
+
 #endif //CARCOMPUTER_DISPLAY_SCREENS_H
