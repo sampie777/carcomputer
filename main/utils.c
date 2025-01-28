@@ -20,8 +20,6 @@ void delay_ms(unsigned long ms) {
 
 void utils_reboot(State* state) {
     state->is_rebooting = true;
-    delay_ms(2000);
-    esp_restart();
 }
 
 double average_read_channel(adc1_channel_t channel, int sample_count) {

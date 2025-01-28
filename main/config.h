@@ -19,7 +19,7 @@ extern "C" {
 
 // Detailed feature settings
 #define POWER_OFF_MAX_TIMEOUT_MS 90000
-#define POWER_OFF_MIN_TIMEOUT_MS 10000
+#define POWER_OFF_MIN_TIMEOUT_MS 6000
 #define POWER_PIN GPIO_NUM_23
 
 #define SPI_MOSI_PIN GPIO_NUM_12

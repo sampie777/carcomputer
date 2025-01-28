@@ -48,7 +48,7 @@ void data_logger_deinit(State* state) {
     static int64_t engine_off_time = 0;
     static uint32_t start_odometer = 0;
 
-    if (state->car.is_ignition_on) {
+    if (state->power_off_count_down_sec < 0) {
         engine_off_time = 0;
 
         if (start_odometer == 0) {
@@ -65,7 +65,8 @@ void data_logger_deinit(State* state) {
     }
 
     // Give the car chance to start again
-    if (esp_timer_get_time_ms() < engine_off_time + DATA_LOGGER_ENGINE_OFF_GRACE_TIME_MS) return;
+    if (esp_timer_get_time_ms() < engine_off_time + DATA_LOGGER_ENGINE_OFF_GRACE_TIME_MS && state->
+        power_off_count_down_sec > 0) return;
 
     sd_card_delete_file(state->storage.filename);
     state->storage.filename[0] = 0x00;
@@ -86,61 +87,61 @@ void data_logger_log_current(State* state) {
 
     char buffer[256];
     snprintf(buffer, sizeof buffer,
-            "%lld;"         // esp_timer_get_time_ms()
-            "%lu;"           // state->logging_session_id
-            "%d;"           // state->car.is_connected
-            "%d;"           // state->car.is_controller_connected
-            "%d;"           // state->car.is_braking
-            "%d;"           // state->car.is_ignition_on
-            "%.3f;"         // state->car.speed
-            "%.1f;"         // state->car.rpm
-            "%lu;"          // state->car.odometer
-            "%d;"           // state->car.gas_pedal_connected
-            "%.5f;"         // state->car.gas_pedal
-            "%d;"           // state->cruise_control.enabled
-            "%.3f;"         // state->cruise_control.target_speed
-            "%.5f;"         // state->cruise_control.virtual_gas_pedal
-            "%.5f;"         // state->cruise_control.control_value
-            "%d;"           // state->motion.connected
-            "%.3f;"         // state->motion.accel_x
-            "%.3f;"         // state->motion.accel_y
-            "%.3f;"         // state->motion.accel_z
-            "%.3f;"         // state->motion.gyro_x
-            "%.3f;"         // state->motion.gyro_y
-            "%.3f;"         // state->motion.gyro_z
-            "%.3f;"         // state->motion.compass_x
-            "%.3f;"         // state->motion.compass_y
-            "%.3f;"         // state->motion.compass_z
-            "%.3f;"         // state->motion.temperature
-            "%lu;"           // state->errors
-            "\n",
-            esp_timer_get_time_ms(),
-            state->logging_session_id,
-            state->car.is_connected,
-            state->car.is_controller_connected,
-            state->car.is_braking,
-            state->car.is_ignition_on,
-            state->car.speed,
-            state->car.rpm,
-            state->car.odometer,
-            state->car.gas_pedal_connected,
-            state->car.gas_pedal,
-            state->cruise_control.enabled,
-            state->cruise_control.target_speed,
-            state->cruise_control.virtual_gas_pedal,
-            state->cruise_control.control_value,
-            state->motion.connected,
-            state->motion.accel_x,
-            state->motion.accel_y,
-            state->motion.accel_z,
-            state->motion.gyro_x,
-            state->motion.gyro_y,
-            state->motion.gyro_z,
-            state->motion.compass_x,
-            state->motion.compass_y,
-            state->motion.compass_z,
-            state->motion.temperature,
-            state->errors
+             "%lld;" // esp_timer_get_time_ms()
+             "%lu;" // state->logging_session_id
+             "%d;" // state->car.is_connected
+             "%d;" // state->car.is_controller_connected
+             "%d;" // state->car.is_braking
+             "%d;" // state->car.is_ignition_on
+             "%.3f;" // state->car.speed
+             "%.1f;" // state->car.rpm
+             "%lu;" // state->car.odometer
+             "%d;" // state->car.gas_pedal_connected
+             "%.5f;" // state->car.gas_pedal
+             "%d;" // state->cruise_control.enabled
+             "%.3f;" // state->cruise_control.target_speed
+             "%.5f;" // state->cruise_control.virtual_gas_pedal
+             "%.5f;" // state->cruise_control.control_value
+             "%d;" // state->motion.connected
+             "%.3f;" // state->motion.accel_x
+             "%.3f;" // state->motion.accel_y
+             "%.3f;" // state->motion.accel_z
+             "%.3f;" // state->motion.gyro_x
+             "%.3f;" // state->motion.gyro_y
+             "%.3f;" // state->motion.gyro_z
+             "%.3f;" // state->motion.compass_x
+             "%.3f;" // state->motion.compass_y
+             "%.3f;" // state->motion.compass_z
+             "%.3f;" // state->motion.temperature
+             "%lu;" // state->errors
+             "\n",
+             esp_timer_get_time_ms(),
+             state->logging_session_id,
+             state->car.is_connected,
+             state->car.is_controller_connected,
+             state->car.is_braking,
+             state->car.is_ignition_on,
+             state->car.speed,
+             state->car.rpm,
+             state->car.odometer,
+             state->car.gas_pedal_connected,
+             state->car.gas_pedal,
+             state->cruise_control.enabled,
+             state->cruise_control.target_speed,
+             state->cruise_control.virtual_gas_pedal,
+             state->cruise_control.control_value,
+             state->motion.connected,
+             state->motion.accel_x,
+             state->motion.accel_y,
+             state->motion.accel_z,
+             state->motion.gyro_x,
+             state->motion.gyro_y,
+             state->motion.gyro_z,
+             state->motion.compass_x,
+             state->motion.compass_y,
+             state->motion.compass_z,
+             state->motion.temperature,
+             state->errors
     );
 
     if (sd_card_file_append(state->storage.filename, buffer) == RESULT_OK) {
@@ -190,6 +191,11 @@ void data_logger_manage_file_name(State* state) {
 
 void data_logger_process(State* state) {
     static int64_t last_init_time = 0;
+
+    data_logger_deinit(state);
+    // Don't proceed if we are powering down
+    if (state->power_off_count_down_sec >= 0) return;
+
     if (state->storage.is_connected == false) {
         if (esp_timer_get_time_ms() > last_init_time + 3000) {
             data_logger_init(state);
@@ -200,8 +206,6 @@ void data_logger_process(State* state) {
     data_logger_manage_file_name(state);
 
     data_logger_log_current(state);
-
-    data_logger_deinit(state);
 }
 
 void data_logger_init(State* state) {
