@@ -112,7 +112,7 @@ _Noreturn void task_primary(void* args) {
         control_read_user_input(state);
 
         // Process data
-        // The next view processes will interefere with the error reading sequence, as they influence the gas pedal.
+        // The next view processes will interfere with the error reading sequence, as they influence the gas pedal.
         if (state->error_codes.status == ErrorCodes_Off) {
             control_cruise_control(state);
         }

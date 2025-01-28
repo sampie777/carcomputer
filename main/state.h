@@ -7,6 +7,8 @@
 
 #include <esp_http_client.h>
 #include <stdbool.h>
+
+#include "config.h"
 #include "peripherals/gpsgsm/definitions.h"
 
 typedef enum {
@@ -111,7 +113,7 @@ typedef struct {
 
 typedef struct {
     bool is_connected;
-    char filename[32];
+    char filename[SD_PATH_MAX_LENGTH];
 } SDState;
 
 

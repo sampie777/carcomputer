@@ -20,11 +20,62 @@ uint32_t generate_session_id() {
     return id;
 }
 
+void data_logger_init_file(State* state, const char* preferred_file_name) {
+    // Check if init is already done
+    if (state->storage.filename[0] != 0x00) return;
+
+    char* device_name = state->device_name == NULL || state->device_name[0] == '\0' || state->device_name[0] == 0
+                            ? "Default"
+                            : state->device_name;
+
+    if (sd_card_create_file_incremental(device_name,
+                                        preferred_file_name,
+                                        "csv",
+                                        state->storage.filename) == RESULT_OVERFLOW) {
+        set_error(state, ERROR_SD_FULL);
+    }
+
+    printf("[SD] Using file: %s\n", state->storage.filename);
+
+    sd_card_file_append(state->storage.filename, "timestamp;session_id;"
+                        "car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;"
+                        "cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;"
+                        "motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;"
+                        "errors;\n");
+}
+
+void data_logger_deinit(State* state) {
+    static int64_t engine_off_time = 0;
+    static uint32_t start_odometer = 0;
+
+    if (state->car.is_ignition_on) {
+        engine_off_time = 0;
+
+        if (start_odometer == 0) {
+            start_odometer = state->car.odometer;
+        }
+        return;
+    }
+
+    // If the car hasn't moved, proceed to delete the log file
+    if (state->car.odometer != start_odometer) return;
+
+    if (engine_off_time == 0) {
+        engine_off_time = esp_timer_get_time_ms();
+    }
+
+    // Give the car chance to start again
+    if (esp_timer_get_time_ms() < engine_off_time + DATA_LOGGER_ENGINE_OFF_GRACE_TIME_MS) return;
+
+    sd_card_delete_file(state->storage.filename);
+    state->storage.filename[0] = 0x00;
+}
+
 /**
  * Collect data and write to SD card
  * @param state
  */
-void data_logger_log_current(State *state) {
+void data_logger_log_current(State* state) {
     static int64_t last_log_time = 0;
 
     // Don't log if car isn't on and on the move, so SD card can be swapped safely
@@ -43,7 +94,7 @@ void data_logger_log_current(State *state) {
             "%d;"           // state->car.is_ignition_on
             "%.3f;"         // state->car.speed
             "%.1f;"         // state->car.rpm
-            "%lu;"           // state->car.odometer
+            "%lu;"          // state->car.odometer
             "%d;"           // state->car.gas_pedal_connected
             "%.5f;"         // state->car.gas_pedal
             "%d;"           // state->cruise_control.enabled
@@ -99,7 +150,45 @@ void data_logger_log_current(State *state) {
     }
 }
 
-void data_logger_process(State *state) {
+void data_logger_manage_file_name(State* state) {
+    static bool has_set_time_as_file_name = false;
+
+    if (state->storage.filename[0] == 0x00) {
+        has_set_time_as_file_name = false;
+        data_logger_init_file(state, "trip");
+    }
+
+    if (has_set_time_as_file_name) return;
+
+    // The next operations are time-consuming, so don't do them when high priority tasks are running
+    if (state->cruise_control.enabled) return;
+
+    Time time = state->location.time.year > 2021 ? state->location.time : state->gsm.time;
+    if (time.year < 2000) return;
+
+    char timestamp[64];
+    snprintf(timestamp, sizeof timestamp, "%04d-%02d-%02dT%02d%02d%02d",
+             time.year,
+             time.month,
+             time.day,
+             time.hours,
+             time.minutes,
+             time.seconds);
+
+    char old_name[strlen(state->storage.filename) + 1];
+    strcpy(old_name, state->storage.filename);
+
+    // Create new file name
+    data_logger_init_file(state, timestamp);
+    printf("[DataLogger] Renaming file from %s to %s\n", old_name, state->storage.filename);
+
+    // Rename old file to new file
+    sd_card_delete_file(state->storage.filename);
+    sd_card_rename_file(old_name, state->storage.filename);
+    has_set_time_as_file_name = true;
+}
+
+void data_logger_process(State* state) {
     static int64_t last_init_time = 0;
     if (state->storage.is_connected == false) {
         if (esp_timer_get_time_ms() > last_init_time + 3000) {
@@ -108,10 +197,12 @@ void data_logger_process(State *state) {
         }
     }
 
+    data_logger_manage_file_name(state);
+
     data_logger_log_current(state);
 }
 
-void data_logger_init(State *state) {
+void data_logger_init(State* state) {
     printf("[DataLogger] Initializing...\n");
 
     while (state->logging_session_id == 0) {
@@ -125,20 +216,7 @@ void data_logger_init(State *state) {
     }
     state->storage.is_connected = true;
 
-    if (state->storage.filename[0] == 0x00) {
-        char *device_name = state->device_name == NULL || state->device_name[0] == '\0' || state->device_name[0] == 0 ? "Default" : state->device_name;
-
-        if (sd_card_create_file_incremental(device_name, "data", "csv", state->storage.filename) == RESULT_OVERFLOW) {
-            set_error(state, ERROR_SD_FULL);
-        }
-        printf("[SD] Using file: %s\n", state->storage.filename);
-
-        sd_card_file_append(state->storage.filename, "timestamp;session_id;"
-                                                     "car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;"
-                                                     "cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;"
-                                                     "motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;"
-                                                     "errors;\n");
-    }
+    data_logger_init_file(state, "trip");
 
     printf("[DataLogger] Init done\n");
 }
