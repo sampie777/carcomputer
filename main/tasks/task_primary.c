@@ -67,14 +67,18 @@ _Noreturn void task_primary(void* args) {
         control_read_can_bus(state);
         control_read_analog_sensors(state);
         control_read_user_input(state);
-        a9g_process(state);
 
         // Process data
+        // The next view processes will interfere with the error reading sequence, as they influence the gas pedal.
+        if (state->error_codes.status == ErrorCodes_Off) {
+            control_cruise_control(state);
+        }
         control_mpu_power(state);
-        control_cruise_control(state);
+        a9g_process(state);
         control_car_gear(state);
         control_led_indicator_step(state);
         data_logger_process(state);
+        control_read_error_codes(state);
     }
 
     vTaskDelete(NULL);

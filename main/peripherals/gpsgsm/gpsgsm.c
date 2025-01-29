@@ -316,7 +316,7 @@ void gpsgsm_init(A9GState *a9g_state) {
 //     delay_ms(100);
 //
 //     // Start SMS to number
-//     sprintf(buffer, "AT+CMGS=%s\r", number);
+//     snprintf(buffer, sizeof buffer, "AT+CMGS=%s\r", number);
 //     transmit(buffer, true);
 //     delay_ms(500);
 //
@@ -372,7 +372,7 @@ void gpsgsm_init(A9GState *a9g_state) {
 //
 //     // Store url for upload
 //     http_request_url = realloc(http_request_url, strlen(url) + strlen(state->server.access_token) + strlen(SERVER_API_KEY) + 32);
-//     sprintf(http_request_url, "%s%capi_key=%s&access_token=%s", url, strstr(url, "?") == NULL ? '?' : '&', SERVER_API_KEY, state->server.access_token);
+//     snprintf(http_request_url, sizeof http_request_url, "%s%capi_key=%s&access_token=%s", url, strstr(url, "?") == NULL ? '?' : '&', SERVER_API_KEY, state->server.access_token);
 //
 //     char *json_escaped;
 //     string_escape(json, &json_escaped);

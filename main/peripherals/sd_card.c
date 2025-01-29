@@ -9,12 +9,14 @@
 #include <sys/stat.h>
 #include <sys/unistd.h>
 #include "sd_card.h"
+#include <sys/dirent.h>
 #include "../config.h"
 #include "../return_codes.h"
 #include "../utils.h"
 
+#define SD_DIRECTORY_MAX_LENGTH (32)
+#define MOUNT_POINT "/sdcard"
 static const char* TAG = "SD";
-#define MOUNT_POINT "/sd"
 const char mount_point[] = MOUNT_POINT;
 
 sdmmc_host_t host = SDSPI_HOST_DEFAULT();
@@ -75,8 +77,63 @@ void sd_card_test() {
 }
 */
 
+void sd_card_create_directory(const char* directory, char* created_directory) {
+    char path[SD_PATH_MAX_LENGTH * 2];
+    char directory_safe_name[SD_DIRECTORY_MAX_LENGTH];
+    directory_safe_name[min(SD_DIRECTORY_MAX_LENGTH - 1, strlen(directory))] = '\0';
+    strcpy(directory_safe_name, directory);
+
+    string_char_replace(directory_safe_name, ' ', '_');
+    string_char_replace(directory_safe_name, '"', '_');
+    string_char_replace(directory_safe_name, '\'', '_');
+    string_char_replace(directory_safe_name, '\\', '/');
+    string_char_replace(directory_safe_name, '#', '_');
+    string_char_replace(directory_safe_name, '.', '_');
+    string_char_replace(directory_safe_name, ':', '_');
+    string_char_replace(directory_safe_name, ';', '_');
+    string_char_replace(directory_safe_name, '?', '_');
+    string_char_replace(directory_safe_name, '~', '_');
+
+    snprintf(path, sizeof(path), "%s/%s", MOUNT_POINT, directory_safe_name);
+
+    struct stat st;
+    if (stat(path, &st) != 0) {
+        printf("[SD] Creating directory '%s'\n", path);
+        mkdir(path, 0775);
+    }
+
+    strcpy(created_directory, directory_safe_name);
+}
+
+void sd_card_delete_file(const char* file_name) {
+    printf("[SD] Deleting file %s\n", file_name);
+    char path[SD_PATH_MAX_LENGTH * 2];
+    snprintf(path, sizeof path, "%s/%s", MOUNT_POINT, file_name);
+
+    struct stat st;
+    if (stat(path, &st) != 0) return;
+
+    // Delete it if it exists
+    unlink(path);
+}
+
+int sd_card_rename_file(char* file_name, const char* new_file_name) {
+    char old_path[SD_PATH_MAX_LENGTH * 2];
+    char new_path[SD_PATH_MAX_LENGTH * 2];
+    snprintf(old_path, sizeof old_path, "%s/%s", MOUNT_POINT, file_name);
+    snprintf(new_path, sizeof new_path, "%s/%s", MOUNT_POINT, new_file_name);
+
+    if (rename(old_path, new_path) != 0) {
+        ESP_LOGE(TAG, "Rename failed");
+        return RESULT_FAILED;
+    }
+
+    memcpy(file_name, new_file_name, SD_PATH_MAX_LENGTH);
+    return RESULT_OK;
+}
+
 int sd_card_file_append(const char* file_name, const char* line) {
-    char path[64];
+    char path[SD_PATH_MAX_LENGTH * 2];
     snprintf(path, sizeof(path), "%s/%s", MOUNT_POINT, file_name);
 
     FILE* file = fopen(path, "a");
@@ -93,28 +150,15 @@ int sd_card_file_append(const char* file_name, const char* line) {
     return RESULT_OK;
 }
 
-void sd_card_create_directory(const char* directory, char* created_directory) {
-    char path[64];
-    char directory_safe_name[32];
-    directory_safe_name[min(31, strlen(directory))] = '\0';
-    strcpy(directory_safe_name, directory);
-
-    string_char_replace(directory_safe_name, ' ', '_');
-    string_char_replace(directory_safe_name, '"', '_');
-    string_char_replace(directory_safe_name, '\'', '_');
-    string_char_replace(directory_safe_name, '\\', '/');
-    string_char_replace(directory_safe_name, '#', '_');
-    string_char_replace(directory_safe_name, '.', '_');
-
-    snprintf(path, sizeof(path), "%s/%s", MOUNT_POINT, directory_safe_name);
-
-    struct stat st;
-    if (stat(path, &st) != 0) {
-        printf("[SD] Creating directory '%s'\n", path);
-        mkdir(path, 0775);
-    }
-
-    strcpy(created_directory, directory_safe_name);
+int sd_card_does_filename_exists(const char* directory,
+                                 const char* base_file_name,
+                                 uint16_t i,
+                                 const char* base_file_extension) {
+    char path[SD_PATH_MAX_LENGTH * 2];
+    char new_file_name[SD_PATH_MAX_LENGTH];
+    sprintf(new_file_name, "%s/%s-%d.%s", directory, base_file_name, i, base_file_extension);
+    sprintf(path, "%s/%s", MOUNT_POINT, new_file_name);
+    return access(path, F_OK) == 0;
 }
 
 /**
@@ -123,28 +167,46 @@ void sd_card_create_directory(const char* directory, char* created_directory) {
  * When no new filename can be generated (because all options are taken), the output filename will include the word 'overflow'
  * to indicate it is an overflow file. This file will be usable, although not persistent.
   * @param base_file_name
-  * @param file_name_out    The new file name will be stored in here (size: 32)
+  * @param file_name_out    The new file name will be stored in here (size: PATH_MAX_LENGTH)
   */
-int sd_card_create_file_incremental(const char* directory, const char* base_file_name, const char* base_file_extension,
+int sd_card_create_file_incremental(const char* directory,
+                                    const char* base_file_name,
+                                    const char* base_file_extension,
                                     char* file_name_out) {
-    char path[128];
-    char created_directory[32];
-    char new_file_name[64];
+    char created_directory[SD_DIRECTORY_MAX_LENGTH];
+    char new_file_name[SD_PATH_MAX_LENGTH];
 
     sd_card_create_directory(directory, created_directory);
 
-    for (uint16_t i = 0; i < 65535; i++) {
-        snprintf(new_file_name, sizeof(new_file_name), "%s/%s-%d.%s", created_directory, base_file_name, i, base_file_extension);
-        snprintf(path, sizeof(path), "%s/%s", MOUNT_POINT, new_file_name);
+    // Optimize the search for the next available file name using binary search
+    int32_t x = 1 << 15;
 
-        if (access(path, F_OK) != 0) {
-            memcpy(file_name_out, new_file_name, 32);
-            return RESULT_OK;
+    // Cut search time drastically as we don't expect 65000 trips
+    if (!sd_card_does_filename_exists(created_directory, base_file_name, 1 << 9, base_file_extension)) {
+        x = 1 << 8;
+    }
+
+    uint16_t i = x;
+    while (x >= 1) {
+        x /= 2;
+        if (!sd_card_does_filename_exists(created_directory, base_file_name, i, base_file_extension)) {
+            if (x == 0) break;
+            i -= x;
+        } else {
+            if (x == 0) i++;
+            i += x;
         }
     }
 
+    snprintf(new_file_name, sizeof(new_file_name) "%s/%s-%d.%s", created_directory, base_file_name, i, base_file_extension);
+
+    if (!sd_card_does_filename_exists(created_directory, base_file_name, i, base_file_extension)) {
+        memcpy(file_name_out, new_file_name, SD_PATH_MAX_LENGTH);
+        return RESULT_OK;
+    }
+
     snprintf(new_file_name, sizeof(new_file_name), "%s/%s-overflow.%s", created_directory, base_file_name, base_file_extension);
-    memcpy(file_name_out, new_file_name, 32);
+    memcpy(file_name_out, new_file_name, SD_PATH_MAX_LENGTH);
     return RESULT_OVERFLOW;
 }
 
@@ -153,6 +215,21 @@ void sd_card_deinit(State* state) {
     esp_vfs_fat_sdcard_unmount(mount_point, card);
     ESP_LOGI(TAG, "Card unmounted");
     state->storage.is_connected = false;
+}
+
+void list_files_on_sd_card(const char* directory) {
+    DIR* dir;
+    struct dirent* entry;
+
+    if ((dir = opendir(directory)) == NULL) {
+        perror("opendir() error");
+    } else {
+        printf("Contents of %s:\n", directory);
+        while ((entry = readdir(dir)) != NULL) {
+            printf("%s\n", entry->d_name);
+        }
+        closedir(dir);
+    }
 }
 
 int sd_card_init() {

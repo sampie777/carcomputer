@@ -20,8 +20,6 @@ void delay_ms(unsigned long ms) {
 
 void utils_reboot(State* state) {
     state->is_rebooting = true;
-    delay_ms(2000);
-    esp_restart();
 }
 
 double average_read_channel(adc1_channel_t channel, int sample_count) {
@@ -129,6 +127,8 @@ void set_error(State* state, uint32_t error_code) {
             break;
         case ERROR_CRASH_DETECTED: printf("ERROR_CRASH_DETECTED");
             break;
+        case ERROR_CAR_DISCONNECTED: printf("ERROR_CAR_DISCONNECTED");
+            break;
         default: printf("unknown");
         }
         printf("\n");
@@ -221,4 +221,12 @@ void wdt_feed(int max_timeout_ms) {
     if (*last_fed != 0 && esp_timer_get_time_ms() < *last_fed + max(100, max_timeout_ms - 1000)) return;
     *last_fed = esp_timer_get_time_ms();
     vTaskDelay(1);
+}
+
+void format_time(int64_t milliseconds, char* output_string) {
+    unsigned long total_seconds = milliseconds / 1000;
+    unsigned long hours = total_seconds / 3600;
+    uint8_t minutes = (total_seconds - hours * 3600) / 60;
+    uint8_t seconds = total_seconds - hours * 3600 - minutes * 60;
+    sprintf(output_string, "%s%lu:%02u:%02u", hours == 0 ? " " : "", hours, minutes, seconds);
 }

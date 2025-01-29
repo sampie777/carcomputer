@@ -27,7 +27,7 @@ void display_init() {
     printf("[Display] Init done\n");
 }
 
-void show_error_message(State* state, SH1106Config* sh1106) {
+void show_error_message(State* state, SH1106Config* display) {
     static uint32_t current_error_to_show = 0;
     static int64_t last_error_message_time = 0;
 
@@ -59,37 +59,32 @@ void show_error_message(State* state, SH1106Config* sh1106) {
 
     char buffer[32];
     switch (current_error_to_show) {
-        case ERROR_PEDAL_DISCONNECTED:
-            strcpy(buffer, "Pedal disconnected");
+        case ERROR_PEDAL_DISCONNECTED: strcpy(buffer, "Pedal disconnected");
             break;
-        case ERROR_SPI_FAILED:
-            strcpy(buffer, "SPI failed");
+        case ERROR_SPI_FAILED: strcpy(buffer, "SPI failed");
             break;
-        case ERROR_CRASH_NO_ICE:
-            strcpy(buffer, "CRASH, no ICE!");
+        case ERROR_CRASH_NO_ICE: strcpy(buffer, "CRASH, no ICE!");
             break;
-        case ERROR_CRASH_DETECTED:
-            strcpy(buffer, "CRASH detected!");
+        case ERROR_CRASH_DETECTED: strcpy(buffer, "CRASH detected!");
             break;
-        case ERROR_GPS_TIMEOUT:
-            strcpy(buffer, "GPS timeout");
+        case ERROR_GPS_TIMEOUT: strcpy(buffer, "GPS timeout");
             break;
-        case ERROR_SMS_FAILED:
-            strcpy(buffer, "SMS failed");
+        case ERROR_SMS_FAILED: strcpy(buffer, "SMS failed");
             break;
-        case ERROR_SD_FULL:
-            strcpy(buffer, "SD car full");
+        case ERROR_SD_FULL: strcpy(buffer, "SD car full");
+            break;
+        case ERROR_CAR_DISCONNECTED: strcpy(buffer, "Car disconnected");
             break;
         default:
             sprintf(buffer, "Code: %lu", state->errors);
     }
 
-    sh1106_draw_filled_rectangle(sh1106, 5, 5, sh1106->width - 10, sh1106->height - 10);
-    sh1106_draw_string(sh1106, sh1106->width / 2 - 5 * 2, 7, FONT_SMALL, FONT_BLACK, "ERROR");
-    sh1106_draw_string(sh1106, 10, 18, FONT_SMALL, FONT_BLACK, buffer);
+    sh1106_draw_filled_rectangle(display, 5, 5, display->width - 10, display->height - 10);
+    sh1106_draw_string_centered_x(display, 7, FONT_SMALL, FONT_BLACK, "ERROR");
+    sh1106_draw_string(display, 10, 18, FONT_SMALL, FONT_BLACK, buffer);
 }
 
-void show_statusbar(State* state, SH1106Config* sh1106) {
+void show_statusbar(State* state, SH1106Config* display) {
     static int64_t last_long_blink_time = 0;
     static uint8_t long_blink_state = false;
 
@@ -99,73 +94,76 @@ void show_statusbar(State* state, SH1106Config* sh1106) {
     }
 
     if (state->cruise_control.enabled) {
-        sh1106_draw_string(sh1106, 1, 0, FONT_SMALL, FONT_WHITE, "Cruise control");
+        sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, "Cruise control");
     } else {
-        sh1106_draw_string(sh1106, 1, 0, FONT_SMALL, FONT_WHITE, APP_VERSION);
+        sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, APP_VERSION);
     }
 
-    int offset_right = sh1106->width + 1;
+    int offset_right = display->width + 1;
 
     offset_right -= 3 + icon_sd_width;
     if (state->storage.is_connected) {
-        sh1106_draw_icon(sh1106, offset_right, 1,
+        sh1106_draw_icon(display, offset_right, 1,
                          icon_sd, sizeof(icon_sd), icon_sd_width, FONT_WHITE);
     }
 
     offset_right -= 3 + icon_car_width;
     if (state->car.is_connected || (long_blink_state && state->car.is_controller_connected)) {
-        sh1106_draw_icon(sh1106, offset_right, 1,
+        sh1106_draw_icon(display, offset_right, 1,
                          icon_car, sizeof(icon_car), icon_car_width, FONT_WHITE);
     }
 
     offset_right -= 3 + icon_location_width;
     if (state->location.quality > 0 || (long_blink_state && state->location.is_gps_on)) {
-        sh1106_draw_icon(sh1106, offset_right, 1,
+        sh1106_draw_icon(display, offset_right, 1,
                          icon_location, sizeof(icon_location), icon_location_width, FONT_WHITE);
     }
 
-    sh1106_draw_horizontal_line(sh1106, 0, STATUS_BAR_HEIGHT, sh1106->width);
+    sh1106_draw_horizontal_line(display, 0, STATUS_BAR_HEIGHT, display->width);
 }
 
-void show_content_overlay(State* state, SH1106Config* sh1106) {
+void show_content_overlay(State* state, SH1106Config* display) {
     if (state->power_off_count_down_sec > -1 && state->power_off_count_down_sec <= 10) {
-        content_power_off_count_down(state, sh1106);
+        content_power_off_count_down(state, display);
         return;
     }
 
-    show_error_message(state, sh1106);
+    show_error_message(state, display);
 }
 
-void show_screen(State* state, SH1106Config* sh1106) {
+void show_screen(State* state, SH1106Config* display) {
     switch (state->display.current_screen) {
         case Screen_Booting:
-            sh1106_draw_string(sh1106, (sh1106->width - 5 * 10) / 2,
-                               STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2 - 4,
-                               FONT_SMALL, FONT_WHITE, "Booting...");
-            sh1106_draw_string(sh1106, (sh1106->width - 5 * (int) strlen(APP_VERSION)) / 2,
-                               STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
-                               FONT_SMALL, FONT_WHITE, APP_VERSION);
+            sh1106_draw_string_centered_x(display, STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2 - 4,
+                                          FONT_SMALL, FONT_WHITE, "Booting...");
+            sh1106_draw_string_centered_x(display, STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
+                                          FONT_SMALL, FONT_WHITE, APP_VERSION);
             break;
         case Screen_Rebooting:
-            sh1106_draw_string(sh1106, (sh1106->width - 5 * 12) / 2,
-                               STATUS_BAR_HEIGHT + (sh1106->height - STATUS_BAR_HEIGHT - 8) / 2,
-                               FONT_SMALL, FONT_WHITE, "Rebooting...");
+            sh1106_draw_string_centered_x(display, STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2,
+                                          FONT_SMALL, FONT_WHITE, "Rebooting...");
             break;
         case Screen_Menu:
-            content_main_menu(state, sh1106);
+            content_main_menu(state, display);
             break;
         case Screen_CruiseControl:
-            content_cruise_control(state, sh1106);
-        break;
+            content_cruise_control(state, display);
+            break;
         case Screen_Sensors:
-            content_motion_sensors_data(state, sh1106);
-        break;
+            content_motion_sensors_data(state, display);
+            break;
         case Screen_Actions:
-            content_actions(state, sh1106);
-        break;
+            content_actions(state, display);
+            break;
         case Screen_GPS:
-            content_location_data(state, sh1106);
-        break;
+            content_location_data(state, display);
+            break;
+        case Screen_ErrorCodes:
+            content_error_codes(state, display);
+            break;
+        case Screen_About:
+            content_about(state, display);
+            break;
     }
 }
 
