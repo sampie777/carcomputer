@@ -28,7 +28,7 @@ void control_engine_shutoff(State *state);
 
 void control_cruise_control(State *state);
 
-void control_car_gear(State *state);
+void control_process_car(State *state);
 
 void control_led_indicator_step(State *state);
 

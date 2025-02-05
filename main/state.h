@@ -74,6 +74,7 @@ typedef struct {
     bool is_ignition_on;
     bool is_in_reverse;
     double speed;                   // Absolute value in km/h
+    double acceleration;            // Value in m/s2
     double rpm;                     // Absolute value in rpm
     uint16_t rpm_raw;
     int64_t last_can_message_time;

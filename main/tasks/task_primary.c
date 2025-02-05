@@ -118,7 +118,7 @@ _Noreturn void task_primary(void* args) {
         }
         control_mpu_power(state);
         gpsgsm_process(state);
-        control_car_gear(state);
+        control_process_car(state);
         control_led_indicator_step(state);
         data_logger_process(state);
         control_read_error_codes(state);
