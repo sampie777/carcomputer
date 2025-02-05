@@ -7,8 +7,8 @@
 #include "tasks/task_primary.h"
 #include "tasks/task_secondary.h"
 
-#define PRIMARY_TASK_STACK_SIZE 32000
-#define SECONDARY_TASK_STACK_SIZE 8000
+#define PRIMARY_TASK_STACK_SIZE (32000)
+#define SECONDARY_TASK_STACK_SIZE (8000)
 
 // Setting up the different tasks
 void app_main(void) {
