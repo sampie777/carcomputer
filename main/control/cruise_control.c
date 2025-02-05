@@ -26,10 +26,6 @@ void cruise_control_apply_pid(State* state) {
         return;
     }
 
-    //    if (!_isSpeedControl) {
-    //        return;
-    //    }
-
     if (esp_timer_get_time_ms() < last_iteration_time + CRUISE_CONTROL_PID_ITERATION_TIME) return;
     int64_t iteration_time = last_iteration_time == 0
                                  ? CRUISE_CONTROL_PID_ITERATION_TIME
@@ -46,6 +42,9 @@ void cruise_control_apply_pid(State* state) {
 
     // Calculate PID
     double error = state->cruise_control.target_speed - state->car.speed;
+    // Prevent car from accelerating too fast
+    if (state->car.acceleration > CRUISE_CONTROL_MAX_ACCELERATION_MS2) error = 0;
+
     double integral = previous_integral + error * (double) iteration_time;
     double derivative = (error - previous_error) / (double) iteration_time;
     double output = state->cruise_control.initial_control_value
@@ -75,12 +74,6 @@ void cruise_control_apply_pid(State* state) {
     // Apply PID
     state->cruise_control.control_value = output;
     state->cruise_control.virtual_gas_pedal = state->cruise_control.control_value;
-    // printf("  cc: %lf %%; %lf km/h of %lf km/h; %f; %lld ms\n",
-    //        state->cruise_control.control_value,
-    //        state->car.speed,
-    //        state->cruise_control.target_speed,
-    //        error,
-    //        iteration_time);
 }
 
 void cruise_control_safety_checks(State* state, uint8_t car_was_connected) {
