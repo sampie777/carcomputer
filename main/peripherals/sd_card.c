@@ -21,6 +21,7 @@ const char mount_point[] = MOUNT_POINT;
 
 sdmmc_host_t host = SDSPI_HOST_DEFAULT();
 sdmmc_card_t* card;
+FILE* file = NULL;
 
 /*
 void sd_card_test() {
@@ -77,6 +78,24 @@ void sd_card_test() {
 }
 */
 
+int sd_card_open_file(const char* file_name) {
+    char path[SD_PATH_MAX_LENGTH * 2];
+    sprintf(path, "%s/%s", MOUNT_POINT, file_name);
+
+    if (file == NULL) file = fopen(path, "a");
+    if (file == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for writing: %s", path);
+        return RESULT_FAILED;
+    }
+    return RESULT_OK;
+}
+
+void sd_card_close_file() {
+    if (file == NULL) return;
+    fclose(file);
+    file = NULL;
+}
+
 void sd_card_create_directory(const char* directory, char* created_directory) {
     char path[SD_PATH_MAX_LENGTH * 2];
     char directory_safe_name[SD_DIRECTORY_MAX_LENGTH];
@@ -113,6 +132,8 @@ void sd_card_delete_file(const char* file_name) {
     struct stat st;
     if (stat(path, &st) != 0) return;
 
+    sd_card_close_file();
+
     // Delete it if it exists
     unlink(path);
 }
@@ -132,21 +153,33 @@ int sd_card_rename_file(char* file_name, const char* new_file_name) {
     return RESULT_OK;
 }
 
+/**
+ * Flush the file and periodically close it to prevent data loss
+ */
+void sd_card_flush_file() {
+    static int64_t last_closed_time = 0;
+    if (file == NULL) return;
+
+    fflush(file);
+
+    if (esp_timer_get_time_ms() < last_closed_time + SD_CLOSE_FILE_INTERVAL_MS) return;
+    last_closed_time = esp_timer_get_time_ms();
+    sd_card_close_file();
+}
+
 int sd_card_file_append(const char* file_name, const char* line) {
+    if (sd_card_open_file(file_name) != RESULT_OK) return RESULT_FAILED;
+
     char path[SD_PATH_MAX_LENGTH * 2];
     sprintf(path, "%s/%s", MOUNT_POINT, file_name);
 
-    FILE* file = fopen(path, "a");
-    if (file == NULL) {
-        ESP_LOGE(TAG, "Failed to open file for writing: %s", path);
-        return RESULT_FAILED;
-    }
     if (fputs(line, file) == EOF) {
         ESP_LOGE(TAG, "Failed to write to file: %s", path);
-        fclose(file);
+        sd_card_close_file();
         return RESULT_FAILED;
+    } else {
+        sd_card_flush_file();
     }
-    fclose(file);
     return RESULT_OK;
 }
 
@@ -210,13 +243,6 @@ int sd_card_create_file_incremental(const char* directory,
     return RESULT_OVERFLOW;
 }
 
-void sd_card_deinit(State* state) {
-    // All done, unmount partition and disable SPI peripheral
-    esp_vfs_fat_sdcard_unmount(mount_point, card);
-    ESP_LOGI(TAG, "Card unmounted");
-    state->storage.is_connected = false;
-}
-
 void list_files_on_sd_card(const char* directory) {
     DIR* dir;
     struct dirent* entry;
@@ -242,7 +268,7 @@ int sd_card_init() {
             .format_if_mount_failed = false,
             .max_files = 5,
             .allocation_unit_size = 16 * 1024
-        };
+    };
 
     sdspi_device_config_t slot = SDSPI_DEVICE_CONFIG_DEFAULT();
     slot.gpio_cs = SD_CHIP_SELECT_PIN;
@@ -254,10 +280,10 @@ int sd_card_init() {
     if (ret != ESP_OK) {
         if (ret == ESP_FAIL) {
             ESP_LOGE(TAG, "Failed to mount filesystem. "
-                     "If you want the card to be formatted, set the EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
+                          "If you want the card to be formatted, set the EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
         } else {
             ESP_LOGE(TAG, "Failed to initialize the card (%s). "
-                     "Make sure SD card lines have pull-up resistors in place.", esp_err_to_name(ret));
+                          "Make sure SD card lines have pull-up resistors in place.", esp_err_to_name(ret));
         }
         return RESULT_FAILED;
     }

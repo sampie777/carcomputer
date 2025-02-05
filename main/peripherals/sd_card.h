@@ -9,13 +9,11 @@
 
 int sd_card_init();
 
-void sd_card_deinit(State *state);
+void sd_card_close_file();
 
 void sd_card_delete_file(const char* file_name);
 
 int sd_card_rename_file(char* file_name, const char* new_file_name);
-
-void sd_card_test();
 
 int sd_card_file_append(const char *file_name, const char *line);
 

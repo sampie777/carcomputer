@@ -57,9 +57,6 @@ void data_logger_deinit(State* state) {
         return;
     }
 
-    // If the car hasn't moved, proceed to delete the log file
-    if (state->car.odometer != start_odometer) return;
-
     if (engine_off_time == 0) {
         engine_off_time = esp_timer_get_time_ms();
     }
@@ -67,6 +64,11 @@ void data_logger_deinit(State* state) {
     // Give the car chance to start again
     if (esp_timer_get_time_ms() < engine_off_time + DATA_LOGGER_ENGINE_OFF_GRACE_TIME_MS && state->
         power_off_count_down_sec > 0) return;
+
+    sd_card_close_file();
+
+    // If the car hasn't moved, proceed to delete the log file
+    if (state->car.odometer != start_odometer) return;
 
     sd_card_delete_file(state->storage.filename);
     state->storage.filename[0] = 0x00;
