@@ -164,6 +164,12 @@ void show_screen(State* state, SH1106Config* display) {
         case Screen_About:
             content_about(state, display);
             break;
+        case Screen_AboutCruiseControl:
+            content_about_cruise_control(state, display);
+            break;
+        case Screen_AboutCar:
+            content_about_car(state, display);
+            break;
     }
 }
 

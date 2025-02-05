@@ -164,8 +164,8 @@ void debug_state(const State* state) {
     printf("\t\tgas_pedal: %lf\n", state->car.gas_pedal);
     printf("\t\tgas_pedal_0_volts: %lf\n", state->car.gas_pedal_0_volts);
     printf("\t\tgas_pedal_1_volts: %lf\n", state->car.gas_pedal_1_volts);
-    printf("\t\tis_drivers_door_open: %c\n", state->car.is_drivers_door_open ? 'y' : 'n');
-    printf("\t\tis_other_doors_open: %c\n", state->car.is_other_doors_open ? 'y' : 'n');
+    printf("\t\tis_drivers_door_locked: %c\n", state->car.is_drivers_door_locked ? 'y' : 'n');
+    printf("\t\tis_other_doors_locked: %c\n", state->car.is_other_doors_locked ? 'y' : 'n');
     printf("\t\tis_blower_on: %c\n", state->car.is_blower_on ? 'y' : 'n');
     printf("\t\tis_locked: %c\n", state->car.is_locked ? 'y' : 'n');
 

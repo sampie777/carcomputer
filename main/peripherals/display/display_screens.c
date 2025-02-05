@@ -98,9 +98,9 @@ void content_cruise_control(State* state, SH1106Config* display) {
     sprintf(buffer, "%.1f m/s2", state->car.acceleration);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
-    offset_x -= 9;
-    double ratio = state->car.speed / state->car.rpm * 10000;
-    double ratio_raw = state->car.speed / state->car.rpm_raw * 10000;
+    offset_y -= 9;
+    double ratio = state->car.rpm == 0 ? 0 : state->car.speed / state->car.rpm * 10000;
+    double ratio_raw = state->car.rpm == 0 ? 0 : state->car.speed / state->car.rpm_raw * 10000;
     sprintf(buffer, "%.1f / %.1f raw", ratio, ratio_raw);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
@@ -391,4 +391,57 @@ void content_about(const State* state, SH1106Config* display) {
     format_time(esp_timer_get_time_ms(), runtime);
     sprintf(buffer, "Runtime: %s", runtime);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+}
+
+void content_about_cruise_control(const State* state, SH1106Config* display) {
+    int offset_x = 0;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[64];
+
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "Cruise control params");
+    offset_y += 10;
+
+    sprintf(buffer, "Kp: %.6f", state->cruise_control.pidKp);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "Ki:  %.6f", state->cruise_control.pidKi);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "Kd: %.6f", state->cruise_control.pidKd);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, "Pedal: %3.0f %%", state->car.gas_pedal * 100);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+}
+
+void content_about_car(const State* state, SH1106Config* display) {
+    int offset_x = 0;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[64];
+
+    sprintf(buffer, "[%c] Brake", state->car.is_braking ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "[%c] Ignition", state->car.is_ignition_on ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "[%c] Blower", state->car.is_blower_on ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "[%c] Driver door locked", state->car.is_drivers_door_locked ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "[%c] Other doors locked", state->car.is_other_doors_locked ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+//    offset_y += 9;
+//    sprintf(buffer, "[%c] Parking brake", state->car.is_parking_brake_on ? 'Y' : ' ');
+//    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_x = 14 * 4;
+    offset_y = STATUS_BAR_HEIGHT + 5;
+    sprintf(buffer, "[%c] Locked", state->car.is_locked ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+//    offset_y += 9;
+//    sprintf(buffer, "[%c] Other doors", state->car.is_other_doors_open ? 'Y' : ' ');
+//    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }

@@ -79,8 +79,8 @@ void handle_door_lock_message(State* state, const CanMessage* message) {
     }
 
     state->car.is_blower_on = (message->data[1] >> CAN_DOOR_LOCKS_BLOWER_BIT) & 1;
-    state->car.is_drivers_door_open = (message->data[5] >> CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT) & 1;
-    state->car.is_other_doors_open = (message->data[5] >> CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT) & 1;
+    state->car.is_drivers_door_locked = (message->data[5] >> CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT) & 1;
+    state->car.is_other_doors_locked = (message->data[5] >> CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT) & 1;
 }
 
 void handle_gear_and_lights_message(State* state, const CanMessage* message) {
@@ -178,8 +178,8 @@ int canbus_send_lock_doors(const State* state, bool lock_doors) {
                     ? (CAN_DOOR_LOCKS_LOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_LOCK_OTHER_DOORS)
                     : (CAN_DOOR_LOCKS_UNLOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_UNLOCK_OTHER_DOORS),
                 1,
-                (state->car.is_drivers_door_open << CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT)
-                | (state->car.is_other_doors_open << CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT),
+                (state->car.is_drivers_door_locked << CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT)
+                | (state->car.is_other_doors_locked << CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT),
                 0,
                 0
             }

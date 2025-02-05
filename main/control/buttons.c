@@ -71,6 +71,14 @@ void control_buttons_handle(State* state, Button button) {
                 state->display.actions_option_selection--;
                 break;
             }
+            if (state->display.current_screen == Screen_AboutCruiseControl) {
+                state->display.current_screen = Screen_About;
+                break;
+            }
+            if (state->display.current_screen == Screen_AboutCar) {
+                state->display.current_screen = Screen_AboutCruiseControl;
+                break;
+            }
 
             if (state->display.current_screen == Screen_CruiseControl) {
                 state->cruise_control.target_speed++;
@@ -90,6 +98,14 @@ void control_buttons_handle(State* state, Button button) {
                 if (state->display.actions_option_selection >= ScreenActionsOptions_MAX_VALUE) {
                     state->display.actions_option_selection = 0;
                 }
+                break;
+            }
+            if (state->display.current_screen == Screen_About) {
+                state->display.current_screen = Screen_AboutCruiseControl;
+                break;
+            }
+            if (state->display.current_screen == Screen_AboutCruiseControl) {
+                state->display.current_screen = Screen_AboutCar;
                 break;
             }
 
@@ -116,10 +132,13 @@ void control_buttons_handle(State* state, Button button) {
                 break;
             }
 
-            if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl) ||
-                state->display.current_screen == Screen_Sensors ||
-                state->display.current_screen == Screen_Actions ||
-                state->display.current_screen == Screen_About) {
+            if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl)
+                || state->display.current_screen == Screen_Sensors
+                || state->display.current_screen == Screen_Actions
+                || state->display.current_screen == Screen_About
+                || state->display.current_screen == Screen_AboutCruiseControl
+                || state->display.current_screen == Screen_AboutCar
+                ) {
                 state->display.current_screen = Screen_Menu;
             } else if (state->display.current_screen == Screen_CruiseControl) {
                 if (state->cruise_control.enabled) printf("Disconnecting cruise control because of user input\n");

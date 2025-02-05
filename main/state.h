@@ -21,6 +21,8 @@ typedef enum {
     Screen_GPS,
     Screen_ErrorCodes,
     Screen_About,
+    Screen_AboutCruiseControl,
+    Screen_AboutCar,
 } Screen;
 
 // This also determines the order in which the options are shown on the display
@@ -91,8 +93,8 @@ typedef struct {
     double gas_pedal_0_volts;       // Current value in absolute Volts
     double gas_pedal_1_volts;       // Current value in absolute Volts
 
-    bool is_drivers_door_open;
-    bool is_other_doors_open;
+    bool is_drivers_door_locked;
+    bool is_other_doors_locked;
     bool is_blower_on;
     bool is_locked;
     bool is_parking_brake_on;
