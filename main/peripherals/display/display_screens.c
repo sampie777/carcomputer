@@ -79,20 +79,21 @@ void content_cruise_control(State* state, SH1106Config* display) {
     offset_y += 8 * FONT_LARGE + 2;
     offset_x = 5;
 
-    sprintf(buffer, "Accel: %.1f m/s2", state->car.acceleration);
-    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-
-    offset_y += 10;
     switch (state->car.estimated_gear) {
         case GearNeutral:
-            sprintf(buffer, "Gear: N");
+            sprintf(buffer, "N");
             break;
         case GearReverse:
-            sprintf(buffer, "Gear: R");
+            sprintf(buffer, "R");
             break;
         default:
-            snprintf(buffer, sizeof buffer, "Gear: %d", state->car.estimated_gear);
+            snprintf(buffer, sizeof buffer, "%d", state->car.estimated_gear);
     }
+    sh1106_draw_string(display, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
+
+    offset_x += 20;
+    offset_y += 7;
+    sprintf(buffer, "Accel: %.1f m/s2", state->car.acceleration);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     if (!state->cruise_control.enabled) return;
