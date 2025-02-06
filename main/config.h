@@ -71,11 +71,12 @@ extern "C" {
 #define CAR_ENGINE_SHUTOFF_DISABLE_PIN GPIO_NUM_26
 
 // Gear ration is calculated by speed / rpm_raw * 10000
-#define CAR_GEAR_1_RATIO (9)
-#define CAR_GEAR_2_RATIO (16)
-#define CAR_GEAR_3_RATIO (24)
-#define CAR_GEAR_4_RATIO (32)
-#define CAR_GEAR_5_RATIO (40)
+#define CAR_GEAR_RATIO_SLACK (2.0)
+#define CAR_GEAR_1_RATIO (9.1)
+#define CAR_GEAR_2_RATIO (16.2)
+#define CAR_GEAR_3_RATIO (24.3)
+#define CAR_GEAR_4_RATIO (32.8)
+#define CAR_GEAR_5_RATIO (41.2)
 
 #define BUTTONS_ADC_CHANNEL_0 ADC1_CHANNEL_0    // Mapped to PIN 36
 #define BUTTONS_ADC_CHANNEL_1 ADC1_CHANNEL_3    // Mapped to PIN 39

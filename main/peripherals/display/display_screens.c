@@ -99,9 +99,8 @@ void content_cruise_control(State* state, SH1106Config* display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     offset_y -= 9;
-    double ratio = state->car.rpm == 0 ? 0 : state->car.speed / state->car.rpm * 10000;
     double ratio_raw = state->car.rpm == 0 ? 0 : state->car.speed / state->car.rpm_raw * 10000;
-    sprintf(buffer, "%.1f / %.1f raw", ratio, ratio_raw);
+    sprintf(buffer, "%.1f", ratio_raw);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     // --- End of debug stuff

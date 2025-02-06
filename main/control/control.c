@@ -92,21 +92,12 @@ CarGearPosition estimate_car_gear(CarState* car) {
     }
 
     double ratio = car->speed / car->rpm_raw * 10000;
-    int rounded_ration = (int) round(ratio);
-    switch (rounded_ration) {
-        case CAR_GEAR_1_RATIO:
-            return Gear1;
-        case CAR_GEAR_2_RATIO:
-            return Gear2;
-        case CAR_GEAR_3_RATIO:
-            return Gear3;
-        case CAR_GEAR_4_RATIO:
-            return Gear4;
-        case CAR_GEAR_5_RATIO:
-            return Gear5;
-        default:
-            return GearNeutral;
-    }
+    if (ratio > CAR_GEAR_1_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_1_RATIO + CAR_GEAR_RATIO_SLACK) return Gear1;
+    if (ratio > CAR_GEAR_2_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_2_RATIO + CAR_GEAR_RATIO_SLACK) return Gear2;
+    if (ratio > CAR_GEAR_3_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_3_RATIO + CAR_GEAR_RATIO_SLACK) return Gear3;
+    if (ratio > CAR_GEAR_4_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_4_RATIO + CAR_GEAR_RATIO_SLACK) return Gear4;
+    if (ratio > CAR_GEAR_5_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_5_RATIO + CAR_GEAR_RATIO_SLACK) return Gear5;
+    return GearNeutral;
 }
 
 void calculate_acceleration(CarState* car) {
