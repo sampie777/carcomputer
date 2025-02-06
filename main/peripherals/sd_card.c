@@ -10,18 +10,17 @@
 #include <sys/unistd.h>
 #include "sd_card.h"
 #include <sys/dirent.h>
-#include "../config.h"
 #include "../return_codes.h"
 #include "../utils.h"
 
 #define SD_DIRECTORY_MAX_LENGTH (32)
 #define MOUNT_POINT "/sdcard"
-static const char* TAG = "SD";
+static const char *TAG = "SD";
 const char mount_point[] = MOUNT_POINT;
 
 sdmmc_host_t host = SDSPI_HOST_DEFAULT();
-sdmmc_card_t* card;
-FILE* file = NULL;
+sdmmc_card_t *card;
+FILE *file = NULL;
 
 /*
 void sd_card_test() {
@@ -78,7 +77,7 @@ void sd_card_test() {
 }
 */
 
-int sd_card_open_file(const char* file_name) {
+int sd_card_open_file(const char *file_name) {
     char path[SD_PATH_MAX_LENGTH * 2];
     sprintf(path, "%s/%s", MOUNT_POINT, file_name);
 
@@ -96,7 +95,7 @@ void sd_card_close_file() {
     file = NULL;
 }
 
-void sd_card_create_directory(const char* directory, char* created_directory) {
+void sd_card_create_directory(const char *directory, char *created_directory) {
     char path[SD_PATH_MAX_LENGTH * 2];
     char directory_safe_name[SD_DIRECTORY_MAX_LENGTH];
     directory_safe_name[min(SD_DIRECTORY_MAX_LENGTH - 1, strlen(directory))] = '\0';
@@ -124,7 +123,7 @@ void sd_card_create_directory(const char* directory, char* created_directory) {
     strcpy(created_directory, directory_safe_name);
 }
 
-void sd_card_delete_file(const char* file_name) {
+void sd_card_delete_file(const char *file_name) {
     printf("[SD] Deleting file %s\n", file_name);
     char path[SD_PATH_MAX_LENGTH * 2];
     snprintf(path, sizeof path, "%s/%s", MOUNT_POINT, file_name);
@@ -138,7 +137,7 @@ void sd_card_delete_file(const char* file_name) {
     unlink(path);
 }
 
-int sd_card_rename_file(char* file_name, const char* new_file_name) {
+int sd_card_rename_file(char *file_name, const char *new_file_name) {
     char old_path[SD_PATH_MAX_LENGTH * 2];
     char new_path[SD_PATH_MAX_LENGTH * 2];
     snprintf(old_path, sizeof old_path, "%s/%s", MOUNT_POINT, file_name);
@@ -167,7 +166,7 @@ void sd_card_flush_file() {
     sd_card_close_file();
 }
 
-int sd_card_file_append(const char* file_name, const char* line) {
+int sd_card_file_append(const char *file_name, const char *line) {
     if (sd_card_open_file(file_name) != RESULT_OK) return RESULT_FAILED;
 
     char path[SD_PATH_MAX_LENGTH * 2];
@@ -183,10 +182,10 @@ int sd_card_file_append(const char* file_name, const char* line) {
     return RESULT_OK;
 }
 
-int sd_card_does_filename_exists(const char* directory,
-                                 const char* base_file_name,
+int sd_card_does_filename_exists(const char *directory,
+                                 const char *base_file_name,
                                  uint16_t i,
-                                 const char* base_file_extension) {
+                                 const char *base_file_extension) {
     char path[SD_PATH_MAX_LENGTH * 2];
     char new_file_name[SD_PATH_MAX_LENGTH];
     sprintf(new_file_name, "%s/%s-%d.%s", directory, base_file_name, i, base_file_extension);
@@ -202,10 +201,10 @@ int sd_card_does_filename_exists(const char* directory,
   * @param base_file_name
   * @param file_name_out    The new file name will be stored in here (size: PATH_MAX_LENGTH)
   */
-int sd_card_create_file_incremental(const char* directory,
-                                    const char* base_file_name,
-                                    const char* base_file_extension,
-                                    char* file_name_out) {
+int sd_card_create_file_incremental(const char *directory,
+                                    const char *base_file_name,
+                                    const char *base_file_extension,
+                                    char *file_name_out) {
     char created_directory[SD_DIRECTORY_MAX_LENGTH];
     char new_file_name[SD_PATH_MAX_LENGTH];
 
@@ -243,9 +242,9 @@ int sd_card_create_file_incremental(const char* directory,
     return RESULT_OVERFLOW;
 }
 
-void list_files_on_sd_card(const char* directory) {
-    DIR* dir;
-    struct dirent* entry;
+void list_files_on_sd_card(const char *directory) {
+    DIR *dir;
+    struct dirent *entry;
 
     if ((dir = opendir(directory)) == NULL) {
         perror("opendir() error");
@@ -265,9 +264,9 @@ int sd_card_init() {
     host.slot = SPI_DEFAULT_HOST;
 
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-            .format_if_mount_failed = false,
-            .max_files = 5,
-            .allocation_unit_size = 16 * 1024
+        .format_if_mount_failed = false,
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024
     };
 
     sdspi_device_config_t slot = SDSPI_DEVICE_CONFIG_DEFAULT();

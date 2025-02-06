@@ -14,7 +14,7 @@
 #include "../peripherals/gpsgsm/gpsgsm.h"
 #include "task_primary.h"
 
-void init(State* state) {
+void init(State *state) {
     adc1_config_width(ADC_RESOLUTION - 9);
     i2c_init();
     spi_init(state);
@@ -49,9 +49,9 @@ void log_status(enum A9Status status) {
     }
 }
 
-_Noreturn void task_primary(void* args) {
+_Noreturn void task_primary(void *args) {
     printf("Primary task started on core: %d\n", xPortGetCoreID());
-    State* state = args;
+    State *state = args;
 
     init(state);
 
@@ -119,7 +119,6 @@ _Noreturn void task_primary(void* args) {
         control_mpu_power(state);
         gpsgsm_process(state);
         control_process_car(state);
-        control_led_indicator_step(state);
         data_logger_process(state);
         control_read_error_codes(state);
     }

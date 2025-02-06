@@ -15,11 +15,11 @@
 #include "display_screens.h"
 
 SH1106Config sh1106_config = {
-        .address = DISPLAY_I2C_ADDRESS,
-        .mirror_vertical = DISPLAY_UPSIDE_DOWN,
-        .width = DISPLAY_WIDTH,
-        .height = DISPLAY_HEIGHT,
-    };
+    .address = DISPLAY_I2C_ADDRESS,
+    .mirror_vertical = DISPLAY_UPSIDE_DOWN,
+    .width = DISPLAY_WIDTH,
+    .height = DISPLAY_HEIGHT,
+};
 
 void display_init() {
     printf("[Display] Initializing display...\n");
@@ -27,7 +27,7 @@ void display_init() {
     printf("[Display] Init done\n");
 }
 
-void show_error_message(State* state, SH1106Config* display) {
+void show_error_message(State *state, SH1106Config *display) {
     static uint32_t current_error_to_show = 0;
     static int64_t last_error_message_time = 0;
 
@@ -59,21 +59,29 @@ void show_error_message(State* state, SH1106Config* display) {
 
     char buffer[32];
     switch (current_error_to_show) {
-        case ERROR_PEDAL_DISCONNECTED: strcpy(buffer, "Pedal disconnected");
+        case ERROR_PEDAL_DISCONNECTED:
+            strcpy(buffer, "Pedal disconnected");
             break;
-        case ERROR_SPI_FAILED: strcpy(buffer, "SPI failed");
+        case ERROR_SPI_FAILED:
+            strcpy(buffer, "SPI failed");
             break;
-        case ERROR_CRASH_NO_ICE: strcpy(buffer, "CRASH, no ICE!");
+        case ERROR_CRASH_NO_ICE:
+            strcpy(buffer, "CRASH, no ICE!");
             break;
-        case ERROR_CRASH_DETECTED: strcpy(buffer, "CRASH detected!");
+        case ERROR_CRASH_DETECTED:
+            strcpy(buffer, "CRASH detected!");
             break;
-        case ERROR_GPS_TIMEOUT: strcpy(buffer, "GPS timeout");
+        case ERROR_GPS_TIMEOUT:
+            strcpy(buffer, "GPS timeout");
             break;
-        case ERROR_SMS_FAILED: strcpy(buffer, "SMS failed");
+        case ERROR_SMS_FAILED:
+            strcpy(buffer, "SMS failed");
             break;
-        case ERROR_SD_FULL: strcpy(buffer, "SD car full");
+        case ERROR_SD_FULL:
+            strcpy(buffer, "SD car full");
             break;
-        case ERROR_CAR_DISCONNECTED: strcpy(buffer, "Car disconnected");
+        case ERROR_CAR_DISCONNECTED:
+            strcpy(buffer, "Car disconnected");
             break;
         default:
             sprintf(buffer, "Code: %lu", state->errors);
@@ -84,7 +92,7 @@ void show_error_message(State* state, SH1106Config* display) {
     sh1106_draw_string(display, 10, 18, FONT_SMALL, FONT_BLACK, buffer);
 }
 
-void show_statusbar(State* state, SH1106Config* display) {
+void show_statusbar(State *state, SH1106Config *display) {
     static int64_t last_long_blink_time = 0;
     static uint8_t long_blink_state = false;
 
@@ -122,7 +130,7 @@ void show_statusbar(State* state, SH1106Config* display) {
     sh1106_draw_horizontal_line(display, 0, STATUS_BAR_HEIGHT, display->width);
 }
 
-void show_content_overlay(State* state, SH1106Config* display) {
+void show_content_overlay(State *state, SH1106Config *display) {
     if (state->power_off_count_down_sec > -1 && state->power_off_count_down_sec <= 10) {
         content_power_off_count_down(state, display);
         return;
@@ -131,12 +139,14 @@ void show_content_overlay(State* state, SH1106Config* display) {
     show_error_message(state, display);
 }
 
-void show_screen(State* state, SH1106Config* display) {
+void show_screen(State *state, SH1106Config *display) {
     switch (state->display.current_screen) {
         case Screen_Booting:
-            sh1106_draw_string_centered_x(display, STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2 - 4,
+            sh1106_draw_string_centered_x(display,
+                                          STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2 - 4,
                                           FONT_SMALL, FONT_WHITE, "Booting...");
-            sh1106_draw_string_centered_x(display, STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
+            sh1106_draw_string_centered_x(display,
+                                          STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
                                           FONT_SMALL, FONT_WHITE, APP_VERSION);
             break;
         case Screen_Rebooting:
@@ -173,7 +183,7 @@ void show_screen(State* state, SH1106Config* display) {
     }
 }
 
-void set_current_screen(State* state) {
+void set_current_screen(State *state) {
     if (state->is_rebooting) {
         state->display.current_screen = Screen_Rebooting;
         return;
@@ -189,7 +199,7 @@ void set_current_screen(State* state) {
     }
 }
 
-void display_update(State* state) {
+void display_update(State *state) {
     static int64_t last_update_time = 0;
     if (esp_timer_get_time_ms() < last_update_time + DISPLAY_UPDATE_MIN_INTERVAL) return;
     last_update_time = esp_timer_get_time_ms();

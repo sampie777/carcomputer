@@ -5,6 +5,6 @@
 #ifndef TASK_PRIMARY_H
 #define TASK_PRIMARY_H
 
-void task_primary(void* args);
+void task_primary(void *args);
 
 #endif //TASK_PRIMARY_H

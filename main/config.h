@@ -91,9 +91,6 @@ extern "C" {
 #define BUTTON_LONG_PRESS_MS (500)
 #define BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS (50)   // Don't check the button after is has been pressed for this amount of time (ms)
 
-
-// #define LED_PIN GPIO_NUM_5
-
 #define DISPLAY_I2C_PORT I2C_NUM_1
 #define DISPLAY_I2C_SDA_PIN GPIO_NUM_21
 #define DISPLAY_I2C_SCL_PIN GPIO_NUM_19

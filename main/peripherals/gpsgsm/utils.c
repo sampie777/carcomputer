@@ -147,12 +147,12 @@ void extract_ctzv_message(const char *message, Time *time) {
 
 bool a9g_state_compare(A9GState *a, A9GState *b) {
     return a->initialized == b->initialized
-           && a->network_attached == b->network_attached
-           && a->pnp_parameters_set == b->pnp_parameters_set
-           && a->pnp_activated == b->pnp_activated
-           && a->agps_enabled == b->agps_enabled
-           && a->gps_logging_enabled == b->gps_logging_enabled
-           && a->gps_logging_started == b->gps_logging_started;
+        && a->network_attached == b->network_attached
+        && a->pnp_parameters_set == b->pnp_parameters_set
+        && a->pnp_activated == b->pnp_activated
+        && a->agps_enabled == b->agps_enabled
+        && a->gps_logging_enabled == b->gps_logging_enabled
+        && a->gps_logging_started == b->gps_logging_started;
 }
 
 void a9g_state_clone(A9GState *source, A9GState *destination) {

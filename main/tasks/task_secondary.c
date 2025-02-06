@@ -9,9 +9,9 @@
 #include "../peripherals/display/display.h"
 #include "task_secondary.h"
 
-_Noreturn void task_secondary(void* args) {
+_Noreturn void task_secondary(void *args) {
     printf("Secondary task started on core: %d\n", xPortGetCoreID());
-    State* state = args;
+    State *state = args;
 
     display_init();
 

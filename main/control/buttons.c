@@ -4,12 +4,10 @@
 
 #include <stdio.h>
 #include "buttons.h"
-
-#include "control.h"
 #include "../utils.h"
 #include "../peripherals/canbus/canbus.h"
 
-void control_buttons_handle(State* state, Button button) {
+void control_buttons_handle(State *state, Button button) {
     switch (button) {
         case BUTTON_NONE:
             break;
@@ -145,11 +143,14 @@ void control_buttons_handle(State* state, Button button) {
                 state->cruise_control.enabled = false;
             }
             break;
-        case BUTTON_SOURCE_LONG_PRESS: printf("Button pressed: BUTTON_SOURCE_LONG_PRESS\n");
+        case BUTTON_SOURCE_LONG_PRESS:
+            printf("Button pressed: BUTTON_SOURCE_LONG_PRESS\n");
             break;
-        case BUTTON_INFO: printf("Button pressed: BUTTON_INFO\n");
+        case BUTTON_INFO:
+            printf("Button pressed: BUTTON_INFO\n");
             break;
-        case BUTTON_DOWN: printf("Button pressed: BUTTON_DOWN\n");
+        case BUTTON_DOWN:
+            printf("Button pressed: BUTTON_DOWN\n");
             break;
         case BUTTON_VOLUME_UP_LONG_PRESS:
             printf("Button pressed: BUTTON_VOLUME_UP_LONG_PRESS\n");
@@ -163,13 +164,15 @@ void control_buttons_handle(State* state, Button button) {
                 state->cruise_control.target_speed = 0;
             }
             break;
-        case BUTTON_INFO_LONG_PRESS: printf("Button pressed: BUTTON_INFO_LONG_PRESS\n");
+        case BUTTON_INFO_LONG_PRESS:
+            printf("Button pressed: BUTTON_INFO_LONG_PRESS\n");
             break;
         case BUTTON_UP_LONG_PRESS:
             printf("Button pressed: BUTTON_UP_LONG_PRESS\n");
             state->cruise_control.target_speed = state->cruise_control.previous_target_speed;
             break;
-        case BUTTON_DOWN_LONG_PRESS: printf("Button pressed: BUTTON_DOWN_LONG_PRESS\n");
+        case BUTTON_DOWN_LONG_PRESS:
+            printf("Button pressed: BUTTON_DOWN_LONG_PRESS\n");
             break;
         default:
             break;
@@ -182,7 +185,7 @@ typedef enum {
     PidDerivative,
 } PidIncreaseTarget;
 
-void control_buttons_handle_pid_config(State* state, Button button) {
+void control_buttons_handle_pid_config(State *state, Button button) {
     static double pid_increase_step = 0.01;
     static PidIncreaseTarget pid_increase_target = PidProportional;
 

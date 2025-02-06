@@ -5,19 +5,16 @@
 #include <math.h>
 #include "../config.h"
 #include "control.h"
-
 #include "buttons.h"
 #include "../peripherals/canbus/canbus.h"
 #include "../peripherals/mpu9250.h"
 #include "../return_codes.h"
-#include "../peripherals/buttons.h"
 #include "../utils.h"
 #include "../error_codes.h"
-#include "../peripherals/led.h"
 #include "../peripherals/gas_pedal.h"
 #include "cruise_control.h"
 
-void control_read_can_bus(State* state) {
+void control_read_can_bus(State *state) {
     canbus_check_controller_connection(state);
     canbus_check_messages(state);
 
@@ -28,7 +25,7 @@ void control_read_can_bus(State* state) {
     }
 }
 
-void control_read_analog_sensors(State* state) {
+void control_read_analog_sensors(State *state) {
     if (gas_pedal_read(state) == RESULT_DISCONNECTED) {
         set_error(state, ERROR_PEDAL_DISCONNECTED);
     }
@@ -36,8 +33,7 @@ void control_read_analog_sensors(State* state) {
     mpu9250_read(state);
 }
 
-
-void control_read_user_input(State* state) {
+void control_read_user_input(State *state) {
     static int64_t last_read_time = 0;
 
     if (esp_timer_get_time_ms() < last_read_time + BUTTONS_READ_INTERVAL_MS) return;
@@ -48,33 +44,14 @@ void control_read_user_input(State* state) {
 //    control_buttons_handle_pid_config(state, button);
 }
 
-void control_led_indicator_step(State* state) {
-    if (state->is_booting) {
-        led_blink(1500);
-        return;
-    }
-    if (!state->car.is_connected) {
-        led_blink(800);
-        return;
-    }
-    if (!state->car.gas_pedal_connected) {
-        led_blink(300);
-        return;
-    }
-
-    led_set(state->cruise_control.enabled);
-}
-
-void control_cruise_control(State* state) {
+void control_cruise_control(State *state) {
     cruise_control_step(state);
 }
 
-void control_init(State* state) {
+void control_init(State *state) {
     gpio_set_direction(POWER_PIN, GPIO_MODE_OUTPUT);
     gpio_set_direction(CAR_ENGINE_SHUTOFF_DISABLE_PIN, GPIO_MODE_OUTPUT);
     gpio_set_direction(CAR_CLAXON_PIN, GPIO_MODE_OUTPUT);
-
-    led_init();
 
     canbus_init(state);
     gas_pedal_init(state, 0);
@@ -82,7 +59,7 @@ void control_init(State* state) {
     mpu9250_init();
 }
 
-CarGearPosition estimate_car_gear(CarState* car) {
+CarGearPosition estimate_car_gear(CarState *car) {
     if (car->is_in_reverse) {
         return GearReverse;
     }
@@ -92,15 +69,20 @@ CarGearPosition estimate_car_gear(CarState* car) {
     }
 
     double ratio = car->speed / car->rpm_raw * 10000;
-    if (ratio > CAR_GEAR_1_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_1_RATIO + CAR_GEAR_RATIO_SLACK) return Gear1;
-    if (ratio > CAR_GEAR_2_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_2_RATIO + CAR_GEAR_RATIO_SLACK) return Gear2;
-    if (ratio > CAR_GEAR_3_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_3_RATIO + CAR_GEAR_RATIO_SLACK) return Gear3;
-    if (ratio > CAR_GEAR_4_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_4_RATIO + CAR_GEAR_RATIO_SLACK) return Gear4;
-    if (ratio > CAR_GEAR_5_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_5_RATIO + CAR_GEAR_RATIO_SLACK) return Gear5;
+    if (ratio > CAR_GEAR_1_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_1_RATIO + CAR_GEAR_RATIO_SLACK)
+        return Gear1;
+    if (ratio > CAR_GEAR_2_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_2_RATIO + CAR_GEAR_RATIO_SLACK)
+        return Gear2;
+    if (ratio > CAR_GEAR_3_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_3_RATIO + CAR_GEAR_RATIO_SLACK)
+        return Gear3;
+    if (ratio > CAR_GEAR_4_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_4_RATIO + CAR_GEAR_RATIO_SLACK)
+        return Gear4;
+    if (ratio > CAR_GEAR_5_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_5_RATIO + CAR_GEAR_RATIO_SLACK)
+        return Gear5;
     return GearNeutral;
 }
 
-void calculate_acceleration(CarState* car) {
+void calculate_acceleration(CarState *car) {
     static int64_t last_speed_update_time = 0;
     static double last_speed = 0.0;
 
@@ -118,12 +100,12 @@ void calculate_acceleration(CarState* car) {
     last_speed = current_speed_m_s;
 }
 
-void control_process_car(State* state) {
+void control_process_car(State *state) {
     state->car.estimated_gear = estimate_car_gear(&state->car);
     calculate_acceleration(&state->car);
 }
 
-void control_mpu_power(State* state) {
+void control_mpu_power(State *state) {
     static int64_t ignition_off_time = 0;
     if (!state->is_rebooting && (state->car.is_ignition_on || state->error_codes.status != ErrorCodes_Off)) {
         gpio_set_level(POWER_PIN, 1);
@@ -151,11 +133,13 @@ void control_mpu_power(State* state) {
     }
 }
 
-void control_crash_detection(State* state) {
+void control_crash_detection(State *state) {
     static int64_t last_sent = 0;
     double total_force = sqrt(
-        state->motion.accel_x * state->motion.accel_x + state->motion.accel_y * state->motion.accel_y + state->motion.
-        accel_z * state->motion.accel_z);
+        state->motion.accel_x * state->motion.accel_x
+            + state->motion.accel_y * state->motion.accel_y
+            + state->motion.accel_z * state->motion.accel_z
+    );
     if (total_force < CRASH_DETECTION_CRASH_MIN_G) return;
 
     if (esp_timer_get_time_ms() < last_sent + CRASH_DETECTION_CRASH_MAX_DURATION_MS) return;
@@ -205,7 +189,7 @@ void control_crash_detection(State* state) {
 #endif
 }
 
-void control_read_error_codes(State* state) {
+void control_read_error_codes(State *state) {
     static ErrorCodesStatus previous_status = ErrorCodes_Off;
     static int64_t wait_timer_end = 0;
     static int64_t press_timer_start = 0;

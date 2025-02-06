@@ -8,13 +8,13 @@
 #include "../../utils.h"
 
 
-void draw_check_box(SH1106Config* sh1106, int x, int y, int size, bool checked) {
+void draw_check_box(SH1106Config *sh1106, int x, int y, int size, bool checked) {
     sh1106_draw_rectangle(sh1106, x, y, size, size);
     if (!checked) return;
     sh1106_draw_filled_rectangle(sh1106, x + 2, y + 2, max(0, size - 2 * 2), max(0, size - 2 * 2));
 }
 
-void content_main_menu_option(SH1106Config* sh1106, int y, int height, const char* text, bool highlighted) {
+void content_main_menu_option(SH1106Config *sh1106, int y, int height, const char *text, bool highlighted) {
     if (highlighted) {
         sh1106_draw_filled_rectangle(sh1106, 0, y, sh1106->width, height);
     }
@@ -22,7 +22,7 @@ void content_main_menu_option(SH1106Config* sh1106, int y, int height, const cha
                        highlighted ? FONT_BLACK : FONT_WHITE, text);
 }
 
-char* content_main_menu_get_option_text(MainMenuScreenOptions option_index) {
+char *content_main_menu_get_option_text(MainMenuScreenOptions option_index) {
     switch (option_index) {
         case ScreenMenuOption_CruiseControl:
             return "Cruise control";
@@ -39,12 +39,12 @@ char* content_main_menu_get_option_text(MainMenuScreenOptions option_index) {
     }
 }
 
-void content_main_menu(const State* state, SH1106Config* display) {
+void content_main_menu(const State *state, SH1106Config *display) {
     static int options_start_index = 0;
     const int selection_item_height = 12;
     const int options_total_height = display->height - STATUS_BAR_HEIGHT - 2;
     const int total_displayable_options = options_total_height / selection_item_height;
-    char* buffer = NULL;
+    char *buffer = NULL;
 
     // Move window so it fits the selected option
     if (state->display.menu_option_selection >= options_start_index + total_displayable_options) {
@@ -64,7 +64,7 @@ void content_main_menu(const State* state, SH1106Config* display) {
     }
 }
 
-void content_cruise_control(State* state, SH1106Config* display) {
+void content_cruise_control(State *state, SH1106Config *display) {
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 10;
     char buffer[20];
@@ -123,7 +123,7 @@ void content_cruise_control(State* state, SH1106Config* display) {
     sh1106_draw_filled_rectangle(display, display->width - 4 + 1, virtual_pedal_value_y, 2, virtual_pedal_value_height);
 }
 
-void content_power_off_count_down(State* state, SH1106Config* display) {
+void content_power_off_count_down(State *state, SH1106Config *display) {
     int length, offset_x, offset_y;
     char buffer[20];
     int margin = 5;
@@ -146,7 +146,7 @@ void content_power_off_count_down(State* state, SH1106Config* display) {
                                   FONT_SMALL, FONT_BLACK, buffer);
 }
 
-void content_motion_sensors_data(const State* state, SH1106Config* display) {
+void content_motion_sensors_data(const State *state, SH1106Config *display) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[20];
@@ -207,7 +207,7 @@ void content_motion_sensors_data(const State* state, SH1106Config* display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
-char* content_actions_get_option_text(ActionsScreenOptions option_index) {
+char *content_actions_get_option_text(ActionsScreenOptions option_index) {
     switch (option_index) {
         case ScreenActionsOptions_LockDoors:
             return "Lock doors";
@@ -220,12 +220,12 @@ char* content_actions_get_option_text(ActionsScreenOptions option_index) {
     }
 }
 
-void content_actions(const State* state, SH1106Config* display) {
+void content_actions(const State *state, SH1106Config *display) {
     static int options_start_index = 0;
     const int selection_item_height = 12;
     const int options_total_height = display->height - STATUS_BAR_HEIGHT - 2;
     const int total_displayable_options = options_total_height / selection_item_height;
-    char* buffer = NULL;
+    char *buffer = NULL;
 
     // Move window so it fits the selected option
     if (state->display.actions_option_selection >= options_start_index + total_displayable_options) {
@@ -245,7 +245,7 @@ void content_actions(const State* state, SH1106Config* display) {
     }
 }
 
-void content_location_data(const State* state, SH1106Config* display) {
+void content_location_data(const State *state, SH1106Config *display) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[32];
@@ -299,7 +299,7 @@ void content_location_data(const State* state, SH1106Config* display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
-void content_error_codes(const State* state, SH1106Config* display) {
+void content_error_codes(const State *state, SH1106Config *display) {
     int offset_y = STATUS_BAR_HEIGHT + 5;
 
     offset_y += 10;
@@ -358,7 +358,7 @@ void content_error_codes(const State* state, SH1106Config* display) {
     sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Do NOT start the car!");
 }
 
-void content_about(const State* state, SH1106Config* display) {
+void content_about(const State *state, SH1106Config *display) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[64];
@@ -392,7 +392,7 @@ void content_about(const State* state, SH1106Config* display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
-void content_about_cruise_control(const State* state, SH1106Config* display) {
+void content_about_cruise_control(const State *state, SH1106Config *display) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[64];
@@ -413,7 +413,7 @@ void content_about_cruise_control(const State* state, SH1106Config* display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
-void content_about_car(const State* state, SH1106Config* display) {
+void content_about_car(const State *state, SH1106Config *display) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[64];

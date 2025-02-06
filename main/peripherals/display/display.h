@@ -10,7 +10,6 @@
 #define STATUS_BAR_HEIGHT 9
 
 void display_init();
-
 void display_update(State *state);
 
 #endif //APP_TEMPLATE_DISPLAY_H

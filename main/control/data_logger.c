@@ -3,11 +3,8 @@
 //
 
 #include "data_logger.h"
-
 #include <bootloader_random.h>
-
 #include "esp_random.h"
-#include "../config.h"
 #include "../error_codes.h"
 #include "../peripherals/sd_card.h"
 #include "../return_codes.h"
@@ -20,13 +17,13 @@ uint32_t generate_session_id() {
     return id;
 }
 
-void data_logger_init_file(State* state, const char* preferred_file_name) {
+void data_logger_init_file(State *state, const char *preferred_file_name) {
     // Check if init is already done
     if (state->storage.filename[0] != 0x00) return;
 
-    char* device_name = state->device_name == NULL || state->device_name[0] == '\0' || state->device_name[0] == 0
-                            ? "Default"
-                            : state->device_name;
+    char *device_name = state->device_name == NULL || state->device_name[0] == '\0' || state->device_name[0] == 0
+                        ? "Default"
+                        : state->device_name;
 
     if (sd_card_create_file_incremental(device_name,
                                         preferred_file_name,
@@ -37,14 +34,15 @@ void data_logger_init_file(State* state, const char* preferred_file_name) {
 
     printf("[SD] Using file: %s\n", state->storage.filename);
 
-    sd_card_file_append(state->storage.filename, "timestamp;session_id;"
+    sd_card_file_append(state->storage.filename,
+                        "timestamp;session_id;"
                         "car_is_connected;car_is_controller_connected;car_is_braking;car_is_ignition_on;car_speed;car_rpm;car_odometer;car_gas_pedal_connected;car_gas_pedal;"
                         "cruise_control_enabled;cruise_control_target_speed;cruise_control_virtual_gas_pedal;cruise_control_control_value;"
                         "motion_connected;motion_accel_x;motion_accel_y;motion_accel_z;motion_gyro_x;motion_gyro_y;motion_gyro_z;motion_compass_x;motion_compass_y;motion_compass_z;motion_temperature;"
                         "errors;\n");
 }
 
-void data_logger_deinit(State* state) {
+void data_logger_deinit(State *state) {
     static int64_t engine_off_time = 0;
     static uint32_t start_odometer = 0;
 
@@ -62,8 +60,9 @@ void data_logger_deinit(State* state) {
     }
 
     // Give the car chance to start again
-    if (esp_timer_get_time_ms() < engine_off_time + DATA_LOGGER_ENGINE_OFF_GRACE_TIME_MS && state->
-        power_off_count_down_sec > 0) return;
+    if (esp_timer_get_time_ms() < engine_off_time + DATA_LOGGER_ENGINE_OFF_GRACE_TIME_MS
+        && state->power_off_count_down_sec > 0)
+        return;
 
     sd_card_close_file();
 
@@ -78,7 +77,7 @@ void data_logger_deinit(State* state) {
  * Collect data and write to SD card
  * @param state
  */
-void data_logger_log_current(State* state) {
+void data_logger_log_current(State *state) {
     static int64_t last_log_time = 0;
 
     // Don't log if car isn't on and on the move, so SD card can be swapped safely
@@ -153,7 +152,7 @@ void data_logger_log_current(State* state) {
     }
 }
 
-void data_logger_manage_file_name(State* state) {
+void data_logger_manage_file_name(State *state) {
     static bool has_set_time_as_file_name = false;
 
     if (state->storage.filename[0] == 0x00) {
@@ -191,7 +190,7 @@ void data_logger_manage_file_name(State* state) {
     has_set_time_as_file_name = true;
 }
 
-void data_logger_process(State* state) {
+void data_logger_process(State *state) {
     static int64_t last_init_time = 0;
 
     data_logger_deinit(state);
@@ -210,7 +209,7 @@ void data_logger_process(State* state) {
     data_logger_log_current(state);
 }
 
-void data_logger_init(State* state) {
+void data_logger_init(State *state) {
     printf("[DataLogger] Initializing...\n");
 
     while (state->logging_session_id == 0) {

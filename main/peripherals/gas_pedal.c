@@ -6,11 +6,9 @@
 #include <driver/ledc.h>
 #include <driver/adc.h>
 #include <esp_timer.h>
+#include <math.h>
 #include "../config.h"
 #include "gas_pedal.h"
-
-#include <tgmath.h>
-
 #include "../return_codes.h"
 #include "../utils.h"
 
@@ -43,7 +41,7 @@ void read_pedals(State *state, int sample_count_factor) {
 }
 
 void set_pedal_volts(ledc_channel_t channel, double voltage) {
-    uint16_t max_cycle = pow(2, CAR_GAS_PEDAL_RESOLUTION) - 1;
+    uint16_t max_cycle = (uint16_t) pow(2, CAR_GAS_PEDAL_RESOLUTION) - 1;
     uint16_t duty_cycle = (uint16_t) (max(0, min(voltage, 5)) / 5 * max_cycle);
     ledc_set_duty(CAR_VIRTUAL_GAS_PEDAL_TIMER_SPEED_MODE, channel, duty_cycle);
     ledc_update_duty(CAR_VIRTUAL_GAS_PEDAL_TIMER_SPEED_MODE, channel);
