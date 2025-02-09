@@ -26,7 +26,7 @@ typedef enum {
     FONT_BLACK,
 } FontColor;
 
-void sh1106_init(SH1106Config *config);
+int sh1106_init(SH1106Config *config);
 void sh1106_display(SH1106Config *config);
 void sh1106_clear(SH1106Config *config);
 void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontColor color, char c);

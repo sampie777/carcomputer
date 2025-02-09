@@ -31,12 +31,12 @@ void app_main(void) {
         NULL,
         0);
 
-    // xTaskCreatePinnedToCore(
-    //     task_secondary,
-    //     "task_secondary",
-    //     SECONDARY_TASK_STACK_SIZE,
-    //     &state,
-    //     1,
-    //     NULL,
-    //     1);
+     xTaskCreatePinnedToCore(
+         task_secondary,
+         "task_secondary",
+         SECONDARY_TASK_STACK_SIZE,
+         &state,
+         1,
+         NULL,
+         1);
 }

@@ -28,6 +28,8 @@ int mcp2515_init(bool listen_only) {
         }
         return RESULT_DISCONNECTED;
     }
+    was_disconnected = false;
+
     if (mcp2515->setBitrate(CAN_500KBPS, MCP_8MHZ) != MCP2515::ERROR_OK)
         printf("[mcp2515] Failed to set bitrate\n");
 

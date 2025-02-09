@@ -11,6 +11,7 @@
 
 #include "font.h"
 #include "../../utils.h"
+#include "../../return_codes.h"
 
 #define CONTROL_BYTE_CONFIG_SINGLE_DATA 0x80
 #define CONTROL_BYTE_CONFIG_MULTI_DATA 0x00
@@ -245,7 +246,9 @@ void sh1106_draw_icon(SH1106Config *config, int x, int y, const unsigned char *i
 // I2C INTERACTION
 //
 
-void sh1106_send_byte(SH1106Config *config, uint8_t data) {
+int sh1106_send_byte(SH1106Config *config, uint8_t data) {
+    static bool has_shown_error = false;
+
     i2c_cmd_handle_t command = i2c_cmd_link_create();
     i2c_master_start(command);
     i2c_master_write_byte(command, (config->address << 1) | I2C_MASTER_WRITE, true);
@@ -253,14 +256,23 @@ void sh1106_send_byte(SH1106Config *config, uint8_t data) {
     i2c_master_write_byte(command, data, true);
     i2c_master_stop(command);
 
-    if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
-        printf("[sh1106] I2C byte transmission failed\n");
-    }
+    esp_err_t result = i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(command);
+    if (result != ESP_OK) {
+        if (!has_shown_error) {
+            printf("[sh1106] I2C byte transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
+            has_shown_error = true;
+        }
+        if (result == ESP_ERR_TIMEOUT) return RESULT_DISCONNECTED;
+        return RESULT_FAILED;
+    }
+
+    has_shown_error = false;
+    return RESULT_OK;
 }
 
 void sh1106_display(SH1106Config *config) {
-    sh1106_send_byte(config, SH1106_CONFIG_SET_START_LINE | 0x00);
+    if (sh1106_send_byte(config, SH1106_CONFIG_SET_START_LINE | 0x00) != RESULT_OK) return;
 
     for (int row = 0; row < (config->height >> 3); row++) {
         i2c_cmd_handle_t command = i2c_cmd_link_create();
@@ -293,7 +305,7 @@ void sh1106_display(SH1106Config *config) {
     }
 }
 
-void sh1106_init(SH1106Config *config) {
+int sh1106_init(SH1106Config *config) {
     printf("[sh1106] Initializing...\n");
 
     config->buffer = malloc(config->height * sizeof(uint8_t *));
@@ -335,14 +347,18 @@ void sh1106_init(SH1106Config *config) {
     i2c_master_write_byte(command, SH1106_CONFIG_SET_DISPLAY_RESUME, true);
 
     i2c_master_stop(command);
-    if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
-        printf("[sh1106] I2C init transmission failed\n");
-    }
+    esp_err_t result = i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(command);
+    if (result != ESP_OK) {
+        printf("[sh1106] I2C init transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
+        if (result == ESP_ERR_TIMEOUT) return RESULT_DISCONNECTED;
+        return RESULT_FAILED;
+    }
 
     sh1106_clear(config);
     sh1106_display(config);
     sh1106_send_byte(config, SH1106_CONFIG_SET_DISPLAY_ON);
 
     printf("[sh1106] Init done\n");
+    return RESULT_OK;
 }

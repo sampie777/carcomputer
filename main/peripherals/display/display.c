@@ -13,6 +13,7 @@
 #include "../../version.h"
 #include "../../error_codes.h"
 #include "display_screens.h"
+#include "../../return_codes.h"
 
 SH1106Config sh1106_config = {
     .address = DISPLAY_I2C_ADDRESS,
@@ -23,7 +24,9 @@ SH1106Config sh1106_config = {
 
 void display_init() {
     printf("[Display] Initializing display...\n");
-    sh1106_init(&sh1106_config);
+    if (sh1106_init(&sh1106_config) != RESULT_OK) {
+        printf("[Display] Init failed\n");
+    }
     printf("[Display] Init done\n");
 }
 
