@@ -40,7 +40,14 @@ void cruise_control_apply_pid(State *state) {
     // Calculate PID
     double error = state->cruise_control.target_speed - state->car.speed;
     // Prevent car from accelerating too fast
-    if (state->car.acceleration > CRUISE_CONTROL_MAX_ACCELERATION_MS2) error = 0;
+    if (state->car.acceleration > CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND) {
+        double percentage = 1.0 - max(0.0, min(1.0,
+                                               (state->car.acceleration -
+                                                   CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND)
+                                                   / (CRUISE_CONTROL_MAX_ACCELERATION_MS2_UPPER_BOUND -
+                                                   CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND)));
+        error *= percentage;
+    }
 
     double integral = previous_integral + error * (double) iteration_time;
     double derivative = (error - previous_error) / (double) iteration_time;
