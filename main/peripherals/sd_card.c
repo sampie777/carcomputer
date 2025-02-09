@@ -124,7 +124,7 @@ void sd_card_create_directory(const char *directory, char *created_directory) {
 }
 
 void sd_card_delete_file(const char *file_name) {
-    printf("[SD] Deleting file %s\n", file_name);
+//    printf("[SD] Deleting file %s\n", file_name);
     char path[SD_PATH_MAX_LENGTH * 2];
     snprintf(path, sizeof path, "%s/%s", MOUNT_POINT, file_name);
 

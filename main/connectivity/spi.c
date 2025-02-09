@@ -22,7 +22,7 @@ int spi_init(State *state) {
     int error = spi_bus_initialize(SPI_DEFAULT_HOST, &config, SPI_DMA_CH_AUTO);
 
     if (error != ESP_OK) {
-        printf("Return code for spi_bus_initialize: %d\n", error);
+        printf("Return code for spi_bus_initialize: 0x%03x %s\n", error, esp_err_to_name(error));
         set_error(state, ERROR_SPI_FAILED);
         return RESULT_FAILED;
     }
@@ -39,7 +39,7 @@ int spi_register_device(spi_device_handle_t *handle, int cs_pin) {
     int error = spi_bus_add_device(SPI_DEFAULT_HOST, &device_config, handle);
 
     if (error != ESP_OK) {
-        printf("Return code for spi_bus_add_device: %d\n", error);
+        printf("Return code for spi_bus_add_device: 0x%03x %s\n", error, esp_err_to_name(error));
         return RESULT_FAILED;
     }
     return RESULT_OK;

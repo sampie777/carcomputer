@@ -18,7 +18,7 @@ typedef struct {
     uint8_t data[8];
 } CanMessage;
 
-void canbus_init(State *state);
+void canbus_init();
 void canbus_check_messages(State *state);
 void canbus_check_controller_connection(State *state);
 int canbus_send(const CanMessage *message);

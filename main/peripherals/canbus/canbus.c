@@ -145,11 +145,11 @@ int canbus_send(const CanMessage *message) {
     return mcp2515_send_message(message);
 }
 
-void canbus_init(State *state) {
+void canbus_init() {
     printf("[CAN] Initializing CAN bus...\n");
 
     gpio_set_direction(CANBUS_INTERRUPT_PIN, GPIO_MODE_INPUT);
-    mcp2515_init(false);
+    if (mcp2515_init(false) != RESULT_OK) return;
 
     printf("[CAN] Init done\n");
 }
@@ -163,7 +163,7 @@ void canbus_check_controller_connection(State *state) {
     state->car.is_controller_connected = (config3 >> 3) == 0x10; // Check certain bits we know will be constant
 
     if (state->car.is_controller_connected) return;
-    canbus_init(state);
+    canbus_init();
 }
 
 int canbus_send_lock_doors(const State *state, bool lock_doors) {

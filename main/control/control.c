@@ -16,7 +16,9 @@
 
 void control_read_can_bus(State *state) {
     canbus_check_controller_connection(state);
-    canbus_check_messages(state);
+    if (state->car.is_controller_connected) {
+        canbus_check_messages(state);
+    }
 
     if (esp_timer_get_time_ms() < state->car.last_can_message_time + CAR_CAN_MAX_MESSAGE_RECEIVE_TIMEOUT) {
         state->car.is_connected = true;
@@ -53,10 +55,10 @@ void control_init(State *state) {
     gpio_set_direction(CAR_ENGINE_SHUTOFF_DISABLE_PIN, GPIO_MODE_OUTPUT);
     gpio_set_direction(CAR_CLAXON_PIN, GPIO_MODE_OUTPUT);
 
-    canbus_init(state);
+    canbus_init();
     gas_pedal_init(state, 0);
     buttons_init();
-    mpu9250_init();
+    mpu9250_init(state);
 }
 
 CarGearPosition estimate_car_gear(CarState *car) {

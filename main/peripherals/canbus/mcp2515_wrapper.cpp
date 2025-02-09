@@ -15,12 +15,19 @@
 static MCP2515 *mcp2515;
 
 int mcp2515_init(bool listen_only) {
+    static bool was_disconnected = false;
     static spi_device_handle_t spi_handle;
     spi_register_device(&spi_handle, CANBUS_CHIP_SELECT_PIN);
 
     mcp2515 = new MCP2515(&spi_handle);
-    if (mcp2515->reset() != MCP2515::ERROR_OK)
-        printf("[mcp2515] Failed to reset\n");
+    if (mcp2515->reset() != MCP2515::ERROR_OK) {
+        // Reduce logging
+        if (!was_disconnected) {
+            printf("[mcp2515] Failed to reset\n");
+            was_disconnected = true;
+        }
+        return RESULT_DISCONNECTED;
+    }
     if (mcp2515->setBitrate(CAN_500KBPS, MCP_8MHZ) != MCP2515::ERROR_OK)
         printf("[mcp2515] Failed to set bitrate\n");
 

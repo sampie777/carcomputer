@@ -6,6 +6,7 @@
 #include "mpu9250.h"
 #include "../config.h"
 #include "../utils.h"
+#include "../return_codes.h"
 
 
 #define MPU9250_REGISTER_SELF_TEST_X_GYRO 0x00
@@ -81,7 +82,7 @@
 #define AK8963_REGISTER_ASAY 0x11
 #define AK8963_REGISTER_ASAZ 0x12
 
-void request_register(uint8_t address, uint8_t reg) {
+int request_register(uint8_t address, uint8_t reg) {
     i2c_cmd_handle_t command = i2c_cmd_link_create();
     i2c_master_start(command);
     i2c_master_write_byte(command, (address << 1) | I2C_MASTER_WRITE, true);
@@ -90,12 +91,16 @@ void request_register(uint8_t address, uint8_t reg) {
 
     esp_err_t result = i2c_master_cmd_begin(MAIN_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
     if (result != ESP_OK) {
-        printf("[mpu9250] I2C request register transmission failed: 0x%03x\n", result);
+        printf("[mpu9250] I2C request register transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
+
+        if (result == ESP_ERR_TIMEOUT) return RESULT_DISCONNECTED;
+        return RESULT_FAILED;
     }
     i2c_cmd_link_delete(command);
+    return RESULT_OK;
 }
 
-void mpu9250_set_register(uint8_t reg, uint8_t data) {
+int mpu9250_set_register(uint8_t reg, uint8_t data) {
     i2c_cmd_handle_t command = i2c_cmd_link_create();
     i2c_master_start(command);
     i2c_master_write_byte(command, (MOTION_SENSOR_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
@@ -104,29 +109,33 @@ void mpu9250_set_register(uint8_t reg, uint8_t data) {
     i2c_master_stop(command);
 
     esp_err_t result = i2c_master_cmd_begin(MAIN_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
-    if (result != ESP_OK) {
-        printf("[mpu9250] I2C set register transmission failed: 0x%03x\n", result);
-    }
     i2c_cmd_link_delete(command);
+
+    if (result != ESP_OK) {
+        printf("[mpu9250] I2C set register transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
+        if (result == ESP_ERR_TIMEOUT) return RESULT_DISCONNECTED;
+        return RESULT_FAILED;
+    }
+    return RESULT_OK;
 }
 
 int mpu9250_get_whois() {
-    request_register(MOTION_SENSOR_I2C_ADDRESS, MPU9250_REGISTER_WHO_AM_I);
+    if (request_register(MOTION_SENSOR_I2C_ADDRESS, MPU9250_REGISTER_WHO_AM_I) != RESULT_OK) return -1;
 
     uint8_t data = 0;
     i2c_cmd_handle_t command = i2c_cmd_link_create();
     i2c_master_start(command);
     i2c_master_write_byte(command, (MOTION_SENSOR_I2C_ADDRESS << 1) | I2C_MASTER_READ, true);
     i2c_master_read_byte(command, &data, I2C_MASTER_NACK);
-
     i2c_master_stop(command);
+
     esp_err_t result = i2c_master_cmd_begin(MAIN_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
-    if (result != ESP_OK) {
-        printf("[mpu9250] I2C whois init transmission failed: 0x%03x\n", result);
-        data = -1;
-    }
     i2c_cmd_link_delete(command);
 
+    if (result != ESP_OK) {
+        printf("[mpu9250] I2C whois init transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
+        return -1;
+    }
     return data;
 }
 
@@ -145,10 +154,12 @@ void mpu9250_read_motion(State *state) {
 
     i2c_master_stop(command);
     esp_err_t result = i2c_master_cmd_begin(MAIN_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
-    if (result != ESP_OK) {
-        printf("[mpu9250] I2C motion read transmission failed: 0x%03x\n", result);
-    }
     i2c_cmd_link_delete(command);
+
+    if (result != ESP_OK) {
+        printf("[mpu9250] I2C motion read transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
+        return;
+    }
 
     state->motion.accel_x = (int16_t) ((accel_data[0] << 8) | accel_data[1]) / 32768.0 * 4;
     state->motion.accel_y = (int16_t) ((accel_data[2] << 8) | accel_data[3]) / 32768.0 * 4;
@@ -179,10 +190,12 @@ void mpu9250_read_compass(State *state) {
 
     i2c_master_stop(command);
     esp_err_t result = i2c_master_cmd_begin(MAIN_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
-    if (result != ESP_OK) {
-        printf("[mpu9250] I2C compass read transmission failed: 0x%03x\n", result);
-    }
     i2c_cmd_link_delete(command);
+
+    if (result != ESP_OK) {
+        printf("[mpu9250] I2C compass read transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
+        return;
+    }
 
     // Check for Magnetic sensor overflow: data is not correct
     if (status2 & 0x08) {
@@ -200,6 +213,8 @@ void mpu9250_read_compass(State *state) {
 
 void mpu9250_read(State *state) {
     static int64_t last_read_time = 0;
+    if (!state->motion.connected) return;
+
     if (esp_timer_get_time_ms() < last_read_time + MOTION_SENSOR_READ_INTERVAL_MS) {
         return;
     }
@@ -215,7 +230,7 @@ void mpu9250_read(State *state) {
     mpu9250_read_compass(state);
 }
 
-void mpu9250_init_compass() {
+int mpu9250_init_compass() {
     i2c_cmd_handle_t command = i2c_cmd_link_create();
     i2c_master_start(command);
     i2c_master_write_byte(command, (COMPASS_SENSOR_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
@@ -225,39 +240,51 @@ void mpu9250_init_compass() {
 
     i2c_master_stop(command);
     esp_err_t result = i2c_master_cmd_begin(MAIN_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
-    if (result != ESP_OK) {
-        printf("[mpu9250] I2C compass init transmission failed: 0x%03x\n", result);
-    }
     i2c_cmd_link_delete(command);
+
+    if (result != ESP_OK) {
+        printf("[mpu9250] I2C compass init transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
+        return RESULT_FAILED;
+    }
+    return RESULT_OK;
 }
 
-void mpu9250_init_motion() {
-    mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x80);    // Reset chip
+int mpu9250_init_motion() {
+    // Reset chip
+    if(mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x80) != RESULT_OK) return RESULT_FAILED;
+
+    int result = RESULT_OK;
     delay_ms(100);
-    mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x00);    // Wake-up chip
+    result |= mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x00);    // Wake-up chip
     delay_ms(50);
-    mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x01);    // Auto select clock
+    result |= mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x01);    // Auto select clock
     delay_ms(50);
 
-    mpu9250_set_register(MPU9250_REGISTER_CONFIG, 0x03);            // Set bandwidth of gyro and temp to 41/42 Hz
-    mpu9250_set_register(MPU9250_REGISTER_SMPLRT_DIV, 4);           // Set sample rate to 200 Hz
-    mpu9250_set_register(MPU9250_REGISTER_GYRO_CONFIG, 0x01 << 3);  // Set sensitivity to +/-500 dps
-    mpu9250_set_register(MPU9250_REGISTER_XG_OFFSET_H, ((int16_t) (GYRO_X_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
-    mpu9250_set_register(MPU9250_REGISTER_XG_OFFSET_L, ((int16_t) (GYRO_X_OFFSET * 32768 / 500.0 / -2.0)));
-    mpu9250_set_register(MPU9250_REGISTER_YG_OFFSET_H, ((int16_t) (GYRO_Y_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
-    mpu9250_set_register(MPU9250_REGISTER_YG_OFFSET_L, ((int16_t) (GYRO_Y_OFFSET * 32768 / 500.0 / -2.0)));
-    mpu9250_set_register(MPU9250_REGISTER_ZG_OFFSET_H, ((int16_t) (GYRO_Z_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
-    mpu9250_set_register(MPU9250_REGISTER_ZG_OFFSET_L, ((int16_t) (GYRO_Z_OFFSET * 32768 / 500.0 / -2.0)));
-    mpu9250_set_register(MPU9250_REGISTER_ACCEL_CONFIG, 0x01 << 3); // Set sensitivity to +/- 4g
-    mpu9250_set_register(MPU9250_REGISTER_ACCEL_CONFIG2, 0x01);     // Set bandwidth to 184 Hz
-    mpu9250_set_register(MPU9250_REGISTER_INT_PIN_CFG, 0x02);       // Enable master/slave bypass
+    result |= mpu9250_set_register(MPU9250_REGISTER_CONFIG, 0x03);            // Set bandwidth of gyro and temp to 41/42 Hz
+    result |= mpu9250_set_register(MPU9250_REGISTER_SMPLRT_DIV, 4);           // Set sample rate to 200 Hz
+    result |= mpu9250_set_register(MPU9250_REGISTER_GYRO_CONFIG, 0x01 << 3);  // Set sensitivity to +/-500 dps
+    result |= mpu9250_set_register(MPU9250_REGISTER_XG_OFFSET_H, ((int16_t) (GYRO_X_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
+    result |= mpu9250_set_register(MPU9250_REGISTER_XG_OFFSET_L, ((int16_t) (GYRO_X_OFFSET * 32768 / 500.0 / -2.0)));
+    result |= mpu9250_set_register(MPU9250_REGISTER_YG_OFFSET_H, ((int16_t) (GYRO_Y_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
+    result |= mpu9250_set_register(MPU9250_REGISTER_YG_OFFSET_L, ((int16_t) (GYRO_Y_OFFSET * 32768 / 500.0 / -2.0)));
+    result |= mpu9250_set_register(MPU9250_REGISTER_ZG_OFFSET_H, ((int16_t) (GYRO_Z_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
+    result |= mpu9250_set_register(MPU9250_REGISTER_ZG_OFFSET_L, ((int16_t) (GYRO_Z_OFFSET * 32768 / 500.0 / -2.0)));
+    result |= mpu9250_set_register(MPU9250_REGISTER_ACCEL_CONFIG, 0x01 << 3); // Set sensitivity to +/- 4g
+    result |= mpu9250_set_register(MPU9250_REGISTER_ACCEL_CONFIG2, 0x01);     // Set bandwidth to 184 Hz
+    result |= mpu9250_set_register(MPU9250_REGISTER_INT_PIN_CFG, 0x02);       // Enable master/slave bypass
+
+    return result;
 }
 
-void mpu9250_init() {
+void mpu9250_init(State *state) {
     printf("[mpu9250] Initializing...\n");
 
-    mpu9250_init_motion();
-    mpu9250_init_compass();
+    if(mpu9250_init_motion() != RESULT_OK || mpu9250_init_compass() != RESULT_OK) {
+        printf("[mpu9250] Failed to initialize motion\n");
+        state->motion.connected = false;
+        return;
+    }
+    state->motion.connected = true;
 
     delay_ms(50);
     printf("[mpu9250] Init done\n");
