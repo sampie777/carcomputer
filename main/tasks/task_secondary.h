@@ -5,6 +5,6 @@
 #ifndef TASK_SECONDARY_H
 #define TASK_SECONDARY_H
 
-void task_secondary(void* args);
+void task_secondary(void *args);
 
 #endif //TASK_SECONDARY_H

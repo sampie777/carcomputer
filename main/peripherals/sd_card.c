@@ -10,17 +10,17 @@
 #include <sys/unistd.h>
 #include "sd_card.h"
 #include <sys/dirent.h>
-#include "../config.h"
 #include "../return_codes.h"
 #include "../utils.h"
 
 #define SD_DIRECTORY_MAX_LENGTH (32)
 #define MOUNT_POINT "/sdcard"
-static const char* TAG = "SD";
+static const char *TAG = "SD";
 const char mount_point[] = MOUNT_POINT;
 
 sdmmc_host_t host = SDSPI_HOST_DEFAULT();
-sdmmc_card_t* card;
+sdmmc_card_t *card;
+FILE *file = NULL;
 
 /*
 void sd_card_test() {
@@ -77,7 +77,25 @@ void sd_card_test() {
 }
 */
 
-void sd_card_create_directory(const char* directory, char* created_directory) {
+int sd_card_open_file(const char *file_name) {
+    char path[SD_PATH_MAX_LENGTH * 2];
+    sprintf(path, "%s/%s", MOUNT_POINT, file_name);
+
+    if (file == NULL) file = fopen(path, "a");
+    if (file == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for writing: %s", path);
+        return RESULT_FAILED;
+    }
+    return RESULT_OK;
+}
+
+void sd_card_close_file() {
+    if (file == NULL) return;
+    fclose(file);
+    file = NULL;
+}
+
+void sd_card_create_directory(const char *directory, char *created_directory) {
     char path[SD_PATH_MAX_LENGTH * 2];
     char directory_safe_name[SD_DIRECTORY_MAX_LENGTH];
     directory_safe_name[min(SD_DIRECTORY_MAX_LENGTH - 1, strlen(directory))] = '\0';
@@ -105,7 +123,7 @@ void sd_card_create_directory(const char* directory, char* created_directory) {
     strcpy(created_directory, directory_safe_name);
 }
 
-void sd_card_delete_file(const char* file_name) {
+void sd_card_delete_file(const char *file_name) {
     printf("[SD] Deleting file %s\n", file_name);
     char path[SD_PATH_MAX_LENGTH * 2];
     snprintf(path, sizeof path, "%s/%s", MOUNT_POINT, file_name);
@@ -113,11 +131,13 @@ void sd_card_delete_file(const char* file_name) {
     struct stat st;
     if (stat(path, &st) != 0) return;
 
+    sd_card_close_file();
+
     // Delete it if it exists
     unlink(path);
 }
 
-int sd_card_rename_file(char* file_name, const char* new_file_name) {
+int sd_card_rename_file(char *file_name, const char *new_file_name) {
     char old_path[SD_PATH_MAX_LENGTH * 2];
     char new_path[SD_PATH_MAX_LENGTH * 2];
     snprintf(old_path, sizeof old_path, "%s/%s", MOUNT_POINT, file_name);
@@ -132,28 +152,40 @@ int sd_card_rename_file(char* file_name, const char* new_file_name) {
     return RESULT_OK;
 }
 
-int sd_card_file_append(const char* file_name, const char* line) {
+/**
+ * Flush the file and periodically close it to prevent data loss
+ */
+void sd_card_flush_file() {
+    static int64_t last_closed_time = 0;
+    if (file == NULL) return;
+
+    fflush(file);
+
+    if (esp_timer_get_time_ms() < last_closed_time + SD_CLOSE_FILE_INTERVAL_MS) return;
+    last_closed_time = esp_timer_get_time_ms();
+    sd_card_close_file();
+}
+
+int sd_card_file_append(const char *file_name, const char *line) {
+    if (sd_card_open_file(file_name) != RESULT_OK) return RESULT_FAILED;
+
     char path[SD_PATH_MAX_LENGTH * 2];
     snprintf(path, sizeof(path), "%s/%s", MOUNT_POINT, file_name);
 
-    FILE* file = fopen(path, "a");
-    if (file == NULL) {
-        ESP_LOGE(TAG, "Failed to open file for writing: %s", path);
-        return RESULT_FAILED;
-    }
     if (fputs(line, file) == EOF) {
         ESP_LOGE(TAG, "Failed to write to file: %s", path);
-        fclose(file);
+        sd_card_close_file();
         return RESULT_FAILED;
+    } else {
+        sd_card_flush_file();
     }
-    fclose(file);
     return RESULT_OK;
 }
 
-int sd_card_does_filename_exists(const char* directory,
-                                 const char* base_file_name,
+int sd_card_does_filename_exists(const char *directory,
+                                 const char *base_file_name,
                                  uint16_t i,
-                                 const char* base_file_extension) {
+                                 const char *base_file_extension) {
     char path[SD_PATH_MAX_LENGTH * 2];
     char new_file_name[SD_PATH_MAX_LENGTH];
     sprintf(new_file_name, "%s/%s-%d.%s", directory, base_file_name, i, base_file_extension);
@@ -169,10 +201,10 @@ int sd_card_does_filename_exists(const char* directory,
   * @param base_file_name
   * @param file_name_out    The new file name will be stored in here (size: PATH_MAX_LENGTH)
   */
-int sd_card_create_file_incremental(const char* directory,
-                                    const char* base_file_name,
-                                    const char* base_file_extension,
-                                    char* file_name_out) {
+int sd_card_create_file_incremental(const char *directory,
+                                    const char *base_file_name,
+                                    const char *base_file_extension,
+                                    char *file_name_out) {
     char created_directory[SD_DIRECTORY_MAX_LENGTH];
     char new_file_name[SD_PATH_MAX_LENGTH];
 
@@ -210,16 +242,9 @@ int sd_card_create_file_incremental(const char* directory,
     return RESULT_OVERFLOW;
 }
 
-void sd_card_deinit(State* state) {
-    // All done, unmount partition and disable SPI peripheral
-    esp_vfs_fat_sdcard_unmount(mount_point, card);
-    ESP_LOGI(TAG, "Card unmounted");
-    state->storage.is_connected = false;
-}
-
-void list_files_on_sd_card(const char* directory) {
-    DIR* dir;
-    struct dirent* entry;
+void list_files_on_sd_card(const char *directory) {
+    DIR *dir;
+    struct dirent *entry;
 
     if ((dir = opendir(directory)) == NULL) {
         perror("opendir() error");
@@ -239,10 +264,10 @@ int sd_card_init() {
     host.slot = SPI_DEFAULT_HOST;
 
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-            .format_if_mount_failed = false,
-            .max_files = 5,
-            .allocation_unit_size = 16 * 1024
-        };
+        .format_if_mount_failed = false,
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024
+    };
 
     sdspi_device_config_t slot = SDSPI_DEVICE_CONFIG_DEFAULT();
     slot.gpio_cs = SD_CHIP_SELECT_PIN;
@@ -254,10 +279,10 @@ int sd_card_init() {
     if (ret != ESP_OK) {
         if (ret == ESP_FAIL) {
             ESP_LOGE(TAG, "Failed to mount filesystem. "
-                     "If you want the card to be formatted, set the EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
+                          "If you want the card to be formatted, set the EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
         } else {
             ESP_LOGE(TAG, "Failed to initialize the card (%s). "
-                     "Make sure SD card lines have pull-up resistors in place.", esp_err_to_name(ret));
+                          "Make sure SD card lines have pull-up resistors in place.", esp_err_to_name(ret));
         }
         return RESULT_FAILED;
     }

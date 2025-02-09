@@ -26,7 +26,6 @@ typedef enum {
 } Button;
 
 Button buttons_get_pressed();
-
 void buttons_init();
 
 #endif //APP_TEMPLATE_BUTTONS_H

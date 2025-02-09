@@ -18,7 +18,7 @@
 /* Speed & brake message */
 #define CAN_ID_SPEED_AND_BRAKE 852
 #define CAN_LENGTH_SPEED_AND_BRAKE 8
-#define CAN_SPEED_CALIBRATION 96.0
+#define CAN_SPEED_CALIBRATION 94.0
 
 /* Door lock message */
 #define CAN_ID_DOOR_LOCKS 856

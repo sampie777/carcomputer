@@ -219,13 +219,13 @@ void update_time(State *state) {
 
     if (state->gsm.time.day < 30) return;
     if ((state->gsm.time.month == 1 ||
-         state->gsm.time.month == 3 ||
-         state->gsm.time.month == 5 ||
-         state->gsm.time.month == 7 ||
-         state->gsm.time.month == 8 ||
-         state->gsm.time.month == 10 ||
-         state->gsm.time.month == 12) && state->gsm.time.day == 30
-            )
+        state->gsm.time.month == 3 ||
+        state->gsm.time.month == 5 ||
+        state->gsm.time.month == 7 ||
+        state->gsm.time.month == 8 ||
+        state->gsm.time.month == 10 ||
+        state->gsm.time.month == 12) && state->gsm.time.day == 30
+        )
         return;
     state->gsm.time.day = 1;
     state->gsm.time.month++;
@@ -287,16 +287,17 @@ void gpsgsm_init(A9GState *a9g_state) {
     a9g_state->initialized = false;
 
     uart_config_t uart_config = {
-            .baud_rate = GPSGSM_UART_BAUD_RATE,
-            .data_bits = UART_DATA_8_BITS,
-            .parity = UART_PARITY_DISABLE,
-            .stop_bits = UART_STOP_BITS_1,
-            .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-            .rx_flow_ctrl_thresh = 122,
+        .baud_rate = GPSGSM_UART_BAUD_RATE,
+        .data_bits = UART_DATA_8_BITS,
+        .parity = UART_PARITY_DISABLE,
+        .stop_bits = UART_STOP_BITS_1,
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .rx_flow_ctrl_thresh = 122,
     };
     // Configure UART parameters
     ESP_ERROR_CHECK(uart_param_config(GPSGSM_UART_NUMBER, &uart_config));
-    ESP_ERROR_CHECK(uart_set_pin(GPSGSM_UART_NUMBER, GPSGSM_UART_TX_PIN, GPSGSM_UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+    ESP_ERROR_CHECK(uart_set_pin(GPSGSM_UART_NUMBER, GPSGSM_UART_TX_PIN, GPSGSM_UART_RX_PIN, UART_PIN_NO_CHANGE,
+                                 UART_PIN_NO_CHANGE));
 
     // Setup UART buffered IO with event queue
     // Install UART driver using an event queue here

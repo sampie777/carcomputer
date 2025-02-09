@@ -8,13 +8,13 @@
 #include "../../utils.h"
 
 
-void draw_check_box(SH1106Config* sh1106, int x, int y, int size, bool checked) {
+void draw_check_box(SH1106Config *sh1106, int x, int y, int size, bool checked) {
     sh1106_draw_rectangle(sh1106, x, y, size, size);
     if (!checked) return;
     sh1106_draw_filled_rectangle(sh1106, x + 2, y + 2, max(0, size - 2 * 2), max(0, size - 2 * 2));
 }
 
-void content_main_menu_option(SH1106Config* sh1106, int y, int height, const char* text, bool highlighted) {
+void content_main_menu_option(SH1106Config *sh1106, int y, int height, const char *text, bool highlighted) {
     if (highlighted) {
         sh1106_draw_filled_rectangle(sh1106, 0, y, sh1106->width, height);
     }
@@ -22,7 +22,7 @@ void content_main_menu_option(SH1106Config* sh1106, int y, int height, const cha
                        highlighted ? FONT_BLACK : FONT_WHITE, text);
 }
 
-char* content_main_menu_get_option_text(MainMenuScreenOptions option_index) {
+char *content_main_menu_get_option_text(MainMenuScreenOptions option_index) {
     switch (option_index) {
         case ScreenMenuOption_CruiseControl:
             return "Cruise control";
@@ -39,12 +39,12 @@ char* content_main_menu_get_option_text(MainMenuScreenOptions option_index) {
     }
 }
 
-void content_main_menu(const State* state, SH1106Config* display) {
+void content_main_menu(const State *state, SH1106Config *display) {
     static int options_start_index = 0;
     const int selection_item_height = 12;
     const int options_total_height = display->height - STATUS_BAR_HEIGHT - 2;
     const int total_displayable_options = options_total_height / selection_item_height;
-    char* buffer = NULL;
+    char *buffer = NULL;
 
     // Move window so it fits the selected option
     if (state->display.menu_option_selection >= options_start_index + total_displayable_options) {
@@ -64,7 +64,7 @@ void content_main_menu(const State* state, SH1106Config* display) {
     }
 }
 
-void content_cruise_control(State* state, SH1106Config* display) {
+void content_cruise_control(State *state, SH1106Config *display) {
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 10;
     char buffer[20];
@@ -76,20 +76,34 @@ void content_cruise_control(State* state, SH1106Config* display) {
         sh1106_draw_string(display, offset_x, offset_y, FONT_LARGE, FONT_WHITE, buffer);
     }
 
-    offset_y += 10 * FONT_LARGE;
+    offset_y += 8 * FONT_LARGE + 2;
     offset_x = 5;
 
     switch (state->car.estimated_gear) {
         case GearNeutral:
-            sprintf(buffer, "Gear: N");
+            sprintf(buffer, "N");
             break;
         case GearReverse:
-            sprintf(buffer, "Gear: R");
+            sprintf(buffer, "R");
             break;
         default:
-            snprintf(buffer, sizeof buffer, "Gear: %d", state->car.estimated_gear);
+            snprintf(buffer, sizeof buffer, "%d", state->car.estimated_gear);
     }
+    sh1106_draw_string(display, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
+
+    // --- Debug stuff
+
+    offset_x += 20;
+    offset_y += 7;
+    sprintf(buffer, "%.1f m/s2", state->car.acceleration);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_y -= 9;
+    double ratio_raw = state->car.rpm == 0 ? 0 : state->car.speed / state->car.rpm_raw * 10000;
+    sprintf(buffer, "%.1f", ratio_raw);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    // --- End of debug stuff
 
     if (!state->cruise_control.enabled) return;
 
@@ -109,7 +123,7 @@ void content_cruise_control(State* state, SH1106Config* display) {
     sh1106_draw_filled_rectangle(display, display->width - 4 + 1, virtual_pedal_value_y, 2, virtual_pedal_value_height);
 }
 
-void content_power_off_count_down(State* state, SH1106Config* display) {
+void content_power_off_count_down(State *state, SH1106Config *display) {
     int length, offset_x, offset_y;
     char buffer[20];
     int margin = 5;
@@ -132,7 +146,7 @@ void content_power_off_count_down(State* state, SH1106Config* display) {
                                   FONT_SMALL, FONT_BLACK, buffer);
 }
 
-void content_motion_sensors_data(const State* state, SH1106Config* display) {
+void content_motion_sensors_data(const State *state, SH1106Config *display) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[20];
@@ -193,7 +207,7 @@ void content_motion_sensors_data(const State* state, SH1106Config* display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
-char* content_actions_get_option_text(ActionsScreenOptions option_index) {
+char *content_actions_get_option_text(ActionsScreenOptions option_index) {
     switch (option_index) {
         case ScreenActionsOptions_LockDoors:
             return "Lock doors";
@@ -206,12 +220,12 @@ char* content_actions_get_option_text(ActionsScreenOptions option_index) {
     }
 }
 
-void content_actions(const State* state, SH1106Config* display) {
+void content_actions(const State *state, SH1106Config *display) {
     static int options_start_index = 0;
     const int selection_item_height = 12;
     const int options_total_height = display->height - STATUS_BAR_HEIGHT - 2;
     const int total_displayable_options = options_total_height / selection_item_height;
-    char* buffer = NULL;
+    char *buffer = NULL;
 
     // Move window so it fits the selected option
     if (state->display.actions_option_selection >= options_start_index + total_displayable_options) {
@@ -231,7 +245,7 @@ void content_actions(const State* state, SH1106Config* display) {
     }
 }
 
-void content_location_data(const State* state, SH1106Config* display) {
+void content_location_data(const State *state, SH1106Config *display) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[32];
@@ -285,7 +299,7 @@ void content_location_data(const State* state, SH1106Config* display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
-void content_error_codes(const State* state, SH1106Config* display) {
+void content_error_codes(const State *state, SH1106Config *display) {
     int offset_y = STATUS_BAR_HEIGHT + 5;
 
     offset_y += 10;
@@ -344,7 +358,7 @@ void content_error_codes(const State* state, SH1106Config* display) {
     sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Do NOT start the car!");
 }
 
-void content_about(const State* state, SH1106Config* display) {
+void content_about(const State *state, SH1106Config *display) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[64];
@@ -376,4 +390,57 @@ void content_about(const State* state, SH1106Config* display) {
     format_time(esp_timer_get_time_ms(), runtime);
     sprintf(buffer, "Runtime: %s", runtime);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+}
+
+void content_about_cruise_control(const State *state, SH1106Config *display) {
+    int offset_x = 0;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[64];
+
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "Cruise control params");
+    offset_y += 10;
+
+    sprintf(buffer, "Kp: %.6f", state->cruise_control.pidKp);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "Ki:  %.6f", state->cruise_control.pidKi);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "Kd: %.6f", state->cruise_control.pidKd);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 10;
+    sprintf(buffer, "Pedal: %3.0f %%", state->car.gas_pedal * 100);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+}
+
+void content_about_car(const State *state, SH1106Config *display) {
+    int offset_x = 0;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[64];
+
+    sprintf(buffer, "[%c] Brake", state->car.is_braking ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "[%c] Ignition", state->car.is_ignition_on ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "[%c] Blower", state->car.is_blower_on ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "[%c] Driver door locked", state->car.is_drivers_door_locked ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 9;
+    sprintf(buffer, "[%c] Other doors locked", state->car.is_other_doors_locked ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+//    offset_y += 9;
+//    sprintf(buffer, "[%c] Parking brake", state->car.is_parking_brake_on ? 'Y' : ' ');
+//    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_x = 14 * 4;
+    offset_y = STATUS_BAR_HEIGHT + 5;
+    sprintf(buffer, "[%c] Locked", state->car.is_locked ? 'Y' : ' ');
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+//    offset_y += 9;
+//    sprintf(buffer, "[%c] Other doors", state->car.is_other_doors_open ? 'Y' : ' ');
+//    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }

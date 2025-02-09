@@ -15,27 +15,15 @@
 #define ERROR_CODES_4_DEPRESS_PEDAL_FULLY_TIME (10000)
 
 void control_init(State *state);
-
 void control_read_can_bus(State *state);
-
 void control_read_analog_sensors(State *state);
-
 void control_read_user_input(State *state);
-
 void control_door_lock(State *state);
-
 void control_engine_shutoff(State *state);
-
 void control_cruise_control(State *state);
-
-void control_car_gear(State *state);
-
-void control_led_indicator_step(State *state);
-
+void control_process_car(State *state);
 void control_mpu_power(State *state);
-
 void control_crash_detection(State *state);
-
-void control_read_error_codes(State* state);
+void control_read_error_codes(State *state);
 
 #endif //APP_TEMPLATE_CONTROL_H

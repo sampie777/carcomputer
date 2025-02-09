@@ -7,7 +7,7 @@
 
 // Assigned number states error priority
 // Error message is defined in `display::show_error_message`
-#define ERROR_PEDAL_DISCONNECTED 1
+#define ERROR_PEDAL_DISCONNECTED (1)
 #define ERROR_SPI_FAILED (1 << 1)
 #define ERROR_CRASH_NO_ICE (1 << 2)
 #define ERROR_GPS_TIMEOUT (1 << 3)

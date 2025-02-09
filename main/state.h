@@ -7,7 +7,6 @@
 
 #include <esp_http_client.h>
 #include <stdbool.h>
-
 #include "config.h"
 #include "peripherals/gpsgsm/definitions.h"
 
@@ -21,6 +20,8 @@ typedef enum {
     Screen_GPS,
     Screen_ErrorCodes,
     Screen_About,
+    Screen_AboutCruiseControl,
+    Screen_AboutCar,
 } Screen;
 
 // This also determines the order in which the options are shown on the display
@@ -74,6 +75,7 @@ typedef struct {
     bool is_ignition_on;
     bool is_in_reverse;
     double speed;                   // Absolute value in km/h
+    double acceleration;            // Value in m/s2
     double rpm;                     // Absolute value in rpm
     uint16_t rpm_raw;
     int64_t last_can_message_time;
@@ -90,8 +92,8 @@ typedef struct {
     double gas_pedal_0_volts;       // Current value in absolute Volts
     double gas_pedal_1_volts;       // Current value in absolute Volts
 
-    bool is_drivers_door_open;
-    bool is_other_doors_open;
+    bool is_drivers_door_locked;
+    bool is_other_doors_locked;
     bool is_blower_on;
     bool is_locked;
     bool is_parking_brake_on;
@@ -176,7 +178,7 @@ typedef struct {
     int16_t power_off_count_down_sec;
     uint32_t logging_session_id;
     uint32_t errors;
-    char* device_name;
+    char *device_name;
     CarState car;
     CruiseControlState cruise_control;
     DisplayState display;

@@ -42,11 +42,11 @@
 #define SH1106_COL_OFFSET 0x02
 
 
-uint8_t** scale_data(const uint8_t* data, int data_length, int scale, int* scaled_data_cols, int* scaled_data_rows) {
+uint8_t **scale_data(const uint8_t *data, int data_length, int scale, int *scaled_data_cols, int *scaled_data_rows) {
     *scaled_data_rows = scale;
     *scaled_data_cols = scale * data_length;
 
-    uint8_t** scaled_data = malloc(sizeof(uint8_t*) * (*scaled_data_rows));
+    uint8_t **scaled_data = malloc(sizeof(uint8_t *) * (*scaled_data_rows));
     for (int i = 0; i < *scaled_data_rows; i++) {
         scaled_data[i] = malloc(sizeof(uint8_t) * (*scaled_data_cols));
         memset(scaled_data[i], 0, *scaled_data_cols);
@@ -72,13 +72,13 @@ uint8_t** scale_data(const uint8_t* data, int data_length, int scale, int* scale
     return scaled_data;
 }
 
-void sh1106_clear(SH1106Config* config) {
+void sh1106_clear(SH1106Config *config) {
     for (int i = 0; i < config->height; i++) {
         memset(config->buffer[i], 0, config->width);
     }
 }
 
-void sh1106_draw_byte(SH1106Config* config, int x, int y, unsigned char data, FontColor color) {
+void sh1106_draw_byte(SH1106Config *config, int x, int y, unsigned char data, FontColor color) {
     if (x < 0 || x >= config->width) return;
     if (y < -7 || y >= config->height) return;
 
@@ -95,7 +95,7 @@ void sh1106_draw_byte(SH1106Config* config, int x, int y, unsigned char data, Fo
     }
 }
 
-void sh1106_draw_char(SH1106Config* config, int x, int y, FontSize size, FontColor color, char c) {
+void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontColor color, char c) {
     int font_char_index = c * font_width;
 
     if (size == FONT_SMALL) {
@@ -104,7 +104,7 @@ void sh1106_draw_char(SH1106Config* config, int x, int y, FontSize size, FontCol
         }
     } else {
         int scaled_data_cols, scaled_data_rows;
-        uint8_t** scaled_data = scale_data(&font[font_char_index], font_width, size, &scaled_data_cols,
+        uint8_t **scaled_data = scale_data(&font[font_char_index], font_width, size, &scaled_data_cols,
                                            &scaled_data_rows);
 
         for (int row = 0; row < scaled_data_rows; row++) {
@@ -130,7 +130,7 @@ void sh1106_draw_char(SH1106Config* config, int x, int y, FontSize size, FontCol
  * @param text_spacing The minimum extra spacing between the letters (default = 0 as this will result in a 1 pixel gap between each letter)
  * @return the total horizontal pixel length used to draw the string
  */
-int sh1106_draw_string_with_spacing(SH1106Config* config, int x, int y, FontSize size, FontColor color, const char* c,
+int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c,
                                     int text_spacing) {
     int letter_spacing = 0;
     for (int i = 0; i < strlen(c); i++) {
@@ -163,18 +163,18 @@ int sh1106_draw_string_with_spacing(SH1106Config* config, int x, int y, FontSize
  * @param c
  * @return the total horizontal pixel length used to draw the string
  */
-int sh1106_draw_string(SH1106Config* config, int x, int y, FontSize size, FontColor color, const char* c) {
+int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c) {
     return sh1106_draw_string_with_spacing(config, x, y, size, color, c, 0);
 }
 
-int sh1106_draw_string_centered_x(SH1106Config* config, int y, FontSize size, FontColor color,
-                                             const char* c) {
+int sh1106_draw_string_centered_x(SH1106Config *config, int y, FontSize size, FontColor color,
+                                  const char *c) {
     int length = (int) strlen(c);
     int x = (int) round((config->width - (length + 1) * 5 * size) / 2.0);
     return sh1106_draw_string(config, x, y, size, color, c);
 }
 
-void sh1106_draw_horizontal_line(SH1106Config* config, int x, int y, int length) {
+void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length) {
     if (length <= 0 || y < 0 || y >= config->height) {
         return;
     }
@@ -192,7 +192,7 @@ void sh1106_draw_horizontal_line(SH1106Config* config, int x, int y, int length)
     }
 }
 
-void sh1106_draw_vertical_line(SH1106Config* config, int x, int y, int length) {
+void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length) {
     if (length <= 0 || x < 0 || x >= config->width) {
         return;
     }
@@ -217,7 +217,7 @@ void sh1106_draw_vertical_line(SH1106Config* config, int x, int y, int length) {
     }
 }
 
-void sh1106_draw_rectangle(SH1106Config* config, int x, int y, int width, int height) {
+void sh1106_draw_rectangle(SH1106Config *config, int x, int y, int width, int height) {
     if (width <= 0 || height <= 0) return;
     sh1106_draw_vertical_line(config, x, y, height);
     sh1106_draw_vertical_line(config, x + width - 1, y, height);
@@ -225,14 +225,14 @@ void sh1106_draw_rectangle(SH1106Config* config, int x, int y, int width, int he
     sh1106_draw_horizontal_line(config, x, y + height - 1, width);
 }
 
-void sh1106_draw_filled_rectangle(SH1106Config* config, int x, int y, int width, int height) {
+void sh1106_draw_filled_rectangle(SH1106Config *config, int x, int y, int width, int height) {
     if (width <= 0 || height <= 0) return;
     for (int i = 0; i < width; i++) {
         sh1106_draw_vertical_line(config, x + i, y, height);
     }
 }
 
-void sh1106_draw_icon(SH1106Config* config, int x, int y, const unsigned char* icon, size_t icon_size, int icon_width,
+void sh1106_draw_icon(SH1106Config *config, int x, int y, const unsigned char *icon, size_t icon_size, int icon_width,
                       FontColor color) {
     for (int i = 0; i < icon_size; i++) {
         int col = x + (i % icon_width);
@@ -245,7 +245,7 @@ void sh1106_draw_icon(SH1106Config* config, int x, int y, const unsigned char* i
 // I2C INTERACTION
 //
 
-void sh1106_send_byte(SH1106Config* config, uint8_t data) {
+void sh1106_send_byte(SH1106Config *config, uint8_t data) {
     i2c_cmd_handle_t command = i2c_cmd_link_create();
     i2c_master_start(command);
     i2c_master_write_byte(command, (config->address << 1) | I2C_MASTER_WRITE, true);
@@ -259,7 +259,7 @@ void sh1106_send_byte(SH1106Config* config, uint8_t data) {
     i2c_cmd_link_delete(command);
 }
 
-void sh1106_display(SH1106Config* config) {
+void sh1106_display(SH1106Config *config) {
     sh1106_send_byte(config, SH1106_CONFIG_SET_START_LINE | 0x00);
 
     for (int row = 0; row < (config->height >> 3); row++) {
@@ -293,10 +293,10 @@ void sh1106_display(SH1106Config* config) {
     }
 }
 
-void sh1106_init(SH1106Config* config) {
+void sh1106_init(SH1106Config *config) {
     printf("[sh1106] Initializing...\n");
 
-    config->buffer = malloc(config->height * sizeof(uint8_t*));
+    config->buffer = malloc(config->height * sizeof(uint8_t *));
     for (int i = 0; i < config->height; i++) {
         config->buffer[i] = malloc(config->width * sizeof(uint8_t));
     }

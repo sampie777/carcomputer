@@ -13,7 +13,6 @@ extern "C" {
 #include "../state.h"
 
 int spi_init(State *state);
-
 int spi_register_device(spi_device_handle_t *handle, int cs_pin);
 
 #ifdef __cplusplus

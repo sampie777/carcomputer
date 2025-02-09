@@ -7,7 +7,6 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include "utils.h"
-
 #include "error_codes.h"
 
 int64_t esp_timer_get_time_ms() {
@@ -18,7 +17,7 @@ void delay_ms(unsigned long ms) {
     vTaskDelay(pdMS_TO_TICKS(ms));
 }
 
-void utils_reboot(State* state) {
+void utils_reboot(State *state) {
     state->is_rebooting = true;
 }
 
@@ -29,26 +28,25 @@ double average_read_channel(adc1_channel_t channel, int sample_count) {
         total += adc1_get_raw(channel);
 
         // Add a bit of delay (10 clock cycles) to get a new sample
-        for (volatile int i = 0; i < 10; i++) {
-        }
+        for (volatile int j = 0; j < 10; j++) {}
     }
     return total / sample_count;
 }
 
-uint8_t starts_with(const char* source, const char* needle) {
+uint8_t starts_with(const char *source, const char *needle) {
     if (strlen(source) < strlen(needle)) return false;
     return strncmp(needle, source, strlen(needle)) == 0;
 }
 
-void string_char_replace(char* source, char needle, char replacement) {
+void string_char_replace(char *source, char needle, char replacement) {
     for (int i = 0; i < strlen(source); i++) {
         if (source[i] != needle) continue;
         source[i] = replacement;
     }
 }
 
-void string_char_remove(char** source, char needle) {
-    char* out = malloc(strlen(*source) + 1);
+void string_char_remove(char **source, char needle) {
+    char *out = malloc(strlen(*source) + 1);
     int out_size = 0;
 
     // Copy over string without needle
@@ -89,7 +87,7 @@ void string_strip_char(char** input, const char needle) {
     }
 }
 
-void string_escape(const char* input, char** destination) {
+void string_escape(const char *input, char **destination) {
     size_t escaped_size = 0;
     size_t input_size = strlen(input);
     *destination = malloc(input_size + 1);
@@ -105,7 +103,7 @@ void string_escape(const char* input, char** destination) {
     (*destination)[input_size + escaped_size] = '\0';
 }
 
-void set_error(State* state, uint32_t error_code) {
+void set_error(State *state, uint32_t error_code) {
     static uint32_t previous_errors = 0;
     state->errors |= error_code;
 
@@ -113,23 +111,32 @@ void set_error(State* state, uint32_t error_code) {
         // Only print this once
         printf("Set error code: ");
         switch (error_code) {
-        case ERROR_PEDAL_DISCONNECTED: printf("ERROR_PEDAL_DISCONNECTED");
-            break;
-        case ERROR_SPI_FAILED: printf("ERROR_SPI_FAILED");
-            break;
-        case ERROR_CRASH_NO_ICE: printf("ERROR_CRASH_NO_ICE");
-            break;
-        case ERROR_GPS_TIMEOUT: printf("ERROR_GPS_TIMEOUT");
-            break;
-        case ERROR_SMS_FAILED: printf("ERROR_SMS_FAILED");
-            break;
-        case ERROR_SD_FULL: printf("ERROR_SD_FULL");
-            break;
-        case ERROR_CRASH_DETECTED: printf("ERROR_CRASH_DETECTED");
-            break;
-        case ERROR_CAR_DISCONNECTED: printf("ERROR_CAR_DISCONNECTED");
-            break;
-        default: printf("unknown");
+            case ERROR_PEDAL_DISCONNECTED:
+                printf("ERROR_PEDAL_DISCONNECTED");
+                break;
+            case ERROR_SPI_FAILED:
+                printf("ERROR_SPI_FAILED");
+                break;
+            case ERROR_CRASH_NO_ICE:
+                printf("ERROR_CRASH_NO_ICE");
+                break;
+            case ERROR_GPS_TIMEOUT:
+                printf("ERROR_GPS_TIMEOUT");
+                break;
+            case ERROR_SMS_FAILED:
+                printf("ERROR_SMS_FAILED");
+                break;
+            case ERROR_SD_FULL:
+                printf("ERROR_SD_FULL");
+                break;
+            case ERROR_CRASH_DETECTED:
+                printf("ERROR_CRASH_DETECTED");
+                break;
+            case ERROR_CAR_DISCONNECTED:
+                printf("ERROR_CAR_DISCONNECTED");
+                break;
+            default:
+                printf("unknown");
         }
         printf("\n");
         previous_errors = state->errors;
@@ -140,13 +147,13 @@ void reset_error(State* state, uint32_t error_code) {
     state->errors &= ~error_code;
 }
 
-void invert_array(const uint8_t* array, uint8_t* output_array, int length) {
+void invert_array(const uint8_t *array, uint8_t *output_array, int length) {
     for (int i = 0; i < length; i++) {
         output_array[i] = array[length - i - 1];
     }
 }
 
-void convert_to_base_26(uint32_t input, char* output, size_t max_length) {
+void convert_to_base_26(uint32_t input, char *output, size_t max_length) {
     memset(output, '\0', max_length);
 
     uint32_t temp = input;
@@ -156,7 +163,7 @@ void convert_to_base_26(uint32_t input, char* output, size_t max_length) {
         uint32_t digit_value = temp % 26;
         temp = temp / 26;
         // Start char at ascii A
-        output[i++] = (char)(digit_value + 65);
+        output[i++] = (char) (digit_value + 65);
     }
 }
 
@@ -165,7 +172,7 @@ double scale(double value, double min, double max) {
     return min + difference * value;
 }
 
-void debug_state(const State* state) {
+void debug_state(const State *state) {
     printf("State:\n");
 
     printf("\tis_booting: %c\n", state->is_booting ? 'y' : 'n');
@@ -195,8 +202,8 @@ void debug_state(const State* state) {
     printf("\t\tgas_pedal: %lf\n", state->car.gas_pedal);
     printf("\t\tgas_pedal_0_volts: %lf\n", state->car.gas_pedal_0_volts);
     printf("\t\tgas_pedal_1_volts: %lf\n", state->car.gas_pedal_1_volts);
-    printf("\t\tis_drivers_door_open: %c\n", state->car.is_drivers_door_open ? 'y' : 'n');
-    printf("\t\tis_other_doors_open: %c\n", state->car.is_other_doors_open ? 'y' : 'n');
+    printf("\t\tis_drivers_door_locked: %c\n", state->car.is_drivers_door_locked ? 'y' : 'n');
+    printf("\t\tis_other_doors_locked: %c\n", state->car.is_other_doors_locked ? 'y' : 'n');
     printf("\t\tis_blower_on: %c\n", state->car.is_blower_on ? 'y' : 'n');
     printf("\t\tis_locked: %c\n", state->car.is_locked ? 'y' : 'n');
 
@@ -215,7 +222,7 @@ void wdt_feed(int max_timeout_ms) {
     static int64_t last_fed_core0 = 0;
     static int64_t last_fed_core1 = 0;
 
-    int64_t* last_fed = xPortGetCoreID() == 0 ? &last_fed_core0 : &last_fed_core1;
+    int64_t *last_fed = xPortGetCoreID() == 0 ? &last_fed_core0 : &last_fed_core1;
 
     // Check time against the max timeout minus a safety margin to not make it absolutely last minute
     if (*last_fed != 0 && esp_timer_get_time_ms() < *last_fed + max(100, max_timeout_ms - 1000)) return;
@@ -223,7 +230,7 @@ void wdt_feed(int max_timeout_ms) {
     vTaskDelay(1);
 }
 
-void format_time(int64_t milliseconds, char* output_string) {
+void format_time(int64_t milliseconds, char *output_string) {
     unsigned long total_seconds = milliseconds / 1000;
     unsigned long hours = total_seconds / 3600;
     uint8_t minutes = (total_seconds - hours * 3600) / 60;

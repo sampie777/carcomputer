@@ -136,7 +136,6 @@ void mpu9250_read_motion(State *state) {
     uint8_t accel_data[6];
     uint8_t temperature_data[2];
     uint8_t gyro_data[6];
-
     i2c_cmd_handle_t command = i2c_cmd_link_create();
     i2c_master_start(command);
     i2c_master_write_byte(command, (MOTION_SENSOR_I2C_ADDRESS << 1) | I2C_MASTER_READ, true);
@@ -159,7 +158,9 @@ void mpu9250_read_motion(State *state) {
     state->motion.gyro_z = (int16_t) ((gyro_data[4] << 8) | gyro_data[5]) / 32768.0 * 500;
 
     state->motion.temperature = (int16_t) ((temperature_data[0] << 8) | temperature_data[1]) * 0.15;
-    state->motion.temperature = ((state->motion.temperature - MOTION_SENSOR_ROOM_TEMPERATURE_OFFSET) / MOTION_SENSOR_TEMPERATURE_SENSITIVITY) + 21.0;
+    state->motion.temperature =
+        ((state->motion.temperature - MOTION_SENSOR_ROOM_TEMPERATURE_OFFSET) / MOTION_SENSOR_TEMPERATURE_SENSITIVITY)
+            + 21.0;
 }
 
 void mpu9250_read_compass(State *state) {

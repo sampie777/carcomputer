@@ -3,15 +3,12 @@
 //
 
 #include "cruise_control.h"
-
-#include <tgmath.h>
-
-#include "../config.h"
+#include <math.h>
 #include "../utils.h"
 #include "../peripherals/gas_pedal.h"
 
 
-void cruise_control_apply_pid(State* state) {
+void cruise_control_apply_pid(State *state) {
     static double previous_error = 0;
     static double previous_integral = 0;
     static int64_t last_iteration_time = 0;
@@ -26,14 +23,10 @@ void cruise_control_apply_pid(State* state) {
         return;
     }
 
-    //    if (!_isSpeedControl) {
-    //        return;
-    //    }
-
     if (esp_timer_get_time_ms() < last_iteration_time + CRUISE_CONTROL_PID_ITERATION_TIME) return;
     int64_t iteration_time = last_iteration_time == 0
-                                 ? CRUISE_CONTROL_PID_ITERATION_TIME
-                                 : esp_timer_get_time_ms() - last_iteration_time;
+                             ? CRUISE_CONTROL_PID_ITERATION_TIME
+                             : esp_timer_get_time_ms() - last_iteration_time;
     last_iteration_time = esp_timer_get_time_ms();
 
     // If pedal is still depressed when cruise control is engaged, just keep using the current pedal value,
@@ -46,6 +39,16 @@ void cruise_control_apply_pid(State* state) {
 
     // Calculate PID
     double error = state->cruise_control.target_speed - state->car.speed;
+    // Prevent car from accelerating too fast
+    if (state->car.acceleration > CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND) {
+        double percentage = 1.0 - max(0.0, min(1.0,
+                                               (state->car.acceleration -
+                                                   CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND)
+                                                   / (CRUISE_CONTROL_MAX_ACCELERATION_MS2_UPPER_BOUND -
+                                                   CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND)));
+        error *= percentage;
+    }
+
     double integral = previous_integral + error * (double) iteration_time;
     double derivative = (error - previous_error) / (double) iteration_time;
     double output = state->cruise_control.initial_control_value
@@ -75,15 +78,9 @@ void cruise_control_apply_pid(State* state) {
     // Apply PID
     state->cruise_control.control_value = output;
     state->cruise_control.virtual_gas_pedal = state->cruise_control.control_value;
-    // printf("  cc: %lf %%; %lf km/h of %lf km/h; %f; %lld ms\n",
-    //        state->cruise_control.control_value,
-    //        state->car.speed,
-    //        state->cruise_control.target_speed,
-    //        error,
-    //        iteration_time);
 }
 
-void cruise_control_safety_checks(State* state, uint8_t car_was_connected) {
+void cruise_control_safety_checks(State *state, uint8_t car_was_connected) {
     static int64_t gear_in_neutral_since_time = -1;
 
     // Safety checks
@@ -128,7 +125,7 @@ void cruise_control_safety_checks(State* state, uint8_t car_was_connected) {
     }
 }
 
-void cruise_control_step(State* state) {
+void cruise_control_step(State *state) {
     static uint8_t cruise_control_was_enabled = false;
     static uint8_t car_was_connected = false;
     static int64_t gas_pedal_enable_time = 0;

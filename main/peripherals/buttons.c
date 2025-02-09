@@ -7,7 +7,9 @@
 #include "../config.h"
 #include "../utils.h"
 
-int read_debounced(adc1_channel_t sensor_pin, uint8_t sample_count, int min_value, unsigned long debounce_cooldown_period, unsigned long min_press_time) {
+int
+read_debounced(adc1_channel_t sensor_pin, uint8_t sample_count, int min_value, unsigned long debounce_cooldown_period,
+               unsigned long min_press_time) {
     static int64_t last_action_time = 0;
 
     // Debounce button using cooldown period
@@ -35,7 +37,8 @@ Button getPressedButton0() {
     static Button previous_button = BUTTON_NONE;
     static int64_t press_start_time = 0;
 
-    int sens = read_debounced(BUTTONS_ADC_CHANNEL_0, BUTTON_AVERAGE_READ_SAMPLES, BUTTON_LOWER_LIMIT, BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS, BUTTON_MIN_PRESS_TIME_MS);
+    int sens = read_debounced(BUTTONS_ADC_CHANNEL_0, BUTTON_AVERAGE_READ_SAMPLES, BUTTON_LOWER_LIMIT,
+                              BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS, BUTTON_MIN_PRESS_TIME_MS);
 
     Button button = BUTTON_NONE;
     if (sens == -1) {
@@ -73,7 +76,8 @@ Button getPressedButton1() {
     static Button previous_button = BUTTON_NONE;
     static int64_t press_start_time = 0;
 
-    int sens = read_debounced(BUTTONS_ADC_CHANNEL_1, BUTTON_AVERAGE_READ_SAMPLES, BUTTON_LOWER_LIMIT, BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS, BUTTON_MIN_PRESS_TIME_MS);
+    int sens = read_debounced(BUTTONS_ADC_CHANNEL_1, BUTTON_AVERAGE_READ_SAMPLES, BUTTON_LOWER_LIMIT,
+                              BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS, BUTTON_MIN_PRESS_TIME_MS);
 
     Button button = BUTTON_NONE;
     if (sens == -1) {

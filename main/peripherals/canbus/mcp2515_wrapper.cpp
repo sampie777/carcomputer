@@ -71,15 +71,20 @@ int mcp2515_read_message(CanMessage *message) {
     if (result != MCP2515::ERROR_OK) {
         printf("CAN readMessage error = ");
         switch (result) {
-            case MCP2515::ERROR_FAIL: printf("ERROR_FAIL");
+            case MCP2515::ERROR_FAIL:
+                printf("ERROR_FAIL");
                 break;
-            case MCP2515::ERROR_ALLTXBUSY: printf("ERROR_ALLTX");
+            case MCP2515::ERROR_ALLTXBUSY:
+                printf("ERROR_ALLTX");
                 break;
-            case MCP2515::ERROR_FAILINIT: printf("ERROR_FAILI");
+            case MCP2515::ERROR_FAILINIT:
+                printf("ERROR_FAILI");
                 break;
-            case MCP2515::ERROR_FAILTX: printf("ERROR_FAILT");
+            case MCP2515::ERROR_FAILTX:
+                printf("ERROR_FAILT");
                 break;
-            default: printf("%i", result);
+            default:
+                printf("%i", result);
         }
         printf("\n");
         return RESULT_FAILED;

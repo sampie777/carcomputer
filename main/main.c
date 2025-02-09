@@ -1,5 +1,4 @@
 #include <driver/adc.h>
-
 #include "freertos/FreeRTOS.h"
 #include "config.h"
 #include "state.h"
@@ -7,8 +6,8 @@
 #include "tasks/task_primary.h"
 #include "tasks/task_secondary.h"
 
-#define PRIMARY_TASK_STACK_SIZE 32000
-#define SECONDARY_TASK_STACK_SIZE 8000
+#define PRIMARY_TASK_STACK_SIZE (32000)
+#define SECONDARY_TASK_STACK_SIZE (8000)
 
 // Setting up the different tasks
 void app_main(void) {
@@ -21,7 +20,7 @@ void app_main(void) {
     state.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
     state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
     state.device_name = "Default";
-    state.location.time.timezone = 2,    // GMT+2
+    state.location.time.timezone = 2;    // GMT+2
 
     xTaskCreatePinnedToCore(
         task_primary,
