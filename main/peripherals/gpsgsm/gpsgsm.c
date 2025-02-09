@@ -15,12 +15,10 @@
 
 #define MESSAGE_MAX_LENGTH 512
 
-static enum SmsState sms_state = Idle;
+//static enum SmsState sms_state = Idle;
 
-static enum A9GCommand last_command_send = A9GCommand_Skip;
-
-static char *http_request_url = NULL;
-static char *http_request_body = NULL;
+//static char *http_request_url = NULL;
+//static char *http_request_body = NULL;
 
 QueueHandle_t uart_queue;
 
@@ -180,7 +178,7 @@ void process_message(State *state, const char *message) {
     }
 
     if (starts_with(stripped_message, "+CMGS=")) {
-        sms_state = SentSuccess;
+//        sms_state = SentSuccess;
     }
 
     if (strstr(stripped_message, "$GNGGA") != NULL) {
@@ -240,7 +238,7 @@ void update_time(State *state) {
 }
 
 void gpsgsm_process(State *state) {
-    static int64_t sms_sent_time = 0;
+//    static int64_t sms_sent_time = 0;
 
     // if (sms_state == Sending) {
     //     if (sms_sent_time == 0) {

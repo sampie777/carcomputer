@@ -47,7 +47,7 @@ void handle_ignition_message(State *state, CanMessage *message) {
 
     // The next bit is only set/available when the ignition is on. Otherwise, it will always be 0.
     if (state->car.is_ignition_on) {
-        state->car.is_seatbelt_on = !(message->data[0] >> CAN_IGNITION_DRIVERS_SEATBELT_BIT) & 1;
+        state->car.is_seatbelt_on = !((message->data[0] >> CAN_IGNITION_DRIVERS_SEATBELT_BIT) & 1);
     }
 
     int value = message->data[4] << 8 | message->data[5];

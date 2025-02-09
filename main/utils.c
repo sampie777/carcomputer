@@ -62,7 +62,7 @@ void string_char_remove(char **source, char needle) {
 }
 
 void string_strip_char(char **input, const char needle) {
-    int length = strlen(*input);
+    int length = (int) strlen(*input);
 
     // Strip all trailing \n character from last_message:
     for (int j = length - 1; j >= 0; j--) {
