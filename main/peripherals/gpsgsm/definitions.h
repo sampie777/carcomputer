@@ -89,4 +89,10 @@ enum A9GCommand {
     A9GCommand_Reset_Software,
 };
 
+enum SimStatus {
+    SIM_UNKNOWN,
+    SIM_NOT_PRESENT,
+    SIM_PRESENT,
+};
+
 #endif //CARCOMPUTER_DEFINITIONS_H

@@ -39,7 +39,7 @@ _Noreturn void task_primary(void *args) {
     while (1) {
         wdt_feed(CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000);
 
-        if (esp_timer_get_time_ms() > last_time + 1000) {
+        if (esp_timer_get_time_ms() > last_time + 10000) {
             last_time = esp_timer_get_time_ms();
 
             debug_print_message_log();

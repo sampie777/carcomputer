@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <driver/uart.h>
 #include "utils.h"
 
 void extract_uint16(char **source, uint16_t *destination, char *delimiter) {
@@ -175,4 +176,29 @@ void a9g_state_reset(A9GState *source) {
     source->gps_logging_enabled = false;
     source->gps_logging_started = false;
     source->network_error_count = 0;
+}
+
+char *uart_type_to_string(uart_event_type_t type) {
+    switch (type) {
+        case UART_DATA:
+            return "UART_DATA";
+        case UART_BREAK:
+            return "UART_BREAK";
+        case UART_BUFFER_FULL:
+            return "UART_BUFFER_FULL";
+        case UART_FIFO_OVF:
+            return "UART_FIFO_OVF";
+        case UART_FRAME_ERR:
+            return "UART_FRAME_ERR";
+        case UART_PARITY_ERR:
+            return "UART_PARITY_ERR";
+        case UART_DATA_BREAK:
+            return "UART_DATA_BREAK";
+        case UART_PATTERN_DET:
+            return "UART_PATTERN_DET";
+        case UART_EVENT_MAX:
+            return "UART_EVENT_MAX";
+        default:
+            return "UNKNOWN";
+    }
 }

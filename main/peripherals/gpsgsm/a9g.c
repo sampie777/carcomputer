@@ -19,23 +19,17 @@
 #define MESSAGE_MAX_LENGTH (A9G_UART_BUFFER_SIZE)
 #define MESSAGE_LOG_MAX_LENGTH 32
 
-enum SimStatus {
-    SIM_UNKNOWN,
-    SIM_NOT_PRESENT,
-    SIM_PRESENT,
-};
-
 char message_log[MESSAGE_LOG_MAX_LENGTH][MESSAGE_MAX_LENGTH];
 int64_t message_log_timestamps[MESSAGE_LOG_MAX_LENGTH];
 int message_log_length = 0;
 
 void debug_print_message_log() {
     if (message_log_length == 0) {
-        printf("[GPS] No messages in log\n");
+        printf("DEBUG [GPS] No messages in log\n");
         return;
     }
     for (int i = 0; i < message_log_length; i++) {
-        printf("[GPS] Log: %d [%lld] '%s' %d\n", i, message_log_timestamps[i], message_log[i], strlen(message_log[i]));
+        printf("DEBUG [GPS] Log: %d [%lld] '%s' %d\n", i, message_log_timestamps[i], message_log[i], strlen(message_log[i]));
     }
 }
 
@@ -101,12 +95,10 @@ void a9g_receive(A9GState *state) {
             uart_read_bytes(GPSGSM_UART_NUMBER, data, event.size, portMAX_DELAY);
             // printf("[uart] Received data: %s with length %d / %d\n", data, event.size, strlen(data));
             break;
+        case UART_BREAK:
+            break;
         default:
-            printf("[uart] *unhandled event: %d\n", event.type);
-            printf("[uart] unhandled event: %d\n", event.type);
-            printf("[uart] unhandled event: %d\n", event.type);
-            printf("[uart] unhandled event: %d\n", event.type);
-            printf("[uart] unhandled event: %d*\n", event.type);
+            printf("[uart] unhandled event: %d %s\n", event.type, uart_type_to_string(event.type));
             return;
     }
 
@@ -306,23 +298,25 @@ bool a9g_check_if_gps_logging_enabled(A9GState *state) {
     return state->gps_logging_enabled;
 }
 
-void a9g_proceed_device_init(A9GState *state) {
+void a9g_proceed_device_init(State *state) {
     if (message_log_length == 0) return;
 
-    if (!a9g_check_if_init_done(state)) {
-        a9g_state_reset(state);
+    if (!a9g_check_if_init_done(&(state->a9g))) {
+        a9g_state_reset(&(state->a9g));
         return;
     }
+
     enum SimStatus sim_status = a9g_check_if_has_sim();
-    if (sim_status == SIM_UNKNOWN) return;
+    state->gsm.has_sim = sim_status == SIM_PRESENT;
 
+    if (sim_status == SIM_UNKNOWN) return;
     if (sim_status == SIM_NOT_PRESENT) {
-        if (!a9g_check_if_gps_enabled(state)) return;
-        if (!a9g_check_if_gps_logging_enabled(state)) return;
+        if (!a9g_check_if_gps_enabled(&(state->a9g))) return;
+        if (!a9g_check_if_gps_logging_enabled(&(state->a9g))) return;
         return;
     }
 
-    if (!a9g_check_if_network_attached(state)) return;
+    if (!a9g_check_if_network_attached(&(state->a9g))) return;
     // if (!a9g_check_if_pnp_parameters_set(state)) return;
     // if (!a9g_check_if_pnp_activated(state)) return;
     // if (!a9g_check_if_agps_enabled(state)) return;
@@ -450,7 +444,7 @@ void a9g_process(State *state) {
     a9g_validate_location_data(state);
     a9g_check_messages_timeout(state);
 
-    a9g_proceed_device_init(&state->a9g);
+    a9g_proceed_device_init(state);
     a9g_process_messages(state);
 }
 

@@ -152,6 +152,7 @@ typedef struct {
     int64_t upload_start_time;
 
     Time time;
+    bool has_sim;
 } GsmState;
 
 typedef enum {

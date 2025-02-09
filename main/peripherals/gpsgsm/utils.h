@@ -25,5 +25,6 @@ void extract_ctzv_message(const char *message, Time *time);
 bool a9g_state_compare(A9GState *a, A9GState *b);
 void a9g_state_clone(A9GState *source, A9GState *destination);
 void a9g_state_reset(A9GState *source);
+char *uart_type_to_string(uart_event_type_t type);
 
 #endif //CARCOMPUTER_UTILS_H
