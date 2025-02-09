@@ -34,8 +34,10 @@ void process_gngga_message(State *state, const char *message) {
         return;
     }
 
-    state->location.latitude = nmea_coordinates_to_degrees(decoded_message.latitude, decoded_message.latitude_direction);
-    state->location.longitude = nmea_coordinates_to_degrees(decoded_message.longitude, decoded_message.longitude_direction);
+    state->location.latitude = nmea_coordinates_to_degrees(decoded_message.latitude,
+                                                           decoded_message.latitude_direction);
+    state->location.longitude = nmea_coordinates_to_degrees(decoded_message.longitude,
+                                                            decoded_message.longitude_direction);
     state->location.altitude = decoded_message.altitude;
     state->location.quality = decoded_message.quality;
     state->location.satellites = decoded_message.satellites;
@@ -56,8 +58,10 @@ void process_gnrmc_message(State *state, const char *message) {
         return;
     }
 
-    state->location.latitude = nmea_coordinates_to_degrees(decoded_message.latitude, decoded_message.latitude_direction);
-    state->location.longitude = nmea_coordinates_to_degrees(decoded_message.longitude, decoded_message.longitude_direction);
+    state->location.latitude = nmea_coordinates_to_degrees(decoded_message.latitude,
+                                                           decoded_message.latitude_direction);
+    state->location.longitude = nmea_coordinates_to_degrees(decoded_message.longitude,
+                                                            decoded_message.longitude_direction);
 
     state->location.is_effective_positioning = decoded_message.status == 'A';
     state->location.ground_speed = decoded_message.ground_speed * 1.852;    // knots -> km/h

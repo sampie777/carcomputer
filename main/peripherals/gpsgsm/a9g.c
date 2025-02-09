@@ -39,7 +39,7 @@ void debug_print_message_log() {
     }
 }
 
-void a9g_log_message(const char* message) {
+void a9g_log_message(const char *message) {
     if (message_log_length >= MESSAGE_LOG_MAX_LENGTH) {
         // Shift all messages one up
         for (int i = 0; i < MESSAGE_LOG_MAX_LENGTH - 1; i++) {
@@ -57,8 +57,8 @@ void a9g_log_message(const char* message) {
     printf("\n");
 }
 
-void a9g_transmit(const char* data, uint8_t with_break) {
-    char* buffer = malloc(strlen(data) + 2);
+void a9g_transmit(const char *data, uint8_t with_break) {
+    char *buffer = malloc(strlen(data) + 2);
     sprintf(buffer, "%s\r", data);
 
     if (with_break) {
@@ -72,15 +72,15 @@ void a9g_transmit(const char* data, uint8_t with_break) {
     free(buffer);
 }
 
-void a9g_reset(State* state) {
+void a9g_reset(State *state) {
     printf("[GPS] Reset A9G chip\n");
     a9g_transmit(A9G_RESET, true);
     state->location.is_gps_on = false;
     a9g_state_reset(&state->a9g);
 }
 
-void a9g_receive(A9GState* state) {
-    static char* last_message = NULL;
+void a9g_receive(A9GState *state) {
+    static char *last_message = NULL;
     static int last_message_index = 0;
 
     // Initialize static pointer
@@ -94,12 +94,12 @@ void a9g_receive(A9GState* state) {
     if (!xQueueReceive(uart_queue, &event, 0)) return;
 
     // Read data from UART
-    char* data = malloc(A9G_UART_BUFFER_SIZE);
+    char *data = malloc(A9G_UART_BUFFER_SIZE);
     switch (event.type) {
         case UART_DATA:
             bzero(data, A9G_UART_BUFFER_SIZE); // Clear buffer
             uart_read_bytes(GPSGSM_UART_NUMBER, data, event.size, portMAX_DELAY);
-        // printf("[uart] Received data: %s with length %d / %d\n", data, event.size, strlen(data));
+            // printf("[uart] Received data: %s with length %d / %d\n", data, event.size, strlen(data));
             break;
         default:
             printf("[uart] *unhandled event: %d\n", event.type);
@@ -152,7 +152,7 @@ void a9g_receive(A9GState* state) {
     free(data);
 }
 
-int message_logs_contains(const char* message, const bool exact_match) {
+int message_logs_contains(const char *message, const bool exact_match) {
     for (int i = message_log_length - 1; i >= 0; i--) {
         if (exact_match && strcmp(message_log[i], message) == 0) {
             return i;
@@ -164,12 +164,12 @@ int message_logs_contains(const char* message, const bool exact_match) {
     return -1;
 }
 
-int message_logs_contains_exact(const char* message) {
+int message_logs_contains_exact(const char *message) {
     return message_logs_contains(message, true);
 }
 
-int message_logs_contains_transmitted(const char* message) {
-    char* buffer = malloc(strlen(message) + 2);
+int message_logs_contains_transmitted(const char *message) {
+    char *buffer = malloc(strlen(message) + 2);
     sprintf(buffer, ">%s", message);
 
     int result = message_logs_contains_exact(buffer);
@@ -178,7 +178,7 @@ int message_logs_contains_transmitted(const char* message) {
     return result;
 }
 
-bool a9g_check_if_init_done(A9GState* state) {
+bool a9g_check_if_init_done(A9GState *state) {
     if (state->initialized) return true;
 
     // Check if Init message is found in the messages logs
@@ -197,7 +197,7 @@ bool a9g_check_if_init_done(A9GState* state) {
  * @param command
  * @return Returns true if command had to be sent, false if it was already sent
  */
-bool send_command_if_not_already_sent(const char* command) {
+bool send_command_if_not_already_sent(const char *command) {
     // Check if we need to send the command
     int command_sent_index = message_logs_contains_transmitted(command);
 
@@ -209,7 +209,7 @@ bool send_command_if_not_already_sent(const char* command) {
     return false;
 }
 
-bool a9g_send_and_wait_for_command(const char* command) {
+bool a9g_send_and_wait_for_command(const char *command) {
     if (send_command_if_not_already_sent(command)) return false;
 
     // Check if we got a response already
@@ -236,7 +236,8 @@ bool a9g_check_if_we_have_network_connection() {
 
     int command_received_index;
     for (command_received_index = message_log_length - 1; command_received_index >= 0; command_received_index--) {
-        if (starts_with(message_log[command_received_index], "+CREG: ") && strlen(message_log[command_received_index]) >= strlen("+CREG: 0,1")) {
+        if (starts_with(message_log[command_received_index], "+CREG: ") &&
+            strlen(message_log[command_received_index]) >= strlen("+CREG: 0,1")) {
             break;
         }
     }
@@ -267,7 +268,7 @@ enum SimStatus a9g_check_if_has_sim() {
     return has_sim ? SIM_PRESENT : SIM_NOT_PRESENT;
 }
 
-bool a9g_check_if_network_attached(A9GState* state) {
+bool a9g_check_if_network_attached(A9GState *state) {
     if (state->network_attached) return true;
 
     if (!a9g_check_if_we_have_network_connection()) return false;
@@ -275,37 +276,37 @@ bool a9g_check_if_network_attached(A9GState* state) {
     return state->network_attached;
 }
 
-bool a9g_check_if_pnp_parameters_set(A9GState* state) {
+bool a9g_check_if_pnp_parameters_set(A9GState *state) {
     if (state->pnp_parameters_set) return true;
     state->pnp_parameters_set = a9g_send_and_wait_for_command(A9G_CGDCONT_ENABLE);
     return state->pnp_parameters_set;
 }
 
-bool a9g_check_if_pnp_activated(A9GState* state) {
+bool a9g_check_if_pnp_activated(A9GState *state) {
     if (state->pnp_activated) return true;
     state->pnp_activated = a9g_send_and_wait_for_command(A9G_CGACT_PNP_ENABLE);
     return state->pnp_activated;
 }
 
-bool a9g_check_if_agps_enabled(A9GState* state) {
+bool a9g_check_if_agps_enabled(A9GState *state) {
     if (state->agps_enabled) return true;
     state->agps_enabled = a9g_send_and_wait_for_command(A9G_AGPS_ENABLE);
     return state->agps_enabled;
 }
 
-bool a9g_check_if_gps_enabled(A9GState* state) {
+bool a9g_check_if_gps_enabled(A9GState *state) {
     if (state->gps_enabled) return true;
     state->gps_enabled = a9g_send_and_wait_for_command(A9G_GPS_ENABLE);
     return state->gps_enabled;
 }
 
-bool a9g_check_if_gps_logging_enabled(A9GState* state) {
+bool a9g_check_if_gps_logging_enabled(A9GState *state) {
     if (state->gps_logging_enabled) return true;
     state->gps_logging_enabled = a9g_send_and_wait_for_command(A9G_GPSRD_ENABLE);
     return state->gps_logging_enabled;
 }
 
-void a9g_proceed_device_init(A9GState* state) {
+void a9g_proceed_device_init(A9GState *state) {
     if (message_log_length == 0) return;
 
     if (!a9g_check_if_init_done(state)) {
@@ -329,7 +330,7 @@ void a9g_proceed_device_init(A9GState* state) {
     // if (!a9g_check_if_gps_logging_enabled(state)) return;
 }
 
-void a9g_process_messages(State* state) {
+void a9g_process_messages(State *state) {
     if (message_log_length == 0) return;
 
     bool process_gngga_message_done = false;
@@ -357,7 +358,7 @@ void a9g_process_messages(State* state) {
     }
 }
 
-void a9g_validate_location_data(State* state) {
+void a9g_validate_location_data(State *state) {
     // Reset location data after it becomes invalid (expires)
     if (esp_timer_get_time_ms() > state->location.gngga_last_updated + GPSGSM_LOCATION_MAX_VALID_TIME_MS) {
         state->location.latitude = 0;
@@ -378,7 +379,7 @@ void a9g_validate_location_data(State* state) {
     }
 }
 
-void a9g_check_messages_timeout(State* state) {
+void a9g_check_messages_timeout(State *state) {
     // Get last received message index
     int last_message_index = message_log_length - 1;
     while (last_message_index >= 0) {
@@ -442,7 +443,7 @@ void a9g_check_messages_timeout(State* state) {
     a9g_reset(state);
 }
 
-void a9g_process(State* state) {
+void a9g_process(State *state) {
     a9g_receive(&state->a9g);
 
     update_time(state);
@@ -453,6 +454,6 @@ void a9g_process(State* state) {
     a9g_process_messages(state);
 }
 
-void a9g_init(State* state) {
+void a9g_init(State *state) {
     gpsgsm_init(&state->a9g);
 }

@@ -61,7 +61,7 @@ void string_char_remove(char **source, char needle) {
     free(out);
 }
 
-void string_strip_char(char** input, const char needle) {
+void string_strip_char(char **input, const char needle) {
     int length = strlen(*input);
 
     // Strip all trailing \n character from last_message:
@@ -143,7 +143,7 @@ void set_error(State *state, uint32_t error_code) {
     }
 }
 
-void reset_error(State* state, uint32_t error_code) {
+void reset_error(State *state, uint32_t error_code) {
     state->errors &= ~error_code;
 }
 

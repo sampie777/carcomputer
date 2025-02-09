@@ -29,7 +29,7 @@ void init(State *state) {
     debug_state(state);
 }
 
-_Noreturn void task_primary(void* args) {
+_Noreturn void task_primary(void *args) {
     printf("Primary task started on core: %d\n", xPortGetCoreID());
     State *state = args;
 
@@ -45,20 +45,20 @@ _Noreturn void task_primary(void* args) {
             debug_print_message_log();
 
             printf("%d:%02d:%02d  %d-%d-%04d; ",
-                    state->location.time.hours,
-                    state->location.time.minutes,
-                    state->location.time.seconds,
-                    state->location.time.day,
-                    state->location.time.month,
-                    state->location.time.year
+                   state->location.time.hours,
+                   state->location.time.minutes,
+                   state->location.time.seconds,
+                   state->location.time.day,
+                   state->location.time.month,
+                   state->location.time.year
             );
 
             printf("%.5lf, %.5lf; ", state->location.latitude, state->location.longitude);
             printf("Q:%d S:%d E:%d A:%.0lf; ",
-                    state->location.quality,
-                    state->location.satellites,
-                    state->location.is_effective_positioning,
-                    state->location.altitude);
+                   state->location.quality,
+                   state->location.satellites,
+                   state->location.is_effective_positioning,
+                   state->location.altitude);
             printf("%6.2lf km/h @ %6.1lf*", state->location.ground_speed, state->location.ground_heading);
             printf("\n");
         }

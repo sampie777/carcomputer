@@ -230,14 +230,16 @@ int sd_card_create_file_incremental(const char *directory,
         }
     }
 
-    snprintf(new_file_name, sizeof(new_file_name), "%s/%s-%d.%s", created_directory, base_file_name, i, base_file_extension);
+    snprintf(new_file_name, sizeof(new_file_name), "%s/%s-%d.%s",
+             created_directory, base_file_name, i, base_file_extension);
 
     if (!sd_card_does_filename_exists(created_directory, base_file_name, i, base_file_extension)) {
         memcpy(file_name_out, new_file_name, SD_PATH_MAX_LENGTH);
         return RESULT_OK;
     }
 
-    snprintf(new_file_name, sizeof(new_file_name), "%s/%s-overflow.%s", created_directory, base_file_name, base_file_extension);
+    snprintf(new_file_name, sizeof(new_file_name), "%s/%s-overflow.%s",
+             created_directory, base_file_name, base_file_extension);
     memcpy(file_name_out, new_file_name, SD_PATH_MAX_LENGTH);
     return RESULT_OVERFLOW;
 }
