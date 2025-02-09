@@ -1,4 +1,3 @@
-#include <driver/adc.h>
 #include "freertos/FreeRTOS.h"
 #include "config.h"
 #include "state.h"

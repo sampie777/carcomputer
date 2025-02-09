@@ -21,18 +21,6 @@ void utils_reboot(State *state) {
     state->is_rebooting = true;
 }
 
-double average_read_channel(adc1_channel_t channel, int sample_count) {
-    double total = 0;
-    sample_count = max(1, sample_count);
-    for (int i = 0; i < sample_count; i++) {
-        total += adc1_get_raw(channel);
-
-        // Add a bit of delay (10 clock cycles) to get a new sample
-        for (volatile int j = 0; j < 10; j++) {}
-    }
-    return total / sample_count;
-}
-
 uint8_t starts_with(const char *source, const char *needle) {
     if (strlen(source) < strlen(needle)) return false;
     return strncmp(needle, source, strlen(needle)) == 0;

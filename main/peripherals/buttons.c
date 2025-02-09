@@ -2,14 +2,14 @@
 // Created by samuel on 28-7-22.
 //
 
-#include <driver/adc.h>
 #include "buttons.h"
 #include "../config.h"
 #include "../utils.h"
+#include "adc.h"
 
-int
-read_debounced(adc1_channel_t sensor_pin, uint8_t sample_count, int min_value, unsigned long debounce_cooldown_period,
-               unsigned long min_press_time) {
+int read_debounced(adc_channel_t channel, uint8_t sample_count,
+                   int min_value, unsigned long debounce_cooldown_period,
+                   unsigned long min_press_time) {
     static int64_t last_action_time = 0;
 
     // Debounce button using cooldown period
@@ -18,11 +18,11 @@ read_debounced(adc1_channel_t sensor_pin, uint8_t sample_count, int min_value, u
 
     // Debounce button using minimum pressed time
     int64_t pressStartTime = esp_timer_get_time_ms();
-    double last_reading = average_read_channel(sensor_pin, sample_count);
+    double last_reading = adc_average_read_channel(channel, sample_count);
     double max_reading = last_reading;
     while (last_reading > min_value && esp_timer_get_time_ms() < pressStartTime + min_press_time) {
         delay_ms(10);
-        last_reading = average_read_channel(sensor_pin, sample_count);
+        last_reading = adc_average_read_channel(channel, sample_count);
         max_reading = max(max_reading, last_reading);
     }
 
@@ -127,6 +127,6 @@ Button buttons_get_pressed() {
 }
 
 void buttons_init() {
-    adc1_config_channel_atten(BUTTONS_ADC_CHANNEL_0, ADC_ATTEN_DB_12);
-    adc1_config_channel_atten(BUTTONS_ADC_CHANNEL_1, ADC_ATTEN_DB_12);
+    adc_oneshot_init_channel(BUTTONS_ADC_CHANNEL_0);
+    adc_oneshot_init_channel(BUTTONS_ADC_CHANNEL_1);
 }

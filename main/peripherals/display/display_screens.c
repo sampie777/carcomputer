@@ -6,6 +6,7 @@
 #include "display_screens.h"
 #include "display.h"
 #include "../../utils.h"
+#include "../adc.h"
 
 
 void draw_check_box(SH1106Config *sh1106, int x, int y, int size, bool checked) {

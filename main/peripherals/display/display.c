@@ -26,6 +26,7 @@ void display_init() {
     printf("[Display] Initializing display...\n");
     if (sh1106_init(&sh1106_config) != RESULT_OK) {
         printf("[Display] Init failed\n");
+        return;
     }
     printf("[Display] Init done\n");
 }

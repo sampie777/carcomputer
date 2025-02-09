@@ -3,6 +3,7 @@
 //
 
 #include <math.h>
+#include <driver/gpio.h>
 #include "../config.h"
 #include "control.h"
 #include "buttons.h"

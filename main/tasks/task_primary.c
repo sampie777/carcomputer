@@ -1,10 +1,8 @@
 //
 // Created by samuel on 2024/11/27.
 //
-#include <driver/adc.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "../config.h"
 #include "../state.h"
 #include "../utils.h"
 #include "../connectivity/i2c.h"
@@ -13,9 +11,10 @@
 #include "../control/data_logger.h"
 #include "../peripherals/gpsgsm/a9g.h"
 #include "task_primary.h"
+#include "../peripherals/adc.h"
 
 void init(State *state) {
-    adc1_config_width(ADC_RESOLUTION - 9);
+    adc_oneshot_init();
     i2c_init();
     spi_init(state);
     control_init(state);

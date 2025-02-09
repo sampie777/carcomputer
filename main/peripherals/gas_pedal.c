@@ -4,13 +4,12 @@
 
 #include <stdbool.h>
 #include <driver/ledc.h>
-#include <driver/adc.h>
 #include <esp_timer.h>
 #include <math.h>
 #include "../config.h"
 #include "gas_pedal.h"
 #include "../return_codes.h"
-#include "../utils.h"
+#include "adc.h"
 
 void gas_pedal_enable(uint8_t enable) {
     gpio_set_level(CAR_VIRTUAL_GAS_PEDAL_ENABLE_PIN, enable ? 1 : 0);
@@ -21,8 +20,8 @@ int is_pedal_connected(double reading_0, double reading_1) {
     return reading_0 >= min_voltage && reading_1 >= min_voltage;
 }
 
-double read_pedal_volts(adc1_channel_t channel, int sample_count_factor) {
-    double reading = average_read_channel(channel, sample_count_factor * CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
+double read_pedal_volts(adc_channel_t channel, int sample_count_factor) {
+    double reading = adc_average_read_channel(channel, sample_count_factor * CAR_GAS_PEDAL_ADC_SAMPLE_COUNT);
     if (reading > 17) {
         return 0.0015795 * reading + 0.2702;
     }
@@ -135,8 +134,8 @@ void gas_pedal_write(State *state) {
  */
 void gas_pedal_init(State *state, uint32_t frequency) {
     // Init input
-    adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_0, ADC_ATTEN_DB_12);
-    adc1_config_channel_atten(CAR_GAS_PEDAL_ADC_CHANNEL_1, ADC_ATTEN_DB_12);
+    adc_oneshot_init_channel(CAR_GAS_PEDAL_ADC_CHANNEL_0);
+    adc_oneshot_init_channel(CAR_GAS_PEDAL_ADC_CHANNEL_1);
 
     // Init output
     gpio_set_direction(CAR_VIRTUAL_GAS_PEDAL_ENABLE_PIN, GPIO_MODE_OUTPUT);
