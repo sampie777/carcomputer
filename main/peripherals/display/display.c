@@ -14,6 +14,8 @@
 #include "../../error_codes.h"
 #include "display_screens.h"
 #include "../../return_codes.h"
+#include "special_chars.h"
+#include "font.h"
 
 SH1106Config sh1106_config = {
     .address = DISPLAY_I2C_ADDRESS,
@@ -99,6 +101,7 @@ void show_error_message(State *state, SH1106Config *display) {
 void show_statusbar(State *state, SH1106Config *display) {
     static int64_t last_long_blink_time = 0;
     static uint8_t long_blink_state = false;
+    char buffer[4];
 
     if (esp_timer_get_time_ms() > last_long_blink_time + DISPLAY_LONG_BLINK_INTERVAL) {
         long_blink_state = !long_blink_state;
@@ -113,10 +116,10 @@ void show_statusbar(State *state, SH1106Config *display) {
 
     int offset_right = display->width + 1;
 
-    offset_right -= 3 + icon_sd_width;
+    offset_right -= 3 + font_width;
     if (state->storage.is_connected) {
-        sh1106_draw_icon(display, offset_right, 1,
-                         icon_sd, sizeof(icon_sd), icon_sd_width, FONT_WHITE);
+        sprintf(buffer, "%c", SPECIAL_CHAR_SD_CARD);
+        sh1106_draw_string(display, offset_right, 1, FONT_SMALL, FONT_WHITE, buffer);
     }
 
     offset_right -= 3 + icon_car_width;
@@ -125,10 +128,10 @@ void show_statusbar(State *state, SH1106Config *display) {
                          icon_car, sizeof(icon_car), icon_car_width, FONT_WHITE);
     }
 
-    offset_right -= 3 + icon_location_width;
+    offset_right -= 3 + font_width;
     if (state->location.quality > 0 || (long_blink_state && state->location.is_gps_on)) {
-        sh1106_draw_icon(display, offset_right, 1,
-                         icon_location, sizeof(icon_location), icon_location_width, FONT_WHITE);
+        sprintf(buffer, "%c", SPECIAL_CHAR_LOCATION);
+        sh1106_draw_string(display, offset_right, 1, FONT_SMALL, FONT_WHITE, buffer);
     }
 
     sh1106_draw_horizontal_line(display, 0, STATUS_BAR_HEIGHT, display->width);
@@ -211,7 +214,7 @@ void display_update(State *state) {
     if (esp_timer_get_time_ms() < last_update_time + DISPLAY_UPDATE_MIN_INTERVAL) return;
     last_update_time = esp_timer_get_time_ms();
 
-    set_current_screen(state);
+//    set_current_screen(state);
 
     sh1106_clear(&sh1106_config);
 

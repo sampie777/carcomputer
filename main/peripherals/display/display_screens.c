@@ -7,7 +7,35 @@
 #include "display.h"
 #include "../../utils.h"
 #include "../adc.h"
+#include "special_chars.h"
 
+/**
+ * Display all available ASCII characters on the current screen.
+ * @param state
+ * @param display
+ */
+void content_alphabet(const State *state, SH1106Config *display) {
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[64];
+
+    static int64_t last_time = 0;
+    static uint8_t last_char = 0;
+
+    uint8_t current_char = last_char;
+    for (int y = 0; y < (display->height - STATUS_BAR_HEIGHT) / 10; y++) {
+        for (int x = 0; x < display->width / 6; x++) {
+            if ((x > 0 || y > 0) && current_char == 0) break;
+
+            sprintf(buffer, "%c", current_char++);
+            sh1106_draw_string(display, x * 6, offset_y + y * 10, FONT_SMALL, FONT_WHITE, buffer);
+        }
+    }
+
+    if (esp_timer_get_time_ms() < last_time + 10000) return;
+    last_time = esp_timer_get_time_ms();
+
+    last_char = current_char;
+}
 
 void draw_check_box(SH1106Config *sh1106, int x, int y, int size, bool checked) {
     sh1106_draw_rectangle(sh1106, x, y, size, size);
@@ -96,7 +124,7 @@ void content_cruise_control(State *state, SH1106Config *display) {
 
     offset_x += 20;
     offset_y += 7;
-    sprintf(buffer, "%.1f m/s2", state->car.acceleration);
+    sprintf(buffer, "%.1f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     offset_y -= 9;
@@ -170,7 +198,7 @@ void content_motion_sensors_data(const State *state, SH1106Config *display) {
             + state->motion.accel_z * state->motion.accel_z));
     sh1106_draw_string(display, 0, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
-    snprintf(buffer, sizeof buffer, "  Temp:  %5.1f", state->motion.temperature);
+    snprintf(buffer, sizeof buffer, " Temp: %5.1f%c", state->motion.temperature, SPECIAL_CHAR_DEGREES);
     sh1106_draw_string(display, 11 * 5, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y = STATUS_BAR_HEIGHT + 5;
 
@@ -289,21 +317,25 @@ void content_location_data(const State *state, SH1106Config *display) {
         return;
     }
 
-    snprintf(buffer, sizeof buffer, "%d:%02d:%02d    %d-%02d-%04d",
+    snprintf(buffer, sizeof buffer, "%d:%02d:%02d",
              state->location.time.hours,
              state->location.time.minutes,
-             state->location.time.seconds,
+             state->location.time.seconds
+    );
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    snprintf(buffer, sizeof buffer, "%d-%02d-%04d",
              state->location.time.day,
              state->location.time.month,
              state->location.time.year
     );
-    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    sh1106_draw_string(display, display->width / 2, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 10;
 
-    snprintf(buffer, sizeof buffer, "%.5lf, %.5lf",
-             state->location.latitude,
-             state->location.longitude);
+    snprintf(buffer, sizeof buffer, "%.5lf", state->location.latitude);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    snprintf(buffer, sizeof buffer, "%.5lf", state->location.longitude);
+    sh1106_draw_string(display, display->width / 2, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
     offset_y += 10;
     snprintf(buffer, sizeof buffer, "Q:%d S:%d E:%d A:%.0lf",
              state->location.quality,
@@ -311,11 +343,12 @@ void content_location_data(const State *state, SH1106Config *display) {
              state->location.is_effective_positioning,
              state->location.altitude);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
     offset_y += 10;
-    snprintf(buffer, sizeof buffer, "%6.2lf km/h @ %6.1lf*",
-             state->location.ground_speed,
-             state->location.ground_heading);
+    snprintf(buffer, sizeof buffer, "%6.2lf km/h", state->location.ground_speed);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    snprintf(buffer, sizeof buffer, "%3.0lf%c", state->location.ground_heading, SPECIAL_CHAR_DEGREES);
+    sh1106_draw_string(display, display->width - 7 * 6, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     offset_y += 10;
     if (state->gsm.sim_status == SIM_PRESENT) strcpy(buffer, "SIM");
@@ -442,27 +475,27 @@ void content_about_car(const State *state, SH1106Config *display) {
     int offset_y = STATUS_BAR_HEIGHT + 5;
     char buffer[64];
 
-    sprintf(buffer, "[%c] Brake", state->car.is_braking ? 'Y' : ' ');
+    sprintf(buffer, "%c Brake", state->car.is_braking ? SPECIAL_CHAR_CIRCLE_CLOSED : SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 9;
-    sprintf(buffer, "[%c] Ignition", state->car.is_ignition_on ? 'Y' : ' ');
+    sprintf(buffer, "%c Ignition", state->car.is_ignition_on ? SPECIAL_CHAR_CIRCLE_CLOSED: SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 9;
-    sprintf(buffer, "[%c] Blower", state->car.is_blower_on ? 'Y' : ' ');
+    sprintf(buffer, "%c Blower", state->car.is_blower_on ? SPECIAL_CHAR_CIRCLE_CLOSED: SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 9;
-    sprintf(buffer, "[%c] Driver door locked", state->car.is_drivers_door_locked ? 'Y' : ' ');
+    sprintf(buffer, "%c Driver door locked", state->car.is_drivers_door_locked ? SPECIAL_CHAR_CIRCLE_CLOSED: SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 9;
-    sprintf(buffer, "[%c] Other doors locked", state->car.is_other_doors_locked ? 'Y' : ' ');
+    sprintf(buffer, "%c Other doors locked", state->car.is_other_doors_locked ? SPECIAL_CHAR_CIRCLE_CLOSED: SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 //    offset_y += 9;
 //    sprintf(buffer, "[%c] Parking brake", state->car.is_parking_brake_on ? 'Y' : ' ');
 //    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
-    offset_x = 14 * 4;
+    offset_x = display->width / 2;
     offset_y = STATUS_BAR_HEIGHT + 5;
-    sprintf(buffer, "[%c] Locked", state->car.is_locked ? 'Y' : ' ');
+    sprintf(buffer, "%c Locked", state->car.is_locked ? SPECIAL_CHAR_CIRCLE_CLOSED: SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 //    offset_y += 9;
 //    sprintf(buffer, "[%c] Other doors", state->car.is_other_doors_open ? 'Y' : ' ');
