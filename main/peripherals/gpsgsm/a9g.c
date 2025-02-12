@@ -317,11 +317,11 @@ void a9g_proceed_device_init(State *state) {
     }
 
     if (!a9g_check_if_network_attached(&(state->a9g))) return;
-    // if (!a9g_check_if_pnp_parameters_set(state)) return;
-    // if (!a9g_check_if_pnp_activated(state)) return;
-    // if (!a9g_check_if_agps_enabled(state)) return;
-    // if (!a9g_check_if_gps_enabled(state)) return;
-    // if (!a9g_check_if_gps_logging_enabled(state)) return;
+    // if (!a9g_check_if_pnp_parameters_set(&(state->a9g))) return;
+    // if (!a9g_check_if_pnp_activated(&(state->a9g))) return;
+    // if (!a9g_check_if_agps_enabled(&(state->a9g))) return;
+    // if (!a9g_check_if_gps_enabled(&(state->a9g))) return;
+    // if (!a9g_check_if_gps_logging_enabled(&(state->a9g))) return;
 }
 
 void a9g_process_messages(State *state) {
@@ -333,18 +333,21 @@ void a9g_process_messages(State *state) {
 
     for (int i = message_log_length - 1; i >= 0; i--) {
         if (!process_gngga_message_done && starts_with(message_log[i], "$GNGGA")) {
+            state->a9g.gps_logging_started = true;
             state->location.is_gps_on = true;
             process_gngga_message(state, message_log[i]);
             process_gngga_message_done = true;
             continue;
         }
         if (!process_gnrmc_message_done && starts_with(message_log[i], "$GNRMC")) {
+            state->a9g.gps_logging_started = true;
             state->location.is_gps_on = true;
             process_gnrmc_message(state, message_log[i]);
             process_gnrmc_message_done = true;
             continue;
         }
         if (!process_ctzv_message_done && starts_with(message_log[i], "+CTZV:")) {
+            state->a9g.gps_logging_started = true;
             process_ctzv_message(state, message_log[i]);
             process_ctzv_message_done = true;
             continue;
