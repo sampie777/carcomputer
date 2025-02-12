@@ -161,17 +161,16 @@ void mpu9250_read_motion(State *state) {
         return;
     }
 
-    state->motion.accel_x = (int16_t) ((accel_data[0] << 8) | accel_data[1]) / 32768.0 * 4;
-    state->motion.accel_y = (int16_t) ((accel_data[2] << 8) | accel_data[3]) / 32768.0 * 4;
-    state->motion.accel_z = (int16_t) ((accel_data[4] << 8) | accel_data[5]) / 32768.0 * 4;
-    state->motion.gyro_x = (int16_t) ((gyro_data[0] << 8) | gyro_data[1]) / 32768.0 * 500;
-    state->motion.gyro_y = (int16_t) ((gyro_data[2] << 8) | gyro_data[3]) / 32768.0 * 500;
-    state->motion.gyro_z = (int16_t) ((gyro_data[4] << 8) | gyro_data[5]) / 32768.0 * 500;
+    state->motion.accel_x = state->motion.accel_x * 0.5 + 0.5 * (((accel_data[0] << 8) | accel_data[1]) / 32768.0 * 4);
+    state->motion.accel_y = state->motion.accel_y * 0.5 + 0.5 * (((accel_data[2] << 8) | accel_data[3]) / 32768.0 * 4);
+    state->motion.accel_z = state->motion.accel_z * 0.5 + 0.5 * (((accel_data[4] << 8) | accel_data[5]) / 32768.0 * 4);
+    state->motion.gyro_x = state->motion.gyro_x * 0.5 + 0.5 * (((gyro_data[0] << 8) | gyro_data[1]) / 32768.0 * 500);
+    state->motion.gyro_y = state->motion.gyro_y * 0.5 + 0.5 * (((gyro_data[2] << 8) | gyro_data[3]) / 32768.0 * 500);
+    state->motion.gyro_z = state->motion.gyro_z * 0.5 + 0.5 * (((gyro_data[4] << 8) | gyro_data[5]) / 32768.0 * 500);
 
-    state->motion.temperature = (int16_t) ((temperature_data[0] << 8) | temperature_data[1]) * 0.15;
-    state->motion.temperature =
-        ((state->motion.temperature - MOTION_SENSOR_ROOM_TEMPERATURE_OFFSET) / MOTION_SENSOR_TEMPERATURE_SENSITIVITY)
-            + 21.0;
+    double temperature = (int16_t) ((temperature_data[0] << 8) | temperature_data[1]) * 0.15;
+    temperature = (temperature - MOTION_SENSOR_ROOM_TEMPERATURE_OFFSET) / MOTION_SENSOR_TEMPERATURE_SENSITIVITY + 21.0;
+    state->motion.temperature = state->motion.temperature * 0.5 + 0.5 * temperature;
 }
 
 void mpu9250_read_compass(State *state) {
@@ -206,9 +205,12 @@ void mpu9250_read_compass(State *state) {
         return;
     }
 
-    state->motion.compass_x = (int16_t) (data[0] | (data[1] << 8)) / 32768.0 * 4912;
-    state->motion.compass_y = (int16_t) (data[2] | (data[3] << 8)) / 32768.0 * 4912;
-    state->motion.compass_z = (int16_t) (data[4] | (data[5] << 8)) / 32768.0 * 4912;
+    state->motion.compass_x = state->motion.compass_x * 0.5 + 0.5 *
+        ((int16_t) (data[0] | (data[1] << 8)) / 32768.0 * 4912);
+    state->motion.compass_y = state->motion.compass_y * 0.5 + 0.5 *
+        ((int16_t) (data[2] | (data[3] << 8)) / 32768.0 * 4912);
+    state->motion.compass_z = state->motion.compass_z * 0.5 + 0.5 *
+        ((int16_t) (data[4] | (data[5] << 8)) / 32768.0 * 4912);
 }
 
 void mpu9250_read(State *state) {
@@ -251,7 +253,7 @@ int mpu9250_init_compass() {
 
 int mpu9250_init_motion() {
     // Reset chip
-    if(mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x80) != RESULT_OK) return RESULT_FAILED;
+    if (mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x80) != RESULT_OK) return RESULT_FAILED;
 
     int result = RESULT_OK;
     delay_ms(100);
@@ -260,14 +262,18 @@ int mpu9250_init_motion() {
     result |= mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x01);    // Auto select clock
     delay_ms(50);
 
-    result |= mpu9250_set_register(MPU9250_REGISTER_CONFIG, 0x03);            // Set bandwidth of gyro and temp to 41/42 Hz
+    result |= mpu9250_set_register(MPU9250_REGISTER_CONFIG,
+                                   0x03);            // Set bandwidth of gyro and temp to 41/42 Hz
     result |= mpu9250_set_register(MPU9250_REGISTER_SMPLRT_DIV, 4);           // Set sample rate to 200 Hz
     result |= mpu9250_set_register(MPU9250_REGISTER_GYRO_CONFIG, 0x01 << 3);  // Set sensitivity to +/-500 dps
-    result |= mpu9250_set_register(MPU9250_REGISTER_XG_OFFSET_H, ((int16_t) (GYRO_X_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
+    result |= mpu9250_set_register(MPU9250_REGISTER_XG_OFFSET_H,
+                                   ((int16_t) (GYRO_X_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
     result |= mpu9250_set_register(MPU9250_REGISTER_XG_OFFSET_L, ((int16_t) (GYRO_X_OFFSET * 32768 / 500.0 / -2.0)));
-    result |= mpu9250_set_register(MPU9250_REGISTER_YG_OFFSET_H, ((int16_t) (GYRO_Y_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
+    result |= mpu9250_set_register(MPU9250_REGISTER_YG_OFFSET_H,
+                                   ((int16_t) (GYRO_Y_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
     result |= mpu9250_set_register(MPU9250_REGISTER_YG_OFFSET_L, ((int16_t) (GYRO_Y_OFFSET * 32768 / 500.0 / -2.0)));
-    result |= mpu9250_set_register(MPU9250_REGISTER_ZG_OFFSET_H, ((int16_t) (GYRO_Z_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
+    result |= mpu9250_set_register(MPU9250_REGISTER_ZG_OFFSET_H,
+                                   ((int16_t) (GYRO_Z_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
     result |= mpu9250_set_register(MPU9250_REGISTER_ZG_OFFSET_L, ((int16_t) (GYRO_Z_OFFSET * 32768 / 500.0 / -2.0)));
     result |= mpu9250_set_register(MPU9250_REGISTER_ACCEL_CONFIG, 0x01 << 3); // Set sensitivity to +/- 4g
     result |= mpu9250_set_register(MPU9250_REGISTER_ACCEL_CONFIG2, 0x01);     // Set bandwidth to 184 Hz
@@ -279,7 +285,7 @@ int mpu9250_init_motion() {
 void mpu9250_init(State *state) {
     printf("[mpu9250] Initializing...\n");
 
-    if(mpu9250_init_motion() != RESULT_OK || mpu9250_init_compass() != RESULT_OK) {
+    if (mpu9250_init_motion() != RESULT_OK || mpu9250_init_compass() != RESULT_OK) {
         printf("[mpu9250] Failed to initialize motion\n");
         state->motion.connected = false;
         return;

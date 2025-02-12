@@ -26,7 +26,7 @@ void handle_speed_and_brake_message(State *state, CanMessage *message) {
     }
 
     int value = message->data[0] << 8 | message->data[1];
-    state->car.speed = value / CAN_SPEED_CALIBRATION;
+    state->car.speed = state->car.speed * 0.5 + 0.5 * value / CAN_SPEED_CALIBRATION;
 
     state->car.is_braking = message->data[6] & 16;
 }
@@ -36,7 +36,7 @@ void handle_rpm_message(State *state, CanMessage *message) {
         return;
     }
 
-    state->car.rpm_raw = message->data[0] << 8 | message->data[1];
+    state->car.rpm_raw = (uint16_t) (state->car.rpm_raw * 0.5 + 0.5 * (message->data[0] << 8 | message->data[1]));
     state->car.rpm = state->car.rpm_raw / CAN_RPM_CALIBRATION;
 }
 
@@ -51,7 +51,7 @@ void handle_ignition_message(State *state, CanMessage *message) {
     }
 
     int value = message->data[4] << 8 | message->data[5];
-    state->car.speed = value / CAN_SPEED_CALIBRATION;
+    state->car.speed = state->car.speed * 0.5 + 0.5 * value / CAN_SPEED_CALIBRATION;
 }
 
 void handle_odometer_message(State *state, CanMessage *message) {

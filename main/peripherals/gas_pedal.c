@@ -99,15 +99,15 @@ int gas_pedal_read(State *state) {
         gas_pedal_init_minimums(state);
     }
 
+    double gas_pedal;
     if (state->car.gas_pedal_0_min_value_volts > state->car.gas_pedal_1_min_value_volts) {
         double difference = state->car.gas_pedal_0_max_value_volts - state->car.gas_pedal_0_min_value_volts;
-        state->car.gas_pedal = max(
-            0.0, (state->car.gas_pedal_0_volts - state->car.gas_pedal_0_min_value_volts) / difference);
+        gas_pedal = max(0.0, (state->car.gas_pedal_0_volts - state->car.gas_pedal_0_min_value_volts) / difference);
     } else {
         double difference = state->car.gas_pedal_1_max_value_volts - state->car.gas_pedal_1_min_value_volts;
-        state->car.gas_pedal = max(
-            0.0, (state->car.gas_pedal_1_volts - state->car.gas_pedal_1_min_value_volts) / difference);
+        gas_pedal = max(0.0, (state->car.gas_pedal_1_volts - state->car.gas_pedal_1_min_value_volts) / difference);
     }
+    state->car.gas_pedal = state->car.gas_pedal * 0.5 + 0.5 * gas_pedal;
 
     return RESULT_OK;
 }
