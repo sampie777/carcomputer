@@ -214,7 +214,7 @@ void display_update(State *state) {
     if (esp_timer_get_time_ms() < last_update_time + DISPLAY_UPDATE_MIN_INTERVAL) return;
     last_update_time = esp_timer_get_time_ms();
 
-//    set_current_screen(state);
+    set_current_screen(state);
 
     sh1106_clear(&sh1106_config);
 
