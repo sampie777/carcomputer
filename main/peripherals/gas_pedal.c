@@ -107,7 +107,7 @@ int gas_pedal_read(State *state) {
         double difference = state->car.gas_pedal_1_max_value_volts - state->car.gas_pedal_1_min_value_volts;
         gas_pedal = max(0.0, (state->car.gas_pedal_1_volts - state->car.gas_pedal_1_min_value_volts) / difference);
     }
-    state->car.gas_pedal = state->car.gas_pedal * 0.5 + 0.5 * gas_pedal;
+    state->car.gas_pedal = state->car.gas_pedal * 0.92 + 0.08 * gas_pedal;
 
     return RESULT_OK;
 }

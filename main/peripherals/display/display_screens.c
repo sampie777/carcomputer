@@ -174,9 +174,10 @@ void content_motion_sensors_data(const State *state, SH1106Config *display) {
     offset_x += 7 * 5 + 1;
     offset_y += 12;
 
-    sprintf(buffer, "G: %6.2f",
-            sqrt(state->motion.accel_x * state->motion.accel_x + state->motion.accel_y * state->motion.accel_y + state->
-                motion.accel_z * state->motion.accel_z));
+    sprintf(buffer, "G: %6.2f", sqrt(
+        state->motion.accel_x * state->motion.accel_x
+            + state->motion.accel_y * state->motion.accel_y
+            + state->motion.accel_z * state->motion.accel_z));
     sh1106_draw_string(display, 0, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     snprintf(buffer, sizeof buffer, "  Temp:  %5.1f", state->motion.temperature);

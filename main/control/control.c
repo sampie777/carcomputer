@@ -98,9 +98,7 @@ void calculate_acceleration(CarState *car) {
 
     double speed_difference = current_speed_ms - last_speed_ms;
     double time_difference = (double) (current_time - last_speed_update_time) / 1000.0;
-    double acceleration = time_difference == 0 ? 0 : speed_difference / time_difference;
-
-    car->acceleration = car->acceleration * 0.5 + 0.5 * acceleration;
+    car->acceleration = time_difference == 0 ? 0 : speed_difference / time_difference;
 
     last_speed_update_time = current_time;
     last_speed_ms = current_speed_ms;
