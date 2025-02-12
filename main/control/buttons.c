@@ -19,7 +19,7 @@ void control_buttons_handle(State *state, Button button) {
                         state->display.current_screen = Screen_CruiseControl;
                         break;
                     case ScreenMenuOption_Sensors:
-                        state->display.current_screen = Screen_Sensors;
+                        state->display.current_screen = Screen_SensorsMotion;
                         break;
                     case ScreenMenuOption_Actions:
                         state->display.current_screen = Screen_Actions;
@@ -69,6 +69,10 @@ void control_buttons_handle(State *state, Button button) {
                 state->display.actions_option_selection--;
                 break;
             }
+            if (state->display.current_screen == Screen_SensorsInputs) {
+                state->display.current_screen = Screen_SensorsMotion;
+                break;
+            }
             if (state->display.current_screen == Screen_AboutCruiseControl) {
                 state->display.current_screen = Screen_About;
                 break;
@@ -96,6 +100,10 @@ void control_buttons_handle(State *state, Button button) {
                 if (state->display.actions_option_selection >= ScreenActionsOptions_MAX_VALUE) {
                     state->display.actions_option_selection = 0;
                 }
+                break;
+            }
+            if (state->display.current_screen == Screen_SensorsMotion) {
+                state->display.current_screen = Screen_SensorsInputs;
                 break;
             }
             if (state->display.current_screen == Screen_About) {
@@ -131,7 +139,8 @@ void control_buttons_handle(State *state, Button button) {
             }
 
             if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl)
-                || state->display.current_screen == Screen_Sensors
+                || state->display.current_screen == Screen_SensorsMotion
+                || state->display.current_screen == Screen_SensorsInputs
                 || state->display.current_screen == Screen_Actions
                 || state->display.current_screen == Screen_About
                 || state->display.current_screen == Screen_AboutCruiseControl

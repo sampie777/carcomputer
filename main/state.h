@@ -15,7 +15,8 @@ typedef enum {
     Screen_Rebooting,
     Screen_Menu,
     Screen_CruiseControl,
-    Screen_Sensors,
+    Screen_SensorsMotion,
+    Screen_SensorsInputs,
     Screen_Actions,
     Screen_GPS,
     Screen_ActivateDiagnostics,
@@ -174,6 +175,11 @@ typedef struct {
 } Diagnostics;
 
 typedef struct {
+    int button0;
+    int button1;
+} ButtonsState;
+
+typedef struct {
     bool is_booting;
     bool is_rebooting;
     int16_t power_off_count_down_sec;
@@ -189,6 +195,7 @@ typedef struct {
     GsmState gsm;
     A9GState a9g;
     Diagnostics diagnostics;
+    ButtonsState buttons;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

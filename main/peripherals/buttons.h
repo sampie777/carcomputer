@@ -5,6 +5,8 @@
 #ifndef APP_TEMPLATE_BUTTONS_H
 #define APP_TEMPLATE_BUTTONS_H
 
+#include "../state.h"
+
 #define BUTTON_UPPER_LIMIT ((int) (BUTTON_MIDDLE_VALUE + (BUTTON_HIGHEST_VALUE - BUTTON_MIDDLE_VALUE) / 2))
 #define BUTTON_MIDDLE_LIMIT ((int) (BUTTON_LOWEST_VALUE + (BUTTON_MIDDLE_VALUE - BUTTON_LOWEST_VALUE) / 2))
 #define BUTTON_LOWER_LIMIT ((int) (BUTTON_LOWEST_VALUE / 2))
@@ -25,7 +27,7 @@ typedef enum {
     BUTTON_DOWN_LONG_PRESS,
 } Button;
 
-Button buttons_get_pressed();
+Button buttons_get_pressed(ButtonsState *state);
 void buttons_init();
 
 #endif //APP_TEMPLATE_BUTTONS_H

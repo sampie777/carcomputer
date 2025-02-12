@@ -3,7 +3,6 @@
 //
 
 #include "buttons.h"
-#include "../config.h"
 #include "../utils.h"
 #include "adc.h"
 
@@ -33,21 +32,21 @@ int read_debounced(adc_channel_t channel, uint8_t sample_count,
     return (int) max_reading;
 }
 
-Button getPressedButton0() {
+Button getPressedButton0(ButtonsState *state) {
     static Button previous_button = BUTTON_NONE;
     static int64_t press_start_time = 0;
 
-    int sens = read_debounced(BUTTONS_ADC_CHANNEL_0, BUTTON_AVERAGE_READ_SAMPLES, BUTTON_LOWER_LIMIT,
-                              BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS, BUTTON_MIN_PRESS_TIME_MS);
+    state->button0 = read_debounced(BUTTONS_ADC_CHANNEL_0, BUTTON_AVERAGE_READ_SAMPLES, BUTTON_LOWER_LIMIT,
+                                    BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS, BUTTON_MIN_PRESS_TIME_MS);
 
     Button button = BUTTON_NONE;
-    if (sens == -1) {
+    if (state->button0 == -1) {
         button = previous_button;
-    } else if (sens > BUTTON_UPPER_LIMIT) {
+    } else if (state->button0 > BUTTON_UPPER_LIMIT) {
         button = BUTTON_SOURCE;
-    } else if (sens > BUTTON_MIDDLE_LIMIT) {
+    } else if (state->button0 > BUTTON_MIDDLE_LIMIT) {
         button = BUTTON_UP;
-    } else if (sens > BUTTON_LOWER_LIMIT) {
+    } else if (state->button0 > BUTTON_LOWER_LIMIT) {
         button = BUTTON_VOLUME_UP;
     }
 
@@ -72,21 +71,21 @@ Button getPressedButton0() {
     return button;
 }
 
-Button getPressedButton1() {
+Button getPressedButton1(ButtonsState *state) {
     static Button previous_button = BUTTON_NONE;
     static int64_t press_start_time = 0;
 
-    int sens = read_debounced(BUTTONS_ADC_CHANNEL_1, BUTTON_AVERAGE_READ_SAMPLES, BUTTON_LOWER_LIMIT,
-                              BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS, BUTTON_MIN_PRESS_TIME_MS);
+    state->button1 = read_debounced(BUTTONS_ADC_CHANNEL_1, BUTTON_AVERAGE_READ_SAMPLES, BUTTON_LOWER_LIMIT,
+                                    BUTTON_DEBOUNCE_COOLDOWN_PERIOD_MS, BUTTON_MIN_PRESS_TIME_MS);
 
     Button button = BUTTON_NONE;
-    if (sens == -1) {
+    if (state->button1 == -1) {
         button = previous_button;
-    } else if (sens > BUTTON_UPPER_LIMIT) {
+    } else if (state->button1 > BUTTON_UPPER_LIMIT) {
         button = BUTTON_INFO;
-    } else if (sens > BUTTON_MIDDLE_LIMIT) {
+    } else if (state->button1 > BUTTON_MIDDLE_LIMIT) {
         button = BUTTON_DOWN;
-    } else if (sens > BUTTON_LOWER_LIMIT) {
+    } else if (state->button1 > BUTTON_LOWER_LIMIT) {
         button = BUTTON_VOLUME_DOWN;
     }
 
@@ -111,12 +110,12 @@ Button getPressedButton1() {
     return button;
 }
 
-Button buttons_get_pressed() {
+Button buttons_get_pressed(ButtonsState *state) {
     static Button previous_button = BUTTON_NONE;
 
-    Button button = getPressedButton0();
+    Button button = getPressedButton0(state);
     if (button == BUTTON_NONE) {
-        button = getPressedButton1();
+        button = getPressedButton1(state);
     }
 
     if (button == previous_button) {

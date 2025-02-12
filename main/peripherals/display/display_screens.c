@@ -199,6 +199,33 @@ void content_motion_sensors_data(const State *state, SH1106Config *display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
+void content_sensors_input(const State *state, SH1106Config *display) {
+    int offset_x = 2;
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[64];
+
+    snprintf(buffer, sizeof buffer, "Pedal: %3.0f %%", state->car.gas_pedal * 100);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_y += 10;
+    offset_x += 7 * 6;
+    snprintf(buffer, sizeof buffer, "%4.2f", state->car.gas_pedal_0_volts);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_x += 5 * 6;
+    snprintf(buffer, sizeof buffer, "%4.2f", state->car.gas_pedal_1_volts);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_x += 5 * 6;
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "V");
+
+    offset_x = 2;
+    offset_y += 10;
+    snprintf(buffer, sizeof buffer, "Buttons: %4d", state->buttons.button0);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_x += 14 * 6;
+    snprintf(buffer, sizeof buffer, "%4d", state->buttons.button1);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+}
+
 char *content_actions_get_option_text(ActionsScreenOptions option_index) {
     switch (option_index) {
         case ScreenActionsOptions_LockDoors:
