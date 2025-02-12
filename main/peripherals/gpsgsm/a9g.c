@@ -347,7 +347,6 @@ void a9g_process_messages(State *state) {
             continue;
         }
         if (!process_ctzv_message_done && starts_with(message_log[i], "+CTZV:")) {
-            state->a9g.gps_logging_started = true;
             process_ctzv_message(state, message_log[i]);
             process_ctzv_message_done = true;
             continue;
