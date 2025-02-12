@@ -80,7 +80,7 @@ void a9g_receive(A9GState *state) {
     // Initialize static pointer
     if (last_message == NULL) {
         last_message = malloc(MESSAGE_MAX_LENGTH);
-        bzero(last_message, MESSAGE_MAX_LENGTH); // Clear buffer
+        memset(last_message, 0, MESSAGE_MAX_LENGTH);  // Clear buffer
     }
 
     // Check if UART has data available
@@ -91,7 +91,7 @@ void a9g_receive(A9GState *state) {
     char *data = malloc(A9G_UART_BUFFER_SIZE);
     switch (event.type) {
         case UART_DATA:
-            bzero(data, A9G_UART_BUFFER_SIZE); // Clear buffer
+            memset(data, 0, A9G_UART_BUFFER_SIZE);  // Clear buffer
             uart_read_bytes(GPSGSM_UART_NUMBER, data, event.size, portMAX_DELAY);
             // printf("[uart] Received data: %s with length %d / %d\n", data, event.size, strlen(data));
             break;
@@ -122,7 +122,7 @@ void a9g_receive(A9GState *state) {
 
             // Clear buffer
             last_message_index = 0;
-            bzero(last_message, MESSAGE_MAX_LENGTH);
+            memset(last_message, 0, MESSAGE_MAX_LENGTH);
             continue;
         }
 
@@ -134,7 +134,7 @@ void a9g_receive(A9GState *state) {
 
             // Clear buffer
             last_message_index = 0;
-            bzero(last_message, MESSAGE_MAX_LENGTH);
+            memset(last_message, 0, MESSAGE_MAX_LENGTH);
             continue;
         }
 
