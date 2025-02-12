@@ -79,7 +79,16 @@ void process_gnrmc_message(State *state, const char *message) {
 }
 
 void process_ctzv_message(State *state, const char *message) {
-    extract_ctzv_message(message, &(state->gsm.time));
+    Time time = {0};
+    extract_ctzv_message(message, &time);
+
+    // We can ignore day etc, as we don't expect the device running that long
+    if (time.seconds <= state->gsm.time.seconds
+        && time.minutes <= state->gsm.time.minutes
+        && time.hours <= state->gsm.time.hours)
+        return;
+
+    memcpy(&(state->gsm.time), &time, sizeof(time));
 
     printf("[GSM] Set new GSM time: %04d-%02d-%02d'T'%02d:%02d:%02d.000%+d\n",
            state->gsm.time.year,
