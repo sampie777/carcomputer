@@ -125,24 +125,14 @@ void content_cruise_control(State *state, SH1106Config *display) {
 }
 
 void content_power_off_count_down(State *state, SH1106Config *display) {
-    int length, offset_x, offset_y;
-    char buffer[20];
-    int margin = 5;
+    int offset_y = 0;
+    char buffer[32];
+    int margin = 2;
     int row_height = 8 + 2 * margin;
 
-    length = sprintf(buffer, "Powering off in...");
-    offset_x = (display->width - length * 5) / 2;
-    offset_y = STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 2 * row_height) / 2;
-    sh1106_draw_filled_rectangle(display, offset_x - margin, offset_y,
-                                 display->width - 2 * offset_x + 2 * margin, row_height);
-    sh1106_draw_string(display, offset_x, offset_y + margin,
-                       FONT_SMALL, FONT_BLACK, buffer);
-
-    snprintf(buffer, sizeof buffer, "%d", state->power_off_count_down_sec);
-    offset_x = (display->width - length * 5) / 2;
-    offset_y += row_height;
-    sh1106_draw_filled_rectangle(display, offset_x - margin, offset_y,
-                                 display->width - 2 * offset_x + 2 * margin, row_height);
+    snprintf(buffer, sizeof buffer, "Powering off in %d...", state->power_off_count_down_sec);
+    sh1106_draw_filled_rectangle(display, 0, offset_y,
+                                 display->width, row_height);
     sh1106_draw_string_centered_x(display, offset_y + margin,
                                   FONT_SMALL, FONT_BLACK, buffer);
 }
