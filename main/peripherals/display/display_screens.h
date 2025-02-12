@@ -14,7 +14,7 @@ void content_power_off_count_down(State *state, SH1106Config *display);
 void content_motion_sensors_data(const State *state, SH1106Config *display);
 void content_actions(const State *state, SH1106Config *display);
 void content_location_data(const State *state, SH1106Config *display);
-void content_error_codes(const State *state, SH1106Config *display);
+void content_activate_diagnostics(const State *state, SH1106Config *display);
 void content_about(const State *state, SH1106Config *display);
 void content_about_cruise_control(const State *state, SH1106Config *display);
 void content_about_car(const State *state, SH1106Config *display);

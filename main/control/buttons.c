@@ -37,8 +37,8 @@ void control_buttons_handle(State *state, Button button) {
                     case ScreenActionsOptions_LockDoors:
                         canbus_send_lock_doors(state, true);
                         break;
-                    case ScreenActionsOptions_ErrorCodes:
-                        state->error_codes.status = ErrorCodes_Off + 1;
+                    case ScreenActionsOptions_ActivateDiagnostics:
+                        state->diagnostics.status = DiagnosticsStep_Off + 1;
                         break;
                     case ScreenActionsOptions_Reboot:
                         utils_reboot(state);
@@ -125,8 +125,8 @@ void control_buttons_handle(State *state, Button button) {
                 state->display.actions_option_selection = 0;
                 break;
             }
-            if (state->display.current_screen == Screen_ErrorCodes) {
-                state->error_codes.status = ErrorCodes_Off;
+            if (state->display.current_screen == Screen_ActivateDiagnostics) {
+                state->diagnostics.status = DiagnosticsStep_Off;
                 break;
             }
 

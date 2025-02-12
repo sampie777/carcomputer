@@ -39,48 +39,48 @@ _Noreturn void task_primary(void *args) {
         wdt_feed(CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000);
 
         if (esp_timer_get_time_ms() > last_time + 1000) {
-            last_time = esp_timer_get_time_ms();
-
-//            debug_print_message_log();
-
-            printf(""
-                   "[%c] initialized; \n"
-                   "[%c] network_attached; \n"
-                   "[%c] pnp_parameters_set; \n"
-                   "[%c] pnp_activated; \n"
-                   "[%c] agps_enabled; \n"
-                   "[%c] gps_enabled; \n"
-                   "[%c] gps_logging_enabled; \n"
-                   "[%c] gps_logging_started"
-                   "",
-                   state->a9g.initialized ? 'Y' : 'N',
-                   state->a9g.network_attached ? 'Y' : 'N',
-                   state->a9g.pnp_parameters_set ? 'Y' : 'N',
-                   state->a9g.pnp_activated ? 'Y' : 'N',
-                   state->a9g.agps_enabled ? 'Y' : 'N',
-                   state->a9g.gps_enabled ? 'Y' : 'N',
-                   state->a9g.gps_logging_enabled ? 'Y' : 'N',
-                   state->a9g.gps_logging_started ? 'Y' : 'N'
-            );
-            printf("\n");
-
-            printf("%d:%02d:%02d  %d-%d-%04d; ",
-                   state->location.time.hours,
-                   state->location.time.minutes,
-                   state->location.time.seconds,
-                   state->location.time.day,
-                   state->location.time.month,
-                   state->location.time.year
-            );
-
-            printf("%.5lf, %.5lf; ", state->location.latitude, state->location.longitude);
-            printf("Q:%d S:%d E:%d A:%.0lf; ",
-                   state->location.quality,
-                   state->location.satellites,
-                   state->location.is_effective_positioning,
-                   state->location.altitude);
-            printf("%6.2lf km/h @ %6.1lf*", state->location.ground_speed, state->location.ground_heading);
-            printf("\n");
+//            last_time = esp_timer_get_time_ms();
+//
+////            debug_print_message_log();
+//
+//            printf(""
+//                   "[%c] initialized; \n"
+//                   "[%c] network_attached; \n"
+//                   "[%c] pnp_parameters_set; \n"
+//                   "[%c] pnp_activated; \n"
+//                   "[%c] agps_enabled; \n"
+//                   "[%c] gps_enabled; \n"
+//                   "[%c] gps_logging_enabled; \n"
+//                   "[%c] gps_logging_started"
+//                   "",
+//                   state->a9g.initialized ? 'Y' : 'N',
+//                   state->a9g.network_attached ? 'Y' : 'N',
+//                   state->a9g.pnp_parameters_set ? 'Y' : 'N',
+//                   state->a9g.pnp_activated ? 'Y' : 'N',
+//                   state->a9g.agps_enabled ? 'Y' : 'N',
+//                   state->a9g.gps_enabled ? 'Y' : 'N',
+//                   state->a9g.gps_logging_enabled ? 'Y' : 'N',
+//                   state->a9g.gps_logging_started ? 'Y' : 'N'
+//            );
+//            printf("\n");
+//
+//            printf("%d:%02d:%02d  %d-%d-%04d; ",
+//                   state->location.time.hours,
+//                   state->location.time.minutes,
+//                   state->location.time.seconds,
+//                   state->location.time.day,
+//                   state->location.time.month,
+//                   state->location.time.year
+//            );
+//
+//            printf("%.5lf, %.5lf; ", state->location.latitude, state->location.longitude);
+//            printf("Q:%d S:%d E:%d A:%.0lf; ",
+//                   state->location.quality,
+//                   state->location.satellites,
+//                   state->location.is_effective_positioning,
+//                   state->location.altitude);
+//            printf("%6.2lf km/h @ %6.1lf*", state->location.ground_speed, state->location.ground_heading);
+//            printf("\n");
         }
 
         // Collect data
@@ -89,15 +89,15 @@ _Noreturn void task_primary(void *args) {
         control_read_user_input(state);
 
         // Process data
-        // The next view processes will interfere with the error reading sequence, as they influence the gas pedal.
-        if (state->error_codes.status == ErrorCodes_Off) {
+        // The next view processes will interfere with the diagnostic activation sequence, as they influence the gas pedal.
+        if (state->diagnostics.status == DiagnosticsStep_Off) {
             control_cruise_control(state);
         }
         control_mpu_power(state);
         a9g_process(state);
         control_process_car(state);
         data_logger_process(state);
-        control_read_error_codes(state);
+        control_run_diagnostics_activation(state);
     }
 
     vTaskDelete(NULL);

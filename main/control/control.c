@@ -111,7 +111,11 @@ void control_process_car(State *state) {
 
 void control_mpu_power(State *state) {
     static int64_t ignition_off_time = 0;
-    if (!state->is_rebooting && (state->car.is_ignition_on || state->error_codes.status != ErrorCodes_Off)) {
+    if (!state->is_rebooting && (
+        state->car.is_ignition_on ||
+            state->diagnostics.status != DiagnosticsStep_Off || // Whether diagnostics is running
+            !state->car.is_controller_connected  // Don't power off the module as we are most probably not in a car environment
+    )) {
         gpio_set_level(POWER_PIN, 1);
         ignition_off_time = 0;
         state->power_off_count_down_sec = -1;
@@ -193,57 +197,57 @@ void control_crash_detection(State *state) {
 #endif
 }
 
-void control_read_error_codes(State *state) {
-    static ErrorCodesStatus previous_status = ErrorCodes_Off;
+void control_run_diagnostics_activation(State *state) {
+    static DiagnosticsStepStatus previous_status = DiagnosticsStep_Off;
     static int64_t wait_timer_end = 0;
     static int64_t press_timer_start = 0;
     static int8_t depressed_count = 0;
 
-    if (state->error_codes.status != previous_status) {
-        if (state->error_codes.status == ErrorCodes_Off) {
+    if (state->diagnostics.status != previous_status) {
+        if (state->diagnostics.status == DiagnosticsStep_Off) {
             gas_pedal_enable(false);
             state->cruise_control.virtual_gas_pedal = 0;
             // Go back to Actions screen
             state->display.current_screen = Screen_Actions;
-        } else if (previous_status == ErrorCodes_Off) {
+        } else if (previous_status == DiagnosticsStep_Off) {
             // Start of a new process cycle
-            state->display.current_screen = Screen_ErrorCodes;
+            state->display.current_screen = Screen_ActivateDiagnostics;
         }
 
         wait_timer_end = 0;
         press_timer_start = 0;
         depressed_count = 0;
-        previous_status = state->error_codes.status;
+        previous_status = state->diagnostics.status;
     }
 
-    if (state->error_codes.status == ErrorCodes_Off) {
+    if (state->diagnostics.status == DiagnosticsStep_Off) {
         return;
     }
 
     // Init checks
     if (!state->car.is_connected) {
-        printf("[ErrorCodes] Car not connected\n");
+        printf("[Diagnostics] Car not connected\n");
         set_error(state, ERROR_CAR_DISCONNECTED);
-        state->error_codes.status = ErrorCodes_Off;
+        state->diagnostics.status = DiagnosticsStep_Off;
         return;
     }
 
     if (!state->car.is_controller_connected) {
-        printf("[ErrorCodes] Car controller not connected\n");
+        printf("[Diagnostics] Car controller not connected\n");
         set_error(state, ERROR_CAR_DISCONNECTED);
-        state->error_codes.status = ErrorCodes_Off;
+        state->diagnostics.status = DiagnosticsStep_Off;
         return;
     }
 
     if (!state->car.gas_pedal_connected) {
-        printf("[ErrorCodes] Gas pedal not connected\n");
+        printf("[Diagnostics] Gas pedal not connected\n");
         set_error(state, ERROR_PEDAL_DISCONNECTED);
-        state->error_codes.status = ErrorCodes_Off;
+        state->diagnostics.status = DiagnosticsStep_Off;
         return;
     }
 
     // Check if ignition is off before going to the next state
-    if (state->error_codes.status == ErrorCodes_IgnitionOff) {
+    if (state->diagnostics.status == DiagnosticsStep_IgnitionOff) {
         state->cruise_control.virtual_gas_pedal = 0;
         gas_pedal_write(state);
         gas_pedal_enable(true);
@@ -254,116 +258,116 @@ void control_read_error_codes(State *state) {
         if (!state->car.is_parking_brake_on) return;
         if (state->car.is_braking) return;
 
-        state->error_codes.status++;
+        state->diagnostics.status++;
         return;
     }
 
-    if (state->error_codes.status == ErrorCodes_IgnitionOffWait5Sec) {
+    if (state->diagnostics.status == DiagnosticsStep_IgnitionOffWait5Sec) {
         if (wait_timer_end <= 0) {
-            wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_0_WAIT5SEC_MS;
+            wait_timer_end = esp_timer_get_time_ms() + DIAGNOSTICS_0_WAIT5SEC_MS;
         }
 
         if (esp_timer_get_time_ms() >= wait_timer_end) {
-            state->error_codes.status++;
+            state->diagnostics.status++;
             return;
         }
 
         if (state->car.is_ignition_on) {
-            printf("[ErrorCodes] Ignition unexpectedly turned on\n");
-            state->error_codes.status = ErrorCodes_IgnitionOff;
+            printf("[Diagnostics] Ignition unexpectedly turned on\n");
+            state->diagnostics.status = DiagnosticsStep_IgnitionOff;
             return;
         }
         return;
     }
 
     // Put car in reset/boot mode
-    if (state->error_codes.status == ErrorCodes_IgnitionOn) {
+    if (state->diagnostics.status == DiagnosticsStep_IgnitionOn) {
         if (!state->car.is_ignition_on) return;
 
-        state->error_codes.status++;
-        state->error_codes.process_start_time = esp_timer_get_time_ms();
-        state->error_codes.process_estimated_end_time = state->error_codes.process_start_time +
-            ERROR_CODES_1_WAIT3SEC_MS +
-            ERROR_CODES_2_DEPRESS_PEDAL_COUNT * 2 * ERROR_CODES_2_DEPRESS_PEDAL_INTERVAL +
-            ERROR_CODES_3_WAIT7SEC_MS +
-            ERROR_CODES_4_DEPRESS_PEDAL_FULLY_TIME;
+        state->diagnostics.status++;
+        state->diagnostics.process_start_time = esp_timer_get_time_ms();
+        state->diagnostics.process_estimated_end_time = state->diagnostics.process_start_time +
+            DIAGNOSTICS_1_WAIT3SEC_MS +
+            DIAGNOSTICS_2_DEPRESS_PEDAL_COUNT * 2 * DIAGNOSTICS_2_DEPRESS_PEDAL_INTERVAL +
+            DIAGNOSTICS_3_WAIT7SEC_MS +
+            DIAGNOSTICS_4_DEPRESS_PEDAL_FULLY_TIME;
 
         return;
     }
 
     // Safety checks
     if (!state->car.is_ignition_on) {
-        printf("[ErrorCodes] Ignition unexpectedly turned off\n");
-        state->error_codes.status = ErrorCodes_IgnitionOff;
+        printf("[Diagnostics] Ignition unexpectedly turned off\n");
+        state->diagnostics.status = DiagnosticsStep_IgnitionOff;
         return;
     }
 
     if (state->car.rpm > 0) {
-        printf("[ErrorCodes] Engine unexpectedly turned on\n");
-        state->error_codes.status = ErrorCodes_IgnitionOff;
+        printf("[Diagnostics] Engine unexpectedly turned on\n");
+        state->diagnostics.status = DiagnosticsStep_IgnitionOff;
         return;
     }
 
     // Continue normal procedure
-    if (state->error_codes.status == ErrorCodes_IgnitionOnWait3Sec) {
+    if (state->diagnostics.status == DiagnosticsStep_IgnitionOnWait3Sec) {
         if (wait_timer_end <= 0) {
-            wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_1_WAIT3SEC_MS;
+            wait_timer_end = esp_timer_get_time_ms() + DIAGNOSTICS_1_WAIT3SEC_MS;
         }
 
         if (esp_timer_get_time_ms() >= wait_timer_end) {
-            state->error_codes.status++;
+            state->diagnostics.status++;
             return;
         }
     }
 
-    if (state->error_codes.status == ErrorCodes_DepressPedal5Times) {
-        if (depressed_count >= ERROR_CODES_2_DEPRESS_PEDAL_COUNT) {
+    if (state->diagnostics.status == DiagnosticsStep_DepressPedal5Times) {
+        if (depressed_count >= DIAGNOSTICS_2_DEPRESS_PEDAL_COUNT) {
             state->cruise_control.virtual_gas_pedal = 0;
             gas_pedal_write(state);
-            state->error_codes.status++;
+            state->diagnostics.status++;
             return;
         }
 
-        if (esp_timer_get_time_ms() < press_timer_start + ERROR_CODES_2_DEPRESS_PEDAL_INTERVAL) return;
+        if (esp_timer_get_time_ms() < press_timer_start + DIAGNOSTICS_2_DEPRESS_PEDAL_INTERVAL) return;
         press_timer_start = esp_timer_get_time_ms();
 
         if (state->cruise_control.virtual_gas_pedal < 0.5) {
-            printf("[ErrorCodes] Pedal in...\n");
+            printf("[Diagnostics] Pedal in...\n");
             state->cruise_control.virtual_gas_pedal = 1;
         } else {
-            printf("[ErrorCodes] Pedal out...\n");
+            printf("[Diagnostics] Pedal out...\n");
             state->cruise_control.virtual_gas_pedal = 0;
             depressed_count++;
         }
         gas_pedal_write(state);
     }
 
-    if (state->error_codes.status == ErrorCodes_OnWait7Sec) {
+    if (state->diagnostics.status == DiagnosticsStep_OnWait7Sec) {
         if (wait_timer_end <= 0) {
-            wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_3_WAIT7SEC_MS;
+            wait_timer_end = esp_timer_get_time_ms() + DIAGNOSTICS_3_WAIT7SEC_MS;
         }
 
         if (esp_timer_get_time_ms() >= wait_timer_end) {
-            state->error_codes.status++;
+            state->diagnostics.status++;
             return;
         }
     }
 
-    if (state->error_codes.status == ErrorCodes_DepressPedal10Sec) {
+    if (state->diagnostics.status == DiagnosticsStep_DepressPedal10Sec) {
         if (wait_timer_end <= 0) {
             state->cruise_control.virtual_gas_pedal = 1;
             gas_pedal_write(state);
             // Add some extra time (1000 ms) to make sure
-            wait_timer_end = esp_timer_get_time_ms() + ERROR_CODES_4_DEPRESS_PEDAL_FULLY_TIME + 1000;
+            wait_timer_end = esp_timer_get_time_ms() + DIAGNOSTICS_4_DEPRESS_PEDAL_FULLY_TIME + 1000;
         }
 
         if (esp_timer_get_time_ms() >= wait_timer_end) {
-            state->error_codes.status++;
+            state->diagnostics.status++;
             return;
         }
     }
 
-    if (state->error_codes.status == ErrorCodes_ReleasePedal) {
+    if (state->diagnostics.status == DiagnosticsStep_ReleasePedal) {
         if (wait_timer_end <= 0) {
             wait_timer_end = esp_timer_get_time_ms() + 3000;
             state->cruise_control.virtual_gas_pedal = 0;
@@ -372,7 +376,7 @@ void control_read_error_codes(State *state) {
         }
 
         if (esp_timer_get_time_ms() >= wait_timer_end) {
-            state->error_codes.status = ErrorCodes_Off;
+            state->diagnostics.status = DiagnosticsStep_Off;
             return;
         }
     }

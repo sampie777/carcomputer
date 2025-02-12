@@ -18,7 +18,7 @@ typedef enum {
     Screen_Sensors,
     Screen_Actions,
     Screen_GPS,
-    Screen_ErrorCodes,
+    Screen_ActivateDiagnostics,
     Screen_About,
     Screen_AboutCruiseControl,
     Screen_AboutCar,
@@ -35,7 +35,7 @@ typedef enum {
 
 typedef enum {
     ScreenActionsOptions_LockDoors,
-    ScreenActionsOptions_ErrorCodes,
+    ScreenActionsOptions_ActivateDiagnostics,
     ScreenActionsOptions_Reboot,
     ScreenActionsOptions_MAX_VALUE,
 } ActionsScreenOptions;
@@ -156,22 +156,22 @@ typedef struct {
 } GsmState;
 
 typedef enum {
-    ErrorCodes_Off = 0,
-    ErrorCodes_IgnitionOff,
-    ErrorCodes_IgnitionOffWait5Sec,
-    ErrorCodes_IgnitionOn,
-    ErrorCodes_IgnitionOnWait3Sec,
-    ErrorCodes_DepressPedal5Times,
-    ErrorCodes_OnWait7Sec,
-    ErrorCodes_DepressPedal10Sec,
-    ErrorCodes_ReleasePedal,
-} ErrorCodesStatus;
+    DiagnosticsStep_Off = 0,
+    DiagnosticsStep_IgnitionOff,
+    DiagnosticsStep_IgnitionOffWait5Sec,
+    DiagnosticsStep_IgnitionOn,
+    DiagnosticsStep_IgnitionOnWait3Sec,
+    DiagnosticsStep_DepressPedal5Times,
+    DiagnosticsStep_OnWait7Sec,
+    DiagnosticsStep_DepressPedal10Sec,
+    DiagnosticsStep_ReleasePedal,
+} DiagnosticsStepStatus;
 
 typedef struct {
-    ErrorCodesStatus status;
+    DiagnosticsStepStatus status;
     int64_t process_start_time;
     int64_t process_estimated_end_time;
-} ErrorCodes;
+} Diagnostics;
 
 typedef struct {
     bool is_booting;
@@ -188,7 +188,7 @@ typedef struct {
     GpsState location;
     GsmState gsm;
     A9GState a9g;
-    ErrorCodes error_codes;
+    Diagnostics diagnostics;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

@@ -172,8 +172,8 @@ void show_screen(State *state, SH1106Config *display) {
         case Screen_GPS:
             content_location_data(state, display);
             break;
-        case Screen_ErrorCodes:
-            content_error_codes(state, display);
+        case Screen_ActivateDiagnostics:
+            content_activate_diagnostics(state, display);
             break;
         case Screen_About:
             content_about(state, display);

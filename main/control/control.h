@@ -7,12 +7,12 @@
 
 #include "../state.h"
 
-#define ERROR_CODES_0_WAIT5SEC_MS (5000)
-#define ERROR_CODES_1_WAIT3SEC_MS (3000)
-#define ERROR_CODES_2_DEPRESS_PEDAL_COUNT (5)
-#define ERROR_CODES_2_DEPRESS_PEDAL_INTERVAL (400)
-#define ERROR_CODES_3_WAIT7SEC_MS (7000)
-#define ERROR_CODES_4_DEPRESS_PEDAL_FULLY_TIME (10000)
+#define DIAGNOSTICS_0_WAIT5SEC_MS (5000)
+#define DIAGNOSTICS_1_WAIT3SEC_MS (3000)
+#define DIAGNOSTICS_2_DEPRESS_PEDAL_COUNT (5)
+#define DIAGNOSTICS_2_DEPRESS_PEDAL_INTERVAL (400)
+#define DIAGNOSTICS_3_WAIT7SEC_MS (7000)
+#define DIAGNOSTICS_4_DEPRESS_PEDAL_FULLY_TIME (10000)
 
 void control_init(State *state);
 void control_read_can_bus(State *state);
@@ -24,6 +24,6 @@ void control_cruise_control(State *state);
 void control_process_car(State *state);
 void control_mpu_power(State *state);
 void control_crash_detection(State *state);
-void control_read_error_codes(State *state);
+void control_run_diagnostics_activation(State *state);
 
 #endif //APP_TEMPLATE_CONTROL_H

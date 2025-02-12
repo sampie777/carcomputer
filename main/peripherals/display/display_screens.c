@@ -203,8 +203,8 @@ char *content_actions_get_option_text(ActionsScreenOptions option_index) {
     switch (option_index) {
         case ScreenActionsOptions_LockDoors:
             return "Lock doors";
-        case ScreenActionsOptions_ErrorCodes:
-            return "Read error codes";
+        case ScreenActionsOptions_ActivateDiagnostics:
+            return "Initialize diagnostics";
         case ScreenActionsOptions_Reboot:
             return "Reboot";
         default:
@@ -296,12 +296,12 @@ void content_location_data(const State *state, SH1106Config *display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
-void content_error_codes(const State *state, SH1106Config *display) {
+void content_activate_diagnostics(const State *state, SH1106Config *display) {
     int offset_y = STATUS_BAR_HEIGHT + 5;
 
     offset_y += 10;
-    switch (state->error_codes.status) {
-        case ErrorCodes_IgnitionOff:
+    switch (state->diagnostics.status) {
+        case DiagnosticsStep_IgnitionOff:
             if (state->car.speed > 0 || !state->car.is_parking_brake_on) {
                 sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Park the car.");
             } else if (state->car.is_braking) {
@@ -310,15 +310,15 @@ void content_error_codes(const State *state, SH1106Config *display) {
                 sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Turn ignition off.");
             }
             return;
-        case ErrorCodes_IgnitionOffWait5Sec:
+        case DiagnosticsStep_IgnitionOffWait5Sec:
             sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Just a moment...");
             return;
-        case ErrorCodes_IgnitionOn:
+        case DiagnosticsStep_IgnitionOn:
             sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Turn ignition on.");
             offset_y += 15;
             sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Do NOT start the car!");
             return;
-        case ErrorCodes_ReleasePedal:
+        case DiagnosticsStep_ReleasePedal:
             sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Done.");
             return;
         default:
@@ -326,9 +326,9 @@ void content_error_codes(const State *state, SH1106Config *display) {
     }
     offset_y -= 10;
 
-    double total_time = (double) (state->error_codes.process_estimated_end_time -
-        state->error_codes.process_start_time);
-    double current_time = (double) (esp_timer_get_time_ms() - state->error_codes.process_start_time);
+    double total_time = (double) (state->diagnostics.process_estimated_end_time -
+        state->diagnostics.process_start_time);
+    double current_time = (double) (esp_timer_get_time_ms() - state->diagnostics.process_start_time);
     double progress = min(1.0, max(0, current_time / total_time));
 
     sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Running procedure...");
