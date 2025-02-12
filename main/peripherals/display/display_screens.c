@@ -249,7 +249,7 @@ void content_actions(const State *state, SH1106Config *display) {
 void content_location_data(const State *state, SH1106Config *display) {
     int offset_x = 0;
     int offset_y = STATUS_BAR_HEIGHT + 5;
-    char buffer[32];
+    char buffer[64];
 
     if (!state->a9g.gps_logging_started) {
         if (state->a9g.gps_logging_enabled) {
@@ -297,6 +297,11 @@ void content_location_data(const State *state, SH1106Config *display) {
     snprintf(buffer, sizeof buffer, "%6.2lf km/h @ %6.1lf*",
              state->location.ground_speed,
              state->location.ground_heading);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_y += 10;
+    if (state->gsm.sim_status == SIM_PRESENT) strcpy(buffer, "SIM");
+    if (state->gsm.sim_status == SIM_NOT_PRESENT) strcpy(buffer, "NO SIM");
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 

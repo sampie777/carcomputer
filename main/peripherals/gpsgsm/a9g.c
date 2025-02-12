@@ -333,11 +333,12 @@ void a9g_proceed_device_init(State *state) {
         return;
     }
 
-    enum SimStatus sim_status = a9g_check_if_has_sim();
-    state->gsm.has_sim = sim_status == SIM_PRESENT;
+    if (state->gsm.sim_status == SIM_UNKNOWN) {
+        state->gsm.sim_status = a9g_check_if_has_sim();
+    }
 
-    if (sim_status == SIM_UNKNOWN) return;
-    if (sim_status == SIM_NOT_PRESENT) {
+    if (state->gsm.sim_status == SIM_UNKNOWN) return;
+    if (state->gsm.sim_status == SIM_NOT_PRESENT) {
         if (!a9g_check_if_gps_enabled(&(state->a9g))) return;
         if (!a9g_check_if_gps_logging_enabled(&(state->a9g))) return;
         return;
