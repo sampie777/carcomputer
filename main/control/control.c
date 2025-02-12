@@ -63,6 +63,8 @@ void control_init(State *state) {
 }
 
 CarGearPosition estimate_car_gear(CarState *car) {
+    static double ratio = 0;
+
     if (car->is_in_reverse) {
         return GearReverse;
     }
@@ -71,7 +73,7 @@ CarGearPosition estimate_car_gear(CarState *car) {
         return GearNeutral;
     }
 
-    double ratio = car->speed / car->rpm_raw * 10000;
+    ratio = ratio * 0.8 + 0.2 * (car->speed / car->rpm_raw * 10000);
     if (ratio > CAR_GEAR_1_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_1_RATIO + CAR_GEAR_RATIO_SLACK)
         return Gear1;
     if (ratio > CAR_GEAR_2_RATIO - CAR_GEAR_RATIO_SLACK && ratio < CAR_GEAR_2_RATIO + CAR_GEAR_RATIO_SLACK)

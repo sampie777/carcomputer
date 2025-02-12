@@ -66,6 +66,7 @@ void content_main_menu(const State *state, SH1106Config *display) {
 }
 
 void content_cruise_control(State *state, SH1106Config *display) {
+    static double ratio_raw = 0;
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 10;
     char buffer[20];
@@ -96,11 +97,13 @@ void content_cruise_control(State *state, SH1106Config *display) {
 
     offset_x += 20;
     offset_y += 7;
-    sprintf(buffer, "%.1f m/s2", state->car.acceleration);
+    static double acceleration = 0;
+    acceleration = acceleration * 0.7 + 0.3 * state->car.acceleration;
+    sprintf(buffer, "%.1f m/s2", acceleration);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     offset_y -= 9;
-    double ratio_raw = state->car.rpm == 0 ? 0 : state->car.speed / state->car.rpm_raw * 10000;
+    ratio_raw = ratio_raw * 0.75 + 0.25 * (state->car.rpm == 0 ? 0 : state->car.speed / state->car.rpm_raw * 10000);
     sprintf(buffer, "%.1f", ratio_raw);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
