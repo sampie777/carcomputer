@@ -19,7 +19,7 @@
 #define A9G_GPS_ENABLE "AT+GPS=1"
 #define A9G_GPS_DISABLE "AT+GPS=0"
 #define A9G_GPSRD_ENABLE "AT+GPSRD=1"
-#define A9G_GET_SIGNAL_QUALITY "AT+CSQ"
+#define A9G_GET_SIGNAL_QUALITY "AT+CSQ" // 0-31 signal strength, https://m2msupport.net/m2msupport/atcsq-signal-quality/
 #define A9G_RESET "AT+RST=1"
 
 typedef struct {

@@ -43,23 +43,6 @@ _Noreturn void task_primary(void *args) {
 
 //            debug_print_message_log();
 
-//            printf("%d:%02d:%02d  %d-%d-%04d; ",
-//                   state->location.time.hours,
-//                   state->location.time.minutes,
-//                   state->location.time.seconds,
-//                   state->location.time.day,
-//                   state->location.time.month,
-//                   state->location.time.year
-//            );
-//
-//            printf("%.5lf, %.5lf; ", state->location.latitude, state->location.longitude);
-//            printf("Q:%d S:%d E:%d A:%.0lf; ",
-//                   state->location.quality,
-//                   state->location.satellites,
-//                   state->location.is_effective_positioning,
-//                   state->location.altitude);
-//            printf("%6.2lf km/h @ %6.1lf*", state->location.ground_speed, state->location.ground_heading);
-
             printf(""
                    "[%c] initialized; \n"
                    "[%c] network_attached; \n"
@@ -79,6 +62,24 @@ _Noreturn void task_primary(void *args) {
                    state->a9g.gps_logging_enabled ? 'Y' : 'N',
                    state->a9g.gps_logging_started ? 'Y' : 'N'
             );
+            printf("\n");
+
+            printf("%d:%02d:%02d  %d-%d-%04d; ",
+                   state->location.time.hours,
+                   state->location.time.minutes,
+                   state->location.time.seconds,
+                   state->location.time.day,
+                   state->location.time.month,
+                   state->location.time.year
+            );
+
+            printf("%.5lf, %.5lf; ", state->location.latitude, state->location.longitude);
+            printf("Q:%d S:%d E:%d A:%.0lf; ",
+                   state->location.quality,
+                   state->location.satellites,
+                   state->location.is_effective_positioning,
+                   state->location.altitude);
+            printf("%6.2lf km/h @ %6.1lf*", state->location.ground_speed, state->location.ground_heading);
             printf("\n");
         }
 

@@ -3,7 +3,6 @@
 //
 
 #include "a9g.h"
-#include "../../config.h"
 #include "../../utils.h"
 #include "../../error_codes.h"
 #include "driver/uart.h"
@@ -11,7 +10,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include <string.h>
-#include <os/os.h>
 
 #include "gpsgsm.h"
 #include "utils.h"
@@ -29,11 +27,15 @@ void debug_print_message_log() {
         return;
     }
     for (int i = 0; i < message_log_length; i++) {
-        printf("DEBUG [GPS] Log: %d [%lld] '%s' %d\n", i, message_log_timestamps[i], message_log[i], strlen(message_log[i]));
+        printf("DEBUG [GPS] Log: %d [%lld] '%s' %d\n", i, message_log_timestamps[i], message_log[i],
+               strlen(message_log[i]));
     }
 }
 
 void a9g_log_message(const char *message) {
+    // Ignore battery messages
+    if (starts_with(message, "+CIEV")) return;
+
     if (message_log_length >= MESSAGE_LOG_MAX_LENGTH) {
         // Shift all messages one up
         for (int i = 0; i < MESSAGE_LOG_MAX_LENGTH - 1; i++) {
@@ -47,7 +49,7 @@ void a9g_log_message(const char *message) {
     message_log_timestamps[message_log_length] = esp_timer_get_time_ms();
     message_log_length++;
 
-    debug_print_message_log();
+//    debug_print_message_log();
     printf("\n");
 }
 
@@ -207,18 +209,23 @@ bool a9g_send_and_wait_for_command(const char *command) {
     // Check if we got a response already
     int command_received_index = message_logs_contains_exact(command);
 
-    printf("%d / %d\t", command_received_index, message_log_length);
+//    printf("%d / %d\t", command_received_index, message_log_length);
     if (command_received_index < 0 || message_log_length <= command_received_index + 1) {
-        printf("Command %s not received\n", command);
+//        printf("Command %s not received\n", command);
         return false;
     }
 
     bool command_is_ok = strcmp(message_log[command_received_index + 1], "OK") == 0;
+    // Also check the next line for some cases (CGATT) returns OK after 1 line instead of after 0 lines
+    if (message_log_length > command_received_index + 2) {
+        command_is_ok |= strcmp(message_log[command_received_index + 2], "OK") == 0;
+    }
+
     if (command_is_ok) {
         printf("Command %s is OK\n", command);
     } else {
-        printf("Command %s is not OK: %d '%s'\n", command, command_received_index,
-               message_log[command_received_index + 1]);
+//        printf("Command %s is not OK: %d '%s'\n", command, command_received_index,
+//               message_log[command_received_index + 1]);
     }
     return command_is_ok;
 }
@@ -229,7 +236,7 @@ bool a9g_check_if_we_have_network_connection() {
     int command_received_index;
     for (command_received_index = message_log_length - 1; command_received_index >= 0; command_received_index--) {
         if (starts_with(message_log[command_received_index], "+CREG: ") &&
-            strlen(message_log[command_received_index]) >= strlen("+CREG: 0,1")) {
+            message_log[command_received_index][9] == '1') {
             break;
         }
     }
@@ -282,8 +289,28 @@ bool a9g_check_if_pnp_activated(A9GState *state) {
 
 bool a9g_check_if_agps_enabled(A9GState *state) {
     if (state->agps_enabled) return true;
-    state->agps_enabled = a9g_send_and_wait_for_command(A9G_AGPS_ENABLE);
-    return state->agps_enabled;
+    if (send_command_if_not_already_sent(A9G_AGPS_ENABLE)) return false;
+
+    // Check if we got a response already
+    int command_received_index = message_logs_contains_exact(A9G_AGPS_ENABLE);
+    if (command_received_index < 0 || message_log_length <= command_received_index + 1) return false;
+
+    bool command_is_ok = strcmp(message_log[command_received_index + 1], "+AGPS:GPD OK") == 0;
+    if (message_log_length > command_received_index + 2) {
+        command_is_ok |= strcmp(message_log[command_received_index + 2], "+AGPS:GPD OK") == 0;
+    }
+
+    if (command_is_ok) {
+        state->agps_enabled = true;
+        return true;
+    }
+
+    bool command_is_error = starts_with(message_log[command_received_index + 1], "+CME ERROR");
+    if (message_log_length > command_received_index + 2) {
+        command_is_error |= starts_with(message_log[command_received_index + 2], "+CME ERROR");
+    }
+    state->agps_enabled = command_is_error;
+    return command_is_error;
 }
 
 bool a9g_check_if_gps_enabled(A9GState *state) {
@@ -317,11 +344,11 @@ void a9g_proceed_device_init(State *state) {
     }
 
     if (!a9g_check_if_network_attached(&(state->a9g))) return;
-    // if (!a9g_check_if_pnp_parameters_set(&(state->a9g))) return;
-    // if (!a9g_check_if_pnp_activated(&(state->a9g))) return;
-    // if (!a9g_check_if_agps_enabled(&(state->a9g))) return;
-    // if (!a9g_check_if_gps_enabled(&(state->a9g))) return;
-    // if (!a9g_check_if_gps_logging_enabled(&(state->a9g))) return;
+    if (!a9g_check_if_pnp_parameters_set(&(state->a9g))) return;
+    if (!a9g_check_if_pnp_activated(&(state->a9g))) return;
+    if (!a9g_check_if_agps_enabled(&(state->a9g))) return;
+    if (!a9g_check_if_gps_enabled(&(state->a9g))) return;
+    if (!a9g_check_if_gps_logging_enabled(&(state->a9g))) return;
 }
 
 void a9g_process_messages(State *state) {
@@ -452,4 +479,5 @@ void a9g_process(State *state) {
 
 void a9g_init(State *state) {
     gpsgsm_init(&state->a9g);
+    a9g_reset(state);
 }

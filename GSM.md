@@ -31,6 +31,16 @@ OK
 COMMAND NO RESPONS!
 ```
 
+```
+AT+CGDCONT=1,"IP","internet","0.0.0.0",0,0
+# or? AT+CGDCONT=1,"IP","CMNET"
+
+AT+CGACT=1,1
+
+AT+GPS=0
+
+AT+AGPS=1
+```
 
 ## Receiving a call
 
