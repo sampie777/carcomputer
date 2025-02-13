@@ -73,6 +73,10 @@ void control_buttons_handle(State *state, Button button) {
                 state->display.current_screen = Screen_SensorsMotion;
                 break;
             }
+            if (state->display.current_screen == Screen_GPS) {
+                state->display.current_screen = Screen_SensorsInputs;
+                break;
+            }
             if (state->display.current_screen == Screen_AboutCruiseControl) {
                 state->display.current_screen = Screen_About;
                 break;
@@ -104,6 +108,10 @@ void control_buttons_handle(State *state, Button button) {
             }
             if (state->display.current_screen == Screen_SensorsMotion) {
                 state->display.current_screen = Screen_SensorsInputs;
+                break;
+            }
+            if (state->display.current_screen == Screen_SensorsInputs) {
+                state->display.current_screen = Screen_GPS;
                 break;
             }
             if (state->display.current_screen == Screen_About) {
@@ -141,6 +149,7 @@ void control_buttons_handle(State *state, Button button) {
             if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl)
                 || state->display.current_screen == Screen_SensorsMotion
                 || state->display.current_screen == Screen_SensorsInputs
+                || state->display.current_screen == Screen_GPS
                 || state->display.current_screen == Screen_Actions
                 || state->display.current_screen == Screen_About
                 || state->display.current_screen == Screen_AboutCruiseControl
