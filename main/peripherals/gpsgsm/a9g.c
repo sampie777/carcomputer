@@ -26,10 +26,11 @@ void debug_print_message_log() {
         printf("DEBUG [GPS] No messages in log\n");
         return;
     }
-    for (int i = 0; i < message_log_length; i++) {
+    int i = message_log_length - 1;
+//    for (int i = 0; i < message_log_length; i++) {
         printf("DEBUG [GPS] Log: %d [%lld] '%s' %d\n", i, message_log_timestamps[i], message_log[i],
                strlen(message_log[i]));
-    }
+//    }
 }
 
 void a9g_log_message(const char *message) {
@@ -50,7 +51,6 @@ void a9g_log_message(const char *message) {
     message_log_length++;
 
 //    debug_print_message_log();
-    printf("\n");
 }
 
 void a9g_transmit(const char *data, uint8_t with_break) {
