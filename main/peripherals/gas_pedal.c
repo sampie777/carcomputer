@@ -30,13 +30,13 @@ double read_pedal_volts(adc_channel_t channel, int sample_count_factor) {
 }
 
 void read_pedals(State *state, int sample_count_factor) {
-    state->car.gas_pedal_0_volts = read_pedal_volts(CAR_GAS_PEDAL_ADC_CHANNEL_0, sample_count_factor);
+    state->car.gas_pedal_0_volts = state->car.gas_pedal_0_volts * 0.9 + 0.1 * read_pedal_volts(CAR_GAS_PEDAL_ADC_CHANNEL_0, sample_count_factor);
 
     // Give ADC time to settle for 10 clock cycles, otherwise next reading will be influenced
     for (volatile int i = 0; i < 10; i++) {
     }
 
-    state->car.gas_pedal_1_volts = read_pedal_volts(CAR_GAS_PEDAL_ADC_CHANNEL_1, sample_count_factor);
+    state->car.gas_pedal_1_volts = state->car.gas_pedal_1_volts * 0.9 + 0.1 * read_pedal_volts(CAR_GAS_PEDAL_ADC_CHANNEL_1, sample_count_factor);
 }
 
 void set_pedal_volts(ledc_channel_t channel, double voltage) {
@@ -107,7 +107,7 @@ int gas_pedal_read(State *state) {
         double difference = state->car.gas_pedal_1_max_value_volts - state->car.gas_pedal_1_min_value_volts;
         gas_pedal = max(0.0, (state->car.gas_pedal_1_volts - state->car.gas_pedal_1_min_value_volts) / difference);
     }
-    state->car.gas_pedal = state->car.gas_pedal * 0.92 + 0.08 * gas_pedal;
+    state->car.gas_pedal = state->car.gas_pedal * 0.1 + 0.9 * gas_pedal;
 
     return RESULT_OK;
 }
