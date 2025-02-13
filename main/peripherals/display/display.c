@@ -100,12 +100,22 @@ void show_error_message(State *state, SH1106Config *display) {
 
 void show_statusbar(State *state, SH1106Config *display) {
     static int64_t last_long_blink_time = 0;
+    static int64_t last_short_blink_time = 0;
     static uint8_t long_blink_state = false;
+    static uint8_t short_blink_state = false;
     char buffer[4];
 
     if (esp_timer_get_time_ms() > last_long_blink_time + DISPLAY_LONG_BLINK_INTERVAL) {
-        long_blink_state = !long_blink_state;
         last_long_blink_time = esp_timer_get_time_ms();
+        long_blink_state = !long_blink_state;
+
+        last_short_blink_time = last_long_blink_time;
+        short_blink_state = long_blink_state;
+    }
+
+    if (esp_timer_get_time_ms() > last_short_blink_time + DISPLAY_SHORT_BLINK_PULSE_LENGTH) {
+        last_short_blink_time = esp_timer_get_time_ms();
+        short_blink_state = false;
     }
 
     if (state->cruise_control.enabled) {
@@ -117,7 +127,7 @@ void show_statusbar(State *state, SH1106Config *display) {
     int offset_right = display->width + 1;
 
     offset_right -= 3 + font_width;
-    if (state->storage.is_connected) {
+    if (state->storage.is_connected && (state->storage.filename[0] != 0 || long_blink_state)) {
         sprintf(buffer, "%c", SPECIAL_CHAR_SD_CARD);
         sh1106_draw_string(display, offset_right, 1, FONT_SMALL, FONT_WHITE, buffer);
     }
@@ -129,7 +139,10 @@ void show_statusbar(State *state, SH1106Config *display) {
     }
 
     offset_right -= 3 + font_width;
-    if (state->location.quality > 0 || (long_blink_state && state->location.is_gps_on)) {
+    if (state->location.quality > 0
+        || (long_blink_state && state->location.is_gps_on)
+        || (short_blink_state && state->a9g.initialized)
+        ) {
         sprintf(buffer, "%c", SPECIAL_CHAR_LOCATION);
         sh1106_draw_string(display, offset_right, 1, FONT_SMALL, FONT_WHITE, buffer);
     }
