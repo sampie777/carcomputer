@@ -25,7 +25,7 @@ void data_logger_init_file(State *state, const char *preferred_file_name) {
                         ? "Default"
                         : state->device_name;
 
-    if (sd_card_create_file_incremental(device_name,
+    if (sd_card_create_file_incremental(&state->boot, device_name,
                                         preferred_file_name,
                                         "csv",
                                         state->storage.filename) == RESULT_OVERFLOW) {

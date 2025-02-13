@@ -18,7 +18,7 @@ void delay_ms(unsigned long ms) {
 }
 
 void utils_reboot(State *state) {
-    state->is_rebooting = true;
+    state->boot.is_rebooting = true;
 }
 
 uint8_t starts_with(const char *source, const char *needle) {
@@ -163,8 +163,8 @@ double scale(double value, double min, double max) {
 void debug_state(const State *state) {
     printf("State:\n");
 
-    printf("\tis_booting: %c\n", state->is_booting ? 'y' : 'n');
-    printf("\tis_rebooting: %c\n", state->is_rebooting ? 'y' : 'n');
+    printf("\tis_booting: %c\n", state->boot.is_booting ? 'y' : 'n');
+    printf("\tis_rebooting: %c\n", state->boot.is_rebooting ? 'y' : 'n');
     printf("\tpower_off_count_down_sec: %hd\n", state->power_off_count_down_sec);
     printf("\tlogging_session_id: %lu\n", state->logging_session_id);
     printf("\terrors: %lu\n", state->errors);

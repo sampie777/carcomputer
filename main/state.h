@@ -182,6 +182,11 @@ typedef struct {
 typedef struct {
     bool is_booting;
     bool is_rebooting;
+    int max_progress;
+    int progress;
+} BootState;
+
+typedef struct {
     int16_t power_off_count_down_sec;
     uint32_t logging_session_id;
     uint32_t errors;
@@ -196,6 +201,7 @@ typedef struct {
     A9GState a9g;
     Diagnostics diagnostics;
     ButtonsState buttons;
+    BootState boot;
 } State;
 
 #endif //APP_TEMPLATE_STATE_H

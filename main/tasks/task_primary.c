@@ -14,14 +14,29 @@
 #include "../peripherals/adc.h"
 
 void init(State *state) {
-    adc_oneshot_init();
-    i2c_init();
-    spi_init(state);
-    control_init(state);
-    a9g_init(state);
-    data_logger_init(state);
+    state->boot.max_progress = 6;
+    state->boot.max_progress += SD_FILE_SEARCH_MIN_POWER;
+    state->boot.progress = 0;
 
-    state->is_booting = false;
+    adc_oneshot_init();
+    state->boot.progress++;
+
+    i2c_init();
+    state->boot.progress++;
+
+    spi_init(state);
+    state->boot.progress++;
+
+    control_init(state);
+    state->boot.progress++;
+
+    a9g_init(state);
+    state->boot.progress++;
+
+    data_logger_init(state);
+    state->boot.progress++;
+
+    state->boot.is_booting = false;
 
     printf("Init done.\n");
 
@@ -38,8 +53,13 @@ _Noreturn void task_primary(void *args) {
     while (1) {
         wdt_feed(CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000);
 
-        if (esp_timer_get_time_ms() > last_time + 1000) {
-//            last_time = esp_timer_get_time_ms();
+        if (esp_timer_get_time_ms() > last_time + 5000) {
+            last_time = esp_timer_get_time_ms();
+
+//            state->display.current_screen++;
+//            if (state->display.current_screen > Screen_AboutCar) {
+//                state->display.current_screen = 0;
+//            }
 //
 ////            debug_print_message_log();
 //

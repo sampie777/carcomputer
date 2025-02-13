@@ -111,7 +111,7 @@ void control_process_car(State *state) {
 
 void control_mpu_power(State *state) {
     static int64_t ignition_off_time = 0;
-    if (!state->is_rebooting && (
+    if (!state->boot.is_rebooting && (
         state->car.is_ignition_on ||
             state->diagnostics.status != DiagnosticsStep_Off || // Whether diagnostics is running
             !state->car.is_controller_connected  // Don't power off the module as we are most probably not in a car environment
@@ -134,7 +134,7 @@ void control_mpu_power(State *state) {
 
     state->power_off_count_down_sec = 0;
 
-    if (state->is_rebooting) {
+    if (state->boot.is_rebooting) {
         esp_restart();
     } else {
         gpio_set_level(POWER_PIN, 0);

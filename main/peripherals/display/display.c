@@ -149,12 +149,7 @@ void show_content_overlay(State *state, SH1106Config *display) {
 void show_screen(State *state, SH1106Config *display) {
     switch (state->display.current_screen) {
         case Screen_Booting:
-            sh1106_draw_string_centered_x(display,
-                                          STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2 - 4,
-                                          FONT_SMALL, FONT_WHITE, "Booting...");
-            sh1106_draw_string_centered_x(display,
-                                          STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2 + 7,
-                                          FONT_SMALL, FONT_WHITE, APP_VERSION);
+            content_boot_screen(state, display);
             break;
         case Screen_Rebooting:
             sh1106_draw_string_centered_x(display, STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2,
@@ -194,11 +189,11 @@ void show_screen(State *state, SH1106Config *display) {
 }
 
 void set_current_screen(State *state) {
-    if (state->is_rebooting) {
+    if (state->boot.is_rebooting) {
         state->display.current_screen = Screen_Rebooting;
         return;
     }
-    if (state->is_booting) {
+    if (state->boot.is_booting) {
         state->display.current_screen = Screen_Booting;
         return;
     }

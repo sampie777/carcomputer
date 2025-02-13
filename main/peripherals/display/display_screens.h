@@ -19,5 +19,6 @@ void content_activate_diagnostics(const State *state, SH1106Config *display);
 void content_about(const State *state, SH1106Config *display);
 void content_about_cruise_control(const State *state, SH1106Config *display);
 void content_about_car(const State *state, SH1106Config *display);
+void content_boot_screen(const State *state, SH1106Config *display);
 
 #endif //CARCOMPUTER_DISPLAY_SCREENS_H

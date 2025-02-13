@@ -8,6 +8,7 @@
 #include "../../utils.h"
 #include "../adc.h"
 #include "special_chars.h"
+#include "../../version.h"
 
 /**
  * Display all available ASCII characters on the current screen.
@@ -478,16 +479,18 @@ void content_about_car(const State *state, SH1106Config *display) {
     sprintf(buffer, "%c Brake", state->car.is_braking ? SPECIAL_CHAR_CIRCLE_CLOSED : SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 9;
-    sprintf(buffer, "%c Ignition", state->car.is_ignition_on ? SPECIAL_CHAR_CIRCLE_CLOSED: SPECIAL_CHAR_CIRCLE_OPEN);
+    sprintf(buffer, "%c Ignition", state->car.is_ignition_on ? SPECIAL_CHAR_CIRCLE_CLOSED : SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 9;
-    sprintf(buffer, "%c Blower", state->car.is_blower_on ? SPECIAL_CHAR_CIRCLE_CLOSED: SPECIAL_CHAR_CIRCLE_OPEN);
+    sprintf(buffer, "%c Blower", state->car.is_blower_on ? SPECIAL_CHAR_CIRCLE_CLOSED : SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 9;
-    sprintf(buffer, "%c Driver door locked", state->car.is_drivers_door_locked ? SPECIAL_CHAR_CIRCLE_CLOSED: SPECIAL_CHAR_CIRCLE_OPEN);
+    sprintf(buffer, "%c Driver door locked",
+            state->car.is_drivers_door_locked ? SPECIAL_CHAR_CIRCLE_CLOSED : SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     offset_y += 9;
-    sprintf(buffer, "%c Other doors locked", state->car.is_other_doors_locked ? SPECIAL_CHAR_CIRCLE_CLOSED: SPECIAL_CHAR_CIRCLE_OPEN);
+    sprintf(buffer, "%c Other doors locked",
+            state->car.is_other_doors_locked ? SPECIAL_CHAR_CIRCLE_CLOSED : SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 //    offset_y += 9;
 //    sprintf(buffer, "[%c] Parking brake", state->car.is_parking_brake_on ? 'Y' : ' ');
@@ -495,9 +498,40 @@ void content_about_car(const State *state, SH1106Config *display) {
 
     offset_x = display->width / 2;
     offset_y = STATUS_BAR_HEIGHT + 5;
-    sprintf(buffer, "%c Locked", state->car.is_locked ? SPECIAL_CHAR_CIRCLE_CLOSED: SPECIAL_CHAR_CIRCLE_OPEN);
+    sprintf(buffer, "%c Locked", state->car.is_locked ? SPECIAL_CHAR_CIRCLE_CLOSED : SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-//    offset_y += 9;
-//    sprintf(buffer, "[%c] Other doors", state->car.is_other_doors_open ? 'Y' : ' ');
-//    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+}
+
+void content_boot_screen(const State *state, SH1106Config *display) {
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    char buffer[32];
+
+    offset_y = STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2 - 10;
+    sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Booting...");
+    offset_y += 11;
+    snprintf(buffer, sizeof buffer, "v%s", APP_VERSION);
+    sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_y += 20;
+
+    // Animate progress
+    if (state->boot.max_progress == 0) return;
+    double progress = (double) state->boot.progress / state->boot.max_progress;
+
+    // Draw the container
+    int virtual_pedal_container_x = 20;
+    int virtual_pedal_container_height = 5;
+    int virtual_pedal_container_width = display->width - virtual_pedal_container_x * 2;
+    sh1106_draw_horizontal_line(display, virtual_pedal_container_x, offset_y, virtual_pedal_container_width);
+    sh1106_draw_horizontal_line(display, virtual_pedal_container_x, offset_y + virtual_pedal_container_height - 1,
+                                virtual_pedal_container_width);
+    sh1106_draw_vertical_line(display, virtual_pedal_container_x - 1, offset_y + 1, virtual_pedal_container_height - 2);
+    sh1106_draw_vertical_line(display, virtual_pedal_container_x + virtual_pedal_container_width, offset_y + 1,
+                              virtual_pedal_container_height - 2);
+
+    // Draw the value
+    int virtual_pedal_value_width = (int) (progress * (virtual_pedal_container_width - 2));
+    int virtual_pedal_value_x = virtual_pedal_container_x + 1;
+    sh1106_draw_filled_rectangle(display, virtual_pedal_value_x, offset_y + 2, virtual_pedal_value_width,
+                                 virtual_pedal_container_height - 4);
 }

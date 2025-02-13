@@ -13,7 +13,7 @@ void app_main(void) {
     printf("APP_VERSION %s\n", APP_VERSION);
 
     static State state = {0};
-    state.is_booting = true;
+    state.boot.is_booting = true;
     state.power_off_count_down_sec = -1;
     state.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
     state.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;

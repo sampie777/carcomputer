@@ -201,7 +201,7 @@ int sd_card_does_filename_exists(const char *directory,
   * @param base_file_name
   * @param file_name_out    The new file name will be stored in here (size: PATH_MAX_LENGTH)
   */
-int sd_card_create_file_incremental(const char *directory,
+int sd_card_create_file_incremental(BootState *boot_state, const char *directory,
                                     const char *base_file_name,
                                     const char *base_file_extension,
                                     char *file_name_out) {
@@ -211,11 +211,13 @@ int sd_card_create_file_incremental(const char *directory,
     sd_card_create_directory(directory, created_directory);
 
     // Optimize the search for the next available file name using binary search
-    int32_t x = 1 << 15;
+    int32_t x = 1 << SD_FILE_SEARCH_MAX_POWER;
 
     // Cut search time drastically as we don't expect 65000 trips
-    if (!sd_card_does_filename_exists(created_directory, base_file_name, 1 << 9, base_file_extension)) {
-        x = 1 << 8;
+    if (!sd_card_does_filename_exists(created_directory, base_file_name, 1 << (SD_FILE_SEARCH_MIN_POWER + 1), base_file_extension)) {
+        x = 1 << SD_FILE_SEARCH_MIN_POWER;
+    } else {
+        boot_state->max_progress += SD_FILE_SEARCH_MAX_POWER - SD_FILE_SEARCH_MIN_POWER;
     }
 
     uint16_t i = x;
@@ -228,6 +230,8 @@ int sd_card_create_file_incremental(const char *directory,
             if (x == 0) i++;
             i += x;
         }
+
+        boot_state->progress++;
     }
 
     snprintf(new_file_name, sizeof(new_file_name), "%s/%s-%d.%s",
