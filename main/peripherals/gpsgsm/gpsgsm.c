@@ -83,10 +83,13 @@ void process_ctzv_message(State *state, const char *message) {
     extract_ctzv_message(message, &time);
 
     // We can ignore day etc, as we don't expect the device running that long
-    if (time.seconds <= state->gsm.time.seconds
-        && time.minutes <= state->gsm.time.minutes
-        && time.hours <= state->gsm.time.hours)
-        return;
+    uint64_t total_seconds = time.seconds
+        + time.minutes * 60
+        + time.hours * 3600;
+    uint64_t total_seconds_current = state->gsm.time.seconds
+        + state->gsm.time.minutes * 60
+        + state->gsm.time.hours * 3600;
+    if (total_seconds <= total_seconds_current) return;
 
     memcpy(&(state->gsm.time), &time, sizeof(time));
 
