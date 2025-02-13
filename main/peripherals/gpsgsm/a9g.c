@@ -360,7 +360,9 @@ void a9g_process_messages(State *state) {
     bool process_ctzv_message_done = false;
 
     for (int i = message_log_length - 1; i >= 0; i--) {
-        if (!process_gngga_message_done && starts_with(message_log[i], "$GNGGA")) {
+        if (!process_gngga_message_done &&
+            (starts_with(message_log[i], "$GNGGA")
+                || starts_with(message_log[i], "+GPSRD:$GNGGA"))) {
             state->a9g.gps_logging_started = true;
             state->location.is_gps_on = true;
             process_gngga_message(state, message_log[i]);
