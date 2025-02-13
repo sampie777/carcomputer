@@ -9,6 +9,7 @@
 #include "../adc.h"
 #include "special_chars.h"
 #include "../../version.h"
+#include "font.h"
 
 /**
  * Display all available ASCII characters on the current screen.
@@ -24,11 +25,11 @@ void content_alphabet(const State *state, SH1106Config *display) {
 
     uint8_t current_char = last_char;
     for (int y = 0; y < (display->height - STATUS_BAR_HEIGHT) / 10; y++) {
-        for (int x = 0; x < display->width / 6; x++) {
+        for (int x = 0; x < display->width / (font_width + 1); x++) {
             if ((x > 0 || y > 0) && current_char == 0) break;
 
             sprintf(buffer, "%c", current_char++);
-            sh1106_draw_string(display, x * 6, offset_y + y * 10, FONT_SMALL, FONT_WHITE, buffer);
+            sh1106_draw_string(display, x * (font_width + 1), offset_y + y * 10, FONT_SMALL, FONT_WHITE, buffer);
         }
     }
 
@@ -237,20 +238,20 @@ void content_sensors_input(const State *state, SH1106Config *display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     offset_y += 10;
-    offset_x += 7 * 6;
+    offset_x += 7 * (font_width + 1);
     snprintf(buffer, sizeof buffer, "%4.2f", state->car.gas_pedal_0_volts);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-    offset_x += 5 * 6;
+    offset_x += 5 * (font_width + 1);
     snprintf(buffer, sizeof buffer, "%4.2f", state->car.gas_pedal_1_volts);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-    offset_x += 5 * 6;
+    offset_x += 5 * (font_width + 1);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "V");
 
     offset_x = 2;
     offset_y += 10;
     snprintf(buffer, sizeof buffer, "Buttons: %4d", state->buttons.button0);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-    offset_x += 14 * 6;
+    offset_x += 14 * (font_width + 1);
     snprintf(buffer, sizeof buffer, "%4d", state->buttons.button1);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
@@ -294,9 +295,39 @@ void content_actions(const State *state, SH1106Config *display) {
 }
 
 void content_location_data(const State *state, SH1106Config *display) {
-    int offset_x = 0;
-    int offset_y = STATUS_BAR_HEIGHT + 5;
+    int offset_x = 1;
+    int offset_y;
     char buffer[64];
+
+    // Display GSM state
+    offset_y = display->height - 10;
+    if (state->gsm.time.year > 2000) {
+        snprintf(buffer, sizeof buffer, "%2d:%02d:%02d",
+                 state->gsm.time.hours,
+                 state->gsm.time.minutes,
+                 state->gsm.time.seconds
+        );
+        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    }
+
+    offset_x += 9 * (font_width + 1);
+    if (state->gsm.time.year > 2000) {
+        snprintf(buffer, sizeof buffer, "%2d-%02d",
+                 state->gsm.time.day,
+                 state->gsm.time.month
+        );
+        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    }
+
+    offset_x = display->width - 6 * (font_width + 1);
+    if (state->gsm.sim_status != SIM_UNKNOWN) {
+        sprintf(buffer, "%c SIM",
+                state->gsm.sim_status == SIM_PRESENT ? SPECIAL_CHAR_TICK_MARK : SPECIAL_CHAR_CROSS_MARK);
+        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    }
+
+    offset_x = 1;
+    offset_y = STATUS_BAR_HEIGHT + 5;
 
     if (!state->a9g.gps_logging_started) {
         if (state->a9g.gps_logging_enabled) {
@@ -318,13 +349,13 @@ void content_location_data(const State *state, SH1106Config *display) {
         return;
     }
 
-    snprintf(buffer, sizeof buffer, "%d:%02d:%02d",
+    snprintf(buffer, sizeof buffer, "%2d:%02d:%02d",
              state->location.time.hours,
              state->location.time.minutes,
              state->location.time.seconds
     );
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-    snprintf(buffer, sizeof buffer, "%d-%02d-%04d",
+    snprintf(buffer, sizeof buffer, "%2d-%02d-%04d",
              state->location.time.day,
              state->location.time.month,
              state->location.time.year
@@ -349,12 +380,7 @@ void content_location_data(const State *state, SH1106Config *display) {
     snprintf(buffer, sizeof buffer, "%6.2lf km/h", state->location.ground_speed);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     snprintf(buffer, sizeof buffer, "%3.0lf%c", state->location.ground_heading, SPECIAL_CHAR_DEGREES);
-    sh1106_draw_string(display, display->width - 7 * 6, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-
-    offset_y += 10;
-    if (state->gsm.sim_status == SIM_PRESENT) strcpy(buffer, "SIM");
-    if (state->gsm.sim_status == SIM_NOT_PRESENT) strcpy(buffer, "NO SIM");
-    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    sh1106_draw_string(display, display->width - 7 * (font_width + 1), offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
 void content_activate_diagnostics(const State *state, SH1106Config *display) {
