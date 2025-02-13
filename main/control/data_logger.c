@@ -17,14 +17,17 @@ uint32_t generate_session_id() {
     return id;
 }
 
+char *get_device_name(const State *state) {
+    return state->device_name == NULL || state->device_name[0] == '\0' || state->device_name[0] == 0
+           ? "Default"
+           : state->device_name;
+}
+
 void data_logger_init_file(State *state, const char *preferred_file_name) {
     // Check if init is already done
     if (state->storage.filename[0] != 0x00) return;
 
-    char *device_name = state->device_name == NULL || state->device_name[0] == '\0' || state->device_name[0] == 0
-                        ? "Default"
-                        : state->device_name;
-
+    char *device_name = get_device_name(state);
     if (sd_card_create_file_incremental(&state->boot, device_name,
                                         preferred_file_name,
                                         "csv",
@@ -216,7 +219,15 @@ void data_logger_manage_file_name(State *state) {
     strcpy(old_name, state->storage.filename);
 
     // Create new file name
-    data_logger_init_file(state, timestamp);
+    char *device_name = get_device_name(state);
+    if (sd_card_create_file_incremental(&state->boot, device_name,
+                                        timestamp,
+                                        "csv",
+                                        state->storage.filename) == RESULT_OVERFLOW) {
+        set_error(state, ERROR_SD_FULL);
+        return;
+    }
+
     printf("[DataLogger] Renaming file from %s to %s\n", old_name, state->storage.filename);
 
     // Rename old file to new file
