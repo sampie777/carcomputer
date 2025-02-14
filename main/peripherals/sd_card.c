@@ -249,13 +249,16 @@ int sd_card_create_file_incremental(BootState *boot_state, const char *directory
 }
 
 void list_files_on_sd_card(const char *directory) {
+    char path[SD_PATH_MAX_LENGTH * 2];
+    sprintf(path, "%s/%s", MOUNT_POINT, directory);
+
     DIR *dir;
     struct dirent *entry;
 
-    if ((dir = opendir(directory)) == NULL) {
+    if ((dir = opendir(path)) == NULL) {
         perror("opendir() error");
     } else {
-        printf("Contents of %s:\n", directory);
+        printf("Contents of %s:\n", path);
         while ((entry = readdir(dir)) != NULL) {
             printf("%s\n", entry->d_name);
         }
