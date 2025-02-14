@@ -269,7 +269,7 @@ void data_logger_init(State *state) {
     }
     state->storage.is_connected = true;
 
-    data_logger_init_file(state, "trip");
+//    data_logger_init_file(state, "trip");
 
     printf("[DataLogger] Init done\n");
 }

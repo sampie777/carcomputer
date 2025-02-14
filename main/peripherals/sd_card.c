@@ -77,11 +77,14 @@ void sd_card_test() {
 }
 */
 
-int sd_card_open_file(const char *file_name) {
+int sd_card_open_file(const char *file_name, const char *mode) {
     char path[SD_PATH_MAX_LENGTH * 2];
     sprintf(path, "%s/%s", MOUNT_POINT, file_name);
 
-    if (file == NULL) file = fopen(path, "a");
+    if (file == NULL) {
+        file = fopen(path, mode);
+        printf("[SD] Opened file %s\n", path);
+    }
     if (file == NULL) {
         ESP_LOGE(TAG, "Failed to open file for writing: %s", path);
         return RESULT_FAILED;
@@ -167,7 +170,7 @@ void sd_card_flush_file() {
 }
 
 int sd_card_file_append(const char *file_name, const char *line) {
-    if (sd_card_open_file(file_name) != RESULT_OK) return RESULT_FAILED;
+    if (sd_card_open_file(file_name, "a") != RESULT_OK) return RESULT_FAILED;
 
     char path[SD_PATH_MAX_LENGTH * 2];
     snprintf(path, sizeof(path), "%s/%s", MOUNT_POINT, file_name);
@@ -214,7 +217,8 @@ int sd_card_create_file_incremental(BootState *boot_state, const char *directory
     int32_t x = 1 << SD_FILE_SEARCH_MAX_POWER;
 
     // Cut search time drastically as we don't expect 65000 trips
-    if (!sd_card_does_filename_exists(created_directory, base_file_name, 1 << (SD_FILE_SEARCH_MIN_POWER + 1), base_file_extension)) {
+    if (!sd_card_does_filename_exists(created_directory, base_file_name, 1 << (SD_FILE_SEARCH_MIN_POWER + 1),
+                                      base_file_extension)) {
         x = 1 << SD_FILE_SEARCH_MIN_POWER;
     } else {
         boot_state->max_progress += SD_FILE_SEARCH_MAX_POWER - SD_FILE_SEARCH_MIN_POWER;
@@ -249,18 +253,90 @@ int sd_card_create_file_incremental(BootState *boot_state, const char *directory
 }
 
 void list_files_on_sd_card(const char *directory) {
+    char path[SD_PATH_MAX_LENGTH * 2];
+    sprintf(path, "%s/%s", MOUNT_POINT, directory);
+
     DIR *dir;
     struct dirent *entry;
 
-    if ((dir = opendir(directory)) == NULL) {
+    if ((dir = opendir(path)) == NULL) {
         perror("opendir() error");
     } else {
-        printf("Contents of %s:\n", directory);
+        printf("Contents of %s:\n", path);
         while ((entry = readdir(dir)) != NULL) {
             printf("%s\n", entry->d_name);
         }
         closedir(dir);
     }
+}
+
+long sd_card_get_file_size(const char *file_name) {
+    char path[SD_PATH_MAX_LENGTH * 2];
+    sprintf(path, "%s/%s", MOUNT_POINT, file_name);
+
+    if (sd_card_open_file(file_name, "r") != RESULT_OK) return -1;
+
+    // Get the file size
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    return file_size;
+}
+
+long sd_card_read_file(const char *file_name, char **content) {
+    char path[SD_PATH_MAX_LENGTH * 2];
+    sprintf(path, "%s/%s", MOUNT_POINT, file_name);
+
+    file = fopen(path, "r");
+    if (file == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for reading");
+        return -1;
+    }
+
+    // Get the file size
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    printf("File size is %ld\n", file_size);
+
+    fseek(file, 0, SEEK_SET);
+
+    // Allocate memory for the content
+    *content = (char *) malloc(file_size + 1);
+    if (*content == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate memory for file content");
+        fclose(file);
+        return -1;
+    }
+
+    // Read the file into content
+    fread(*content, 1, file_size, file);
+    (*content)[file_size] = '\0'; // Null-terminate the string
+
+    fclose(file);
+    return file_size;
+}
+
+long sd_card_read_file_part(const char *file_name, long chunk_start, long chunk_size, char **content) {
+    if (sd_card_open_file(file_name, "r") != RESULT_OK) return RESULT_FAILED;
+
+    if (chunk_start >= 0) {
+        fseek(file, chunk_start, SEEK_SET);
+    }
+
+    // Allocate memory for the content
+    *content = (char *) malloc(chunk_size + 1);
+    if (*content == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate memory for file content");
+        sd_card_close_file();
+        return -1;
+    }
+
+    // Read the file into content
+    size_t chars_read = fread(*content, sizeof(char), chunk_size, file);
+    (*content)[chars_read] = '\0';
+
+    return chars_read;
 }
 
 int sd_card_init() {
@@ -270,9 +346,9 @@ int sd_card_init() {
     host.slot = SPI_DEFAULT_HOST;
 
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
-        .format_if_mount_failed = false,
-        .max_files = 5,
-        .allocation_unit_size = 16 * 1024
+            .format_if_mount_failed = false,
+            .max_files = 5,
+            .allocation_unit_size = 16 * 1024
     };
 
     sdspi_device_config_t slot = SDSPI_DEVICE_CONFIG_DEFAULT();

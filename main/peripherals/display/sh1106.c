@@ -74,7 +74,7 @@ uint8_t **scale_data(const uint8_t *data, int data_length, int scale, int *scale
 }
 
 void sh1106_clear(SH1106Config *config) {
-    for (int i = 0; i < config->height; i++) {
+    for (int i = 0; i < config->height >> 3; i++) {
         memset(config->buffer[i], 0, config->width);
     }
 }
@@ -89,10 +89,12 @@ void sh1106_draw_byte(SH1106Config *config, int x, int y, unsigned char data, Fo
 
     if (color == FONT_BLACK) {
         config->buffer[top_row][x] &= ~(data << char_y);
-        config->buffer[bottom_row][x] &= ~(data >> (8 - char_y));
+        if (bottom_row < (config->height >> 3))
+            config->buffer[bottom_row][x] &= ~(data >> (8 - char_y));
     } else {
         config->buffer[top_row][x] |= data << char_y;
-        config->buffer[bottom_row][x] |= data >> (8 - char_y);
+        if (bottom_row < (config->height >> 3))
+            config->buffer[bottom_row][x] |= data >> (8 - char_y);
     }
 }
 
@@ -202,7 +204,7 @@ void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length) {
     int bottom_row = (y + length) >> 3;
 
     for (int row = top_row; row <= bottom_row; row++) {
-        if (row < 0 || row >= config->height / 8) {
+        if (row < 0 || row >= (config->height >> 3)) {
             continue;
         }
 
@@ -308,8 +310,9 @@ void sh1106_display(SH1106Config *config) {
 int sh1106_init(SH1106Config *config) {
     printf("[sh1106] Initializing...\n");
 
-    config->buffer = malloc(config->height * sizeof(uint8_t *));
-    for (int i = 0; i < config->height; i++) {
+    config->buffer = malloc((config->height >> 3) * sizeof(uint8_t *));
+    printf("[sh1106 height: %d / %d\n", config->height, config->height >> 3);
+    for (int i = 0; i < config->height >> 3; i++) {
         config->buffer[i] = malloc(config->width * sizeof(uint8_t));
     }
 
@@ -333,7 +336,7 @@ int sh1106_init(SH1106Config *config) {
     i2c_master_write_byte(command, 0x00, true);
     i2c_master_write_byte(command, SH1106_CONFIG_SET_SEGMENT_REMAP | 0x01, true);
     i2c_master_write_byte(
-        command, SH1106_CONFIG_SET_COMMON_OUTPUT_SCAN_DIRECTION | (config->mirror_vertical ? 0x00 : 0x08), true);
+            command, SH1106_CONFIG_SET_COMMON_OUTPUT_SCAN_DIRECTION | (config->mirror_vertical ? 0x00 : 0x08), true);
     i2c_master_write_byte(command, SH1106_CONFIG_SET_COMMON_PADS, true);
     i2c_master_write_byte(command, 0x12, true);
 

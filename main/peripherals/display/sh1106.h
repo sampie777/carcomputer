@@ -29,6 +29,7 @@ typedef enum {
 int sh1106_init(SH1106Config *config);
 void sh1106_display(SH1106Config *config);
 void sh1106_clear(SH1106Config *config);
+void sh1106_draw_byte(SH1106Config *config, int x, int y, unsigned char data, FontColor color);
 void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontColor color, char c);
 int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c);
 int sh1106_draw_string_centered_x(SH1106Config *config, int y, FontSize size, FontColor color, const char *c);

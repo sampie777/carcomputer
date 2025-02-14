@@ -2,7 +2,7 @@
 #include "config.h"
 #include "state.h"
 #include "version.h"
-#include "tasks/task_primary.h"
+//#include "tasks/task_primary.h"
 #include "tasks/task_secondary.h"
 
 #define PRIMARY_TASK_STACK_SIZE (32000)
@@ -21,14 +21,14 @@ void app_main(void) {
     state.device_name = "Default";
     state.location.time.timezone = 2;    // GMT+2
 
-    xTaskCreatePinnedToCore(
-        task_primary,
-        "task_primary",
-        PRIMARY_TASK_STACK_SIZE,
-        &state,
-        2,
-        NULL,
-        0);
+//    xTaskCreatePinnedToCore(
+//        task_primary,
+//        "task_primary",
+//        PRIMARY_TASK_STACK_SIZE,
+//        &state,
+//        2,
+//        NULL,
+//        0);
 
      xTaskCreatePinnedToCore(
          task_secondary,
