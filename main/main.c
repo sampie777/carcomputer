@@ -20,6 +20,9 @@ void app_main(void) {
     state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
     state.device_name = "Default";
     state.location.time.timezone = 2;    // GMT+2
+    state.motion.basis.r = 0.0;
+    state.motion.basis.theta = 0.0;
+    state.motion.basis.phi = 0.0;
 
     xTaskCreatePinnedToCore(
         task_primary,

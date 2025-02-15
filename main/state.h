@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include "config.h"
 #include "peripherals/gpsgsm/definitions.h"
+#include "math.h"
 
 typedef enum {
     Screen_Booting = 0,
@@ -103,15 +104,19 @@ typedef struct {
 
 typedef struct {
     bool connected;
+    Vector3Spherical basis;
     double accel_x;
     double accel_y;
     double accel_z;
+    Vector3Spherical accel;
     double gyro_x;
     double gyro_y;
     double gyro_z;
+    Vector3Spherical gyro;
     double compass_x;
     double compass_y;
     double compass_z;
+    Vector3Spherical compass;
     double temperature;
 } MotionState;
 

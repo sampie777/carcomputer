@@ -139,6 +139,16 @@ int mpu9250_get_whois() {
     return data;
 }
 
+void calculate_vector(Vector3Spherical basis, Vector3Spherical *vector, double x, double y, double z) {
+    Vector3 gyro = {
+        .x = x,
+        .y = y,
+        .z = z,
+    };
+    cartesian_to_spherical_vectors(gyro, vector);
+    rotate_spherical_fast(vector, basis.theta, basis.phi);
+}
+
 void mpu9250_read_motion(State *state) {
     request_register(MOTION_SENSOR_I2C_ADDRESS, MPU9250_REGISTER_ACCEL_XOUT_H);
 
@@ -161,12 +171,25 @@ void mpu9250_read_motion(State *state) {
         return;
     }
 
-    state->motion.accel_x = state->motion.accel_x * 0.9 + 0.1 * ((int16_t) ((accel_data[0] << 8) | accel_data[1]) / 32768.0 * 4);
-    state->motion.accel_y = state->motion.accel_y * 0.9 + 0.1 * ((int16_t) ((accel_data[2] << 8) | accel_data[3]) / 32768.0 * 4);
-    state->motion.accel_z = state->motion.accel_z * 0.9 + 0.1 * ((int16_t) ((accel_data[4] << 8) | accel_data[5]) / 32768.0 * 4);
-    state->motion.gyro_x = state->motion.gyro_x * 0.9 + 0.1 * ((int16_t) ((gyro_data[0] << 8) | gyro_data[1]) / 32768.0 * 500);
-    state->motion.gyro_y = state->motion.gyro_y * 0.9 + 0.1 * ((int16_t) ((gyro_data[2] << 8) | gyro_data[3]) / 32768.0 * 500);
-    state->motion.gyro_z = state->motion.gyro_z * 0.9 + 0.1 * ((int16_t) ((gyro_data[4] << 8) | gyro_data[5]) / 32768.0 * 500);
+    state->motion.accel_x = state->motion.accel_x * 0.9 + 0.1 *
+        ((int16_t) ((accel_data[0] << 8) | accel_data[1]) / 32768.0 * 4);
+    state->motion.accel_y = state->motion.accel_y * 0.9 + 0.1 *
+        ((int16_t) ((accel_data[2] << 8) | accel_data[3]) / 32768.0 * 4);
+    state->motion.accel_z = state->motion.accel_z * 0.9 + 0.1 *
+        ((int16_t) ((accel_data[4] << 8) | accel_data[5]) / 32768.0 * 4);
+
+    calculate_vector(state->motion.basis, &state->motion.accel,
+                     state->motion.accel_x, state->motion.accel_y, state->motion.accel_z);
+
+    state->motion.gyro_x = state->motion.gyro_x * 0.9 + 0.1 *
+        ((int16_t) ((gyro_data[0] << 8) | gyro_data[1]) / 32768.0 * 500);
+    state->motion.gyro_y = state->motion.gyro_y * 0.9 + 0.1 *
+        ((int16_t) ((gyro_data[2] << 8) | gyro_data[3]) / 32768.0 * 500);
+    state->motion.gyro_z = state->motion.gyro_z * 0.9 + 0.1 *
+        ((int16_t) ((gyro_data[4] << 8) | gyro_data[5]) / 32768.0 * 500);
+
+    calculate_vector(state->motion.basis, &state->motion.gyro,
+                     state->motion.gyro_x, state->motion.gyro_y, state->motion.gyro_z);
 
     double temperature = (int16_t) ((temperature_data[0] << 8) | temperature_data[1]) * 0.15;
     temperature = (temperature - MOTION_SENSOR_ROOM_TEMPERATURE_OFFSET) / MOTION_SENSOR_TEMPERATURE_SENSITIVITY + 21.0;
@@ -202,15 +225,17 @@ void mpu9250_read_compass(State *state) {
         state->motion.compass_x = 0;
         state->motion.compass_y = 0;
         state->motion.compass_z = 0;
-        return;
+    } else {
+        state->motion.compass_x = state->motion.compass_x * 0.9 + 0.1 *
+            ((int16_t) (data[0] | (data[1] << 8)) / 32768.0 * 4912);
+        state->motion.compass_y = state->motion.compass_y * 0.9 + 0.1 *
+            ((int16_t) (data[2] | (data[3] << 8)) / 32768.0 * 4912);
+        state->motion.compass_z = state->motion.compass_z * 0.9 + 0.1 *
+            ((int16_t) (data[4] | (data[5] << 8)) / 32768.0 * 4912);
     }
 
-    state->motion.compass_x = state->motion.compass_x * 0.9 + 0.1 *
-        ((int16_t) (data[0] | (data[1] << 8)) / 32768.0 * 4912);
-    state->motion.compass_y = state->motion.compass_y * 0.9 + 0.1 *
-        ((int16_t) (data[2] | (data[3] << 8)) / 32768.0 * 4912);
-    state->motion.compass_z = state->motion.compass_z * 0.9 + 0.1 *
-        ((int16_t) (data[4] | (data[5] << 8)) / 32768.0 * 4912);
+    calculate_vector(state->motion.basis, &state->motion.compass,
+                     state->motion.compass_x, state->motion.compass_y, state->motion.compass_z);
 }
 
 void mpu9250_read(State *state) {
