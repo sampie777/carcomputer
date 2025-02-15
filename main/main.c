@@ -20,9 +20,9 @@ void app_main(void) {
     state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
     state.device_name = "Default";
     state.location.time.timezone = 2;    // GMT+2
-    state.motion.basis.r = 0.0;
-    state.motion.basis.theta = 0.0;
-    state.motion.basis.phi = 0.0;
+    state.motion.bias.x = 0;
+    state.motion.bias.y = 0.1;
+    state.motion.bias.z = 1;
 
     xTaskCreatePinnedToCore(
         task_primary,
@@ -33,12 +33,12 @@ void app_main(void) {
         NULL,
         0);
 
-     xTaskCreatePinnedToCore(
-         task_secondary,
-         "task_secondary",
-         SECONDARY_TASK_STACK_SIZE,
-         &state,
-         1,
-         NULL,
-         1);
+    xTaskCreatePinnedToCore(
+        task_secondary,
+        "task_secondary",
+        SECONDARY_TASK_STACK_SIZE,
+        &state,
+        1,
+        NULL,
+        1);
 }

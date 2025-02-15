@@ -229,6 +229,54 @@ void content_motion_sensors_data(const State *state, SH1106Config *display) {
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
+void draw_level_circle(SH1106Config *display, int center_x, int center_y, int radius, const Vector3Spherical *vector, double factor) {
+    if (radius <= 2) return;
+
+    Vector3Spherical vector_unified = {
+        .r = min(radius, vector->r * factor * (radius - 1)),
+        .theta = vector->theta,
+        .phi = vector->phi,
+    };
+    Vector3 vector_cartesian = {0};
+    spherical_to_cartesian_vectors(vector_unified, &vector_cartesian);
+
+    sh1106_draw_pixel(display, center_x, center_y, FONT_WHITE);
+    sh1106_draw_circle(display, center_x, center_y, radius, FONT_WHITE);
+
+    sh1106_draw_circle(display,
+                      center_x + (int) round(vector_cartesian.x),
+                      center_y + (int) round(vector_cartesian.y),
+                      2, FONT_WHITE);
+}
+
+void content_motion_sensors_data_graphical(const State *state, SH1106Config *display) {
+    char buffer[20];
+    int radius = 16;
+    int margin = (int) round(display->width / 3.0 - 2.0 * radius);
+    int offset_x = margin / 2 + radius;
+    int offset_y = STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2;
+
+    draw_level_circle(display, offset_x, offset_y, radius,
+                      &state->motion.accel, 1.0 / 1.2);
+    int length = snprintf(buffer, sizeof buffer, "%3.1f", state->motion.accel.r);
+    sh1106_draw_string(display, offset_x - font_width * length / 2, display->height - 8,
+                       FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_x += margin + 2 * radius;
+    draw_level_circle(display, offset_x, offset_y, radius,
+                      &state->motion.gyro, 1.0 / 200);
+    length = snprintf(buffer, sizeof buffer, "%3.0f", state->motion.gyro.r);
+    sh1106_draw_string(display, offset_x - font_width * length / 2, display->height - 8,
+                       FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_x += margin + 2 * radius;
+    draw_level_circle(display, offset_x, offset_y, radius,
+                      &state->motion.compass, 1.0 / 0.3);
+    length = snprintf(buffer, sizeof buffer, "%4.2f", state->motion.compass.r);
+    sh1106_draw_string(display, offset_x - font_width * length / 2, display->height - 8,
+                       FONT_SMALL, FONT_WHITE, buffer);
+}
+
 void content_sensors_input(const State *state, SH1106Config *display) {
     int offset_x = 2;
     int offset_y = STATUS_BAR_HEIGHT + 5;

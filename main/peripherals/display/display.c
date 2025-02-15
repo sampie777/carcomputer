@@ -174,8 +174,11 @@ void show_screen(State *state, SH1106Config *display) {
         case Screen_CruiseControl:
             content_cruise_control(state, display);
             break;
-        case Screen_SensorsMotion:
+        case Screen_SensorsMotionValues:
             content_motion_sensors_data(state, display);
+            break;
+        case Screen_SensorsMotionGraphical:
+            content_motion_sensors_data_graphical(state, display);
             break;
         case Screen_SensorsInputs:
             content_sensors_input(state, display);

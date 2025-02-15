@@ -79,6 +79,20 @@ void sh1106_clear(SH1106Config *config) {
     }
 }
 
+void sh1106_draw_pixel(SH1106Config *config, int x, int y, FontColor color) {
+    if (x < 0 || x >= config->width) return;
+    if (y < 0 || y >= config->height) return;
+
+    int top_row = y >> 3;
+    int char_y = y % 8;
+
+    if (color == FONT_BLACK) {
+        config->buffer[top_row][x] &= ~(1 << char_y);
+    } else {
+        config->buffer[top_row][x] |= 1 << char_y;
+    }
+}
+
 void sh1106_draw_byte(SH1106Config *config, int x, int y, unsigned char data, FontColor color) {
     if (x < 0 || x >= config->width) return;
     if (y < -7 || y >= config->height) return;
@@ -232,6 +246,43 @@ void sh1106_draw_filled_rectangle(SH1106Config *config, int x, int y, int width,
     if (width <= 0 || height <= 0) return;
     for (int i = 0; i < width; i++) {
         sh1106_draw_vertical_line(config, x + i, y, height);
+    }
+}
+
+void sh1106_draw_circle(SH1106Config *config, int x, int y, int radius, FontColor color) {
+    if (radius <= 0) return;
+
+    int x0 = x;
+    int y0 = y;
+    int f = 1 - radius;
+    int ddF_x = 1;
+    int ddF_y = -2 * radius;
+    int x1 = 0;
+    int y1 = radius;
+
+    sh1106_draw_pixel(config, x0, y0 + radius, color);
+    sh1106_draw_pixel(config, x0, y0 - radius, color);
+    sh1106_draw_pixel(config, x0 + radius, y0, color);
+    sh1106_draw_pixel(config, x0 - radius, y0, color);
+
+    while (x1 < y1) {
+        if (f >= 0) {
+            y1--;
+            ddF_y += 2;
+            f += ddF_y;
+        }
+        x1++;
+        ddF_x += 2;
+        f += ddF_x;
+
+        sh1106_draw_pixel(config, x0 + x1, y0 + y1, color);
+        sh1106_draw_pixel(config, x0 - x1, y0 + y1, color);
+        sh1106_draw_pixel(config, x0 + x1, y0 - y1, color);
+        sh1106_draw_pixel(config, x0 - x1, y0 - y1, color);
+        sh1106_draw_pixel(config, x0 + y1, y0 + x1, color);
+        sh1106_draw_pixel(config, x0 - y1, y0 + x1, color);
+        sh1106_draw_pixel(config, x0 + y1, y0 - x1, color);
+        sh1106_draw_pixel(config, x0 - y1, y0 - x1, color);
     }
 }
 

@@ -19,7 +19,7 @@ void control_buttons_handle(State *state, Button button) {
                         state->display.current_screen = Screen_CruiseControl;
                         break;
                     case ScreenMenuOption_Sensors:
-                        state->display.current_screen = Screen_SensorsMotion;
+                        state->display.current_screen = Screen_SensorsMotionValues;
                         break;
                     case ScreenMenuOption_Actions:
                         state->display.current_screen = Screen_Actions;
@@ -69,8 +69,12 @@ void control_buttons_handle(State *state, Button button) {
                 state->display.actions_option_selection--;
                 break;
             }
+            if (state->display.current_screen == Screen_SensorsMotionGraphical) {
+                state->display.current_screen = Screen_SensorsMotionValues;
+                break;
+            }
             if (state->display.current_screen == Screen_SensorsInputs) {
-                state->display.current_screen = Screen_SensorsMotion;
+                state->display.current_screen = Screen_SensorsMotionGraphical;
                 break;
             }
             if (state->display.current_screen == Screen_GPS) {
@@ -106,7 +110,11 @@ void control_buttons_handle(State *state, Button button) {
                 }
                 break;
             }
-            if (state->display.current_screen == Screen_SensorsMotion) {
+            if (state->display.current_screen == Screen_SensorsMotionValues) {
+                state->display.current_screen = Screen_SensorsMotionGraphical;
+                break;
+            }
+            if (state->display.current_screen == Screen_SensorsMotionGraphical) {
                 state->display.current_screen = Screen_SensorsInputs;
                 break;
             }
@@ -147,7 +155,8 @@ void control_buttons_handle(State *state, Button button) {
             }
 
             if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl)
-                || state->display.current_screen == Screen_SensorsMotion
+                || state->display.current_screen == Screen_SensorsMotionValues
+                || state->display.current_screen == Screen_SensorsMotionGraphical
                 || state->display.current_screen == Screen_SensorsInputs
                 || state->display.current_screen == Screen_GPS
                 || state->display.current_screen == Screen_Actions

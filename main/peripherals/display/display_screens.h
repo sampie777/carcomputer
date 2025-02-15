@@ -12,6 +12,7 @@ void content_main_menu(const State *state, SH1106Config *display);
 void content_cruise_control(State *state, SH1106Config *display);
 void content_power_off_count_down(State *state, SH1106Config *display);
 void content_motion_sensors_data(const State *state, SH1106Config *display);
+void content_motion_sensors_data_graphical(const State *state, SH1106Config *display);
 void content_sensors_input(const State *state, SH1106Config *display);
 void content_actions(const State *state, SH1106Config *display);
 void content_location_data(const State *state, SH1106Config *display);
