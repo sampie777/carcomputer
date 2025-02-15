@@ -122,10 +122,12 @@ void rotate_spherical_fast(Vector3Spherical *vector, double theta, double phi) {
 
     vector->phi += phi;
     vector->phi = fmod(vector->phi, 2 * M_PI);
-    if (vector->phi < M_PI) {
-        vector->phi = fmod(vector->phi + 2 * M_PI, 2 * M_PI);
+
+    if (fabs(vector->phi) > M_PI) {
+        vector->phi -= sign(vector->phi) * 2 * M_PI;
+        vector->phi = fmod(vector->phi, 2 * M_PI);
     }
-    if (vector->phi > M_PI) {
-        vector->phi = fmod(vector->phi - 2 * M_PI, 2 * M_PI);
+    if (vector->phi == -1 * M_PI) {
+        vector->phi *= -1;
     }
 }
