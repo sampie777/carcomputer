@@ -240,12 +240,14 @@ void mpu9250_read_compass(State *state) {
 
 void mpu9250_read(State *state) {
     static int64_t last_read_time = 0;
-    if (!state->motion.connected) return;
 
-    if (esp_timer_get_time_ms() < last_read_time + MOTION_SENSOR_READ_INTERVAL_MS) {
+    if (esp_timer_get_time_ms() < last_read_time + MOTION_SENSOR_READ_INTERVAL_MS) return;
+    last_read_time = esp_timer_get_time_ms();
+
+    if (!state->motion.connected) {
+        mpu9250_init(state);
         return;
     }
-    last_read_time = esp_timer_get_time_ms();
 
     if (mpu9250_get_whois() == -1) {
         state->motion.connected = false;
