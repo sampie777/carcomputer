@@ -37,6 +37,9 @@ void control_buttons_handle(State *state, Button button) {
                     case ScreenActionsOptions_LockDoors:
                         canbus_send_lock_doors(state, true);
                         break;
+                    case ScreenActionsOptions_ActivateSeatbelt:
+                        canbus_send_seatbelt_message(state, true);
+                        break;
                     case ScreenActionsOptions_ActivateDiagnostics:
                         state->diagnostics.status = DiagnosticsStep_Off + 1;
                         break;

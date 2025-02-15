@@ -166,32 +166,6 @@ void canbus_check_controller_connection(State *state) {
     canbus_init();
 }
 
-int canbus_send_lock_doors(const State *state, bool lock_doors) {
-    CanMessage message = {
-        .id = CAN_ID_DOOR_LOCKS,
-        .length = CAN_LENGTH_DOOR_LOCKS,
-        .data = {
-            0,
-            state->car.is_blower_on << CAN_DOOR_LOCKS_BLOWER_BIT,
-            0,
-            lock_doors
-            ? (CAN_DOOR_LOCKS_LOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_LOCK_OTHER_DOORS)
-            : (CAN_DOOR_LOCKS_UNLOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_UNLOCK_OTHER_DOORS),
-            1,
-            (state->car.is_drivers_door_locked << CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT)
-                | (state->car.is_other_doors_locked << CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT),
-            0,
-            0
-        }
-    };
-
-    printf("Locking doors... ");
-    int result = canbus_send(&message);
-    if (result != RESULT_OK) printf("failed");
-    printf("\n");
-    return result;
-}
-
 int canbus_generate_speed_and_brake_message(double speed, bool is_braking, bool is_ignition_on) {
     int raw_speed = (int) (speed * CAN_SPEED_CALIBRATION);
     CanMessage message = {
@@ -230,13 +204,13 @@ int canbus_generate_rpm_message(double rpm, double pedal) {
     return canbus_send(&message);
 }
 
-int canbus_generate_ignition_message(double speed, bool is_ignition_on) {
+int canbus_generate_seatbelt_message(double speed, bool is_seatbelt_on, bool is_ignition_on) {
     int raw_speed = (int) (speed * CAN_SPEED_CALIBRATION);
     CanMessage message = {
         .id = CAN_ID_IGNITION,
         .length = CAN_LENGTH_IGNITION,
         .data = {
-            is_ignition_on ? 0x02 : 0x00,
+            is_seatbelt_on ? 0x02 : 0x00,
             0x00,
             0x00,
             0x00,
@@ -247,4 +221,38 @@ int canbus_generate_ignition_message(double speed, bool is_ignition_on) {
         }
     };
     return canbus_send(&message);
+}
+
+int canbus_send_lock_doors(const State *state, bool lock_doors) {
+    CanMessage message = {
+        .id = CAN_ID_DOOR_LOCKS,
+        .length = CAN_LENGTH_DOOR_LOCKS,
+        .data = {
+            0,
+            state->car.is_blower_on << CAN_DOOR_LOCKS_BLOWER_BIT,
+            0,
+            lock_doors
+            ? (CAN_DOOR_LOCKS_LOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_LOCK_OTHER_DOORS)
+            : (CAN_DOOR_LOCKS_UNLOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_UNLOCK_OTHER_DOORS),
+            1,
+            (state->car.is_drivers_door_locked << CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT)
+                | (state->car.is_other_doors_locked << CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT),
+            0,
+            0
+        }
+    };
+
+    printf("Locking doors... ");
+    int result = canbus_send(&message);
+    if (result != RESULT_OK) printf("failed");
+    printf("\n");
+    return result;
+}
+
+int canbus_send_seatbelt_message(const State *state, bool set_seatbelt_on) {
+    printf("Locking doors... ");
+    int result = canbus_generate_seatbelt_message(state->car.speed, set_seatbelt_on, state->car.is_ignition_on);
+    if (result != RESULT_OK) printf("failed");
+    printf("\n");
+    return result;
 }

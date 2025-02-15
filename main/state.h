@@ -38,6 +38,7 @@ typedef enum {
 
 typedef enum {
     ScreenActionsOptions_LockDoors,
+    ScreenActionsOptions_ActivateSeatbelt,
     ScreenActionsOptions_ActivateDiagnostics,
     ScreenActionsOptions_Reboot,
     ScreenActionsOptions_MAX_VALUE,

@@ -310,6 +310,8 @@ char *content_actions_get_option_text(ActionsScreenOptions option_index) {
     switch (option_index) {
         case ScreenActionsOptions_LockDoors:
             return "Lock doors";
+        case ScreenActionsOptions_ActivateSeatbelt:
+            return "Set seatbelt on";
         case ScreenActionsOptions_ActivateDiagnostics:
             return "Initialize diagnostics";
         case ScreenActionsOptions_Reboot:
