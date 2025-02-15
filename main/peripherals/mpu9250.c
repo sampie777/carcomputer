@@ -197,6 +197,8 @@ void mpu9250_read_motion(State *state) {
 }
 
 void mpu9250_read_compass(State *state) {
+    if (!state->motion.has_compass) return;
+
     request_register(COMPASS_SENSOR_I2C_ADDRESS, AK8963_REGISTER_ST1);
 
     uint8_t status1;
@@ -259,7 +261,12 @@ void mpu9250_read(State *state) {
     mpu9250_read_compass(state);
 }
 
-int mpu9250_init_compass() {
+int mpu9250_init_compass(MotionState *state) {
+    int device_id = mpu9250_get_whois();
+    state->has_compass = device_id == 0x71;
+
+    if (!state->has_compass) return RESULT_OK;
+
     i2c_cmd_handle_t command = i2c_cmd_link_create();
     i2c_master_start(command);
     i2c_master_write_byte(command, (COMPASS_SENSOR_I2C_ADDRESS << 1) | I2C_MASTER_WRITE, true);
@@ -270,6 +277,8 @@ int mpu9250_init_compass() {
     i2c_master_stop(command);
     esp_err_t result = i2c_master_cmd_begin(MAIN_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(command);
+
+    delay_ms(20);
 
     if (result != ESP_OK) {
         printf("[mpu9250] I2C compass init transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
@@ -306,19 +315,20 @@ int mpu9250_init_motion() {
     result |= mpu9250_set_register(MPU9250_REGISTER_ACCEL_CONFIG2, 0x01);     // Set bandwidth to 184 Hz
     result |= mpu9250_set_register(MPU9250_REGISTER_INT_PIN_CFG, 0x02);       // Enable master/slave bypass
 
+    delay_ms(20);
     return result;
 }
 
 void mpu9250_init(State *state) {
     printf("[mpu9250] Initializing...\n");
 
-    if (mpu9250_init_motion() != RESULT_OK || mpu9250_init_compass() != RESULT_OK) {
+    if (mpu9250_init_motion() != RESULT_OK
+    || mpu9250_init_compass(&state->motion) != RESULT_OK) {
         printf("[mpu9250] Failed to initialize motion\n");
         state->motion.connected = false;
         return;
     }
     state->motion.connected = true;
 
-    delay_ms(50);
     printf("[mpu9250] Init done\n");
 }

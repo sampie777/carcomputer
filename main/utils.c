@@ -169,6 +169,10 @@ void debug_state(const State *state) {
     printf("\tlogging_session_id: %lu\n", state->logging_session_id);
     printf("\terrors: %lu\n", state->errors);
 
+    printf("\tmotion:\n");
+    printf("\t\tis_connected: %c\n", state->motion.connected ? 'y' : 'n');
+    printf("\t\thas_compass: %c\n", state->motion.has_compass ? 'y' : 'n');
+
     printf("\tcar:\n");
     printf("\t\tis_connected: %c\n", state->car.is_connected ? 'y' : 'n');
     printf("\t\tis_controller_connected: %c\n", state->car.is_controller_connected ? 'y' : 'n');
