@@ -105,20 +105,27 @@ void rotate_spherical(Vector3Spherical *vector, double theta, double phi) {
 }
 
 void rotate_spherical_fast(Vector3Spherical *vector, double theta, double phi) {
-    double new_theta = vector->theta + theta;
-    vector->theta = fmod(new_theta, 2 * M_PI);
+    if (theta == 0 && phi == 0) return;
 
-    if (fabs(vector->theta) > M_PI) {
-        vector->theta -= sign(vector->theta) * 2 * M_PI;
-    }
-    if (vector->theta == -1 * M_PI) {
-        vector->theta *= -1;
+    if (theta != 0) {
+        double new_theta = M_PI - vector->theta + theta;
+        vector->theta = fmod(new_theta, 2 * M_PI);
+
+        if (fabs(vector->theta) > M_PI) {
+            vector->theta -= sign(vector->theta) * 2 * M_PI;
+        }
+        if (vector->theta == -1 * M_PI) {
+            vector->theta *= -1;
+        }
+
+        if (vector->theta < 0) {
+            vector->theta *= -1;
+            vector->phi = fmod(vector->phi + M_PI, 2 * M_PI);
+        }
     }
 
-    if (vector->theta < 0) {
-        vector->theta *= -1;
-        vector->phi = fmod(vector->phi + M_PI, 2 * M_PI);
-    }
+    // No need to calculate phi if the vector is vertical
+    if (vector->theta == 0 || vector->theta == M_PI || phi == 0) return;
 
     vector->phi += phi;
     vector->phi = fmod(vector->phi, 2 * M_PI);
