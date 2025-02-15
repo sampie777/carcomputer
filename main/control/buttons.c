@@ -19,7 +19,7 @@ void control_buttons_handle(State *state, Button button) {
                         state->display.current_screen = Screen_CruiseControl;
                         break;
                     case ScreenMenuOption_Sensors:
-                        state->display.current_screen = Screen_SensorsMotionValues;
+                        state->display.current_screen = Screen_Sensors;
                         break;
                     case ScreenMenuOption_Actions:
                         state->display.current_screen = Screen_Actions;
@@ -72,24 +72,18 @@ void control_buttons_handle(State *state, Button button) {
                 state->display.actions_option_selection--;
                 break;
             }
-            if (state->display.current_screen == Screen_SensorsMotionGraphical) {
-                state->display.current_screen = Screen_SensorsMotionValues;
+            if (state->display.current_screen == Screen_Sensors) {
+                if (state->display.subscreen.sensors <= 0) {
+                    state->display.subscreen.sensors = ScreenSensors_MAX_VALUE;
+                }
+                state->display.subscreen.sensors--;
                 break;
             }
-            if (state->display.current_screen == Screen_SensorsInputs) {
-                state->display.current_screen = Screen_SensorsMotionGraphical;
-                break;
-            }
-            if (state->display.current_screen == Screen_GPS) {
-                state->display.current_screen = Screen_SensorsInputs;
-                break;
-            }
-            if (state->display.current_screen == Screen_AboutCruiseControl) {
-                state->display.current_screen = Screen_About;
-                break;
-            }
-            if (state->display.current_screen == Screen_AboutCar) {
-                state->display.current_screen = Screen_AboutCruiseControl;
+            if (state->display.current_screen == Screen_About) {
+                if (state->display.subscreen.about <= 0) {
+                    state->display.subscreen.about = ScreenAbout_MAX_VALUE;
+                }
+                state->display.subscreen.about--;
                 break;
             }
 
@@ -113,24 +107,18 @@ void control_buttons_handle(State *state, Button button) {
                 }
                 break;
             }
-            if (state->display.current_screen == Screen_SensorsMotionValues) {
-                state->display.current_screen = Screen_SensorsMotionGraphical;
-                break;
-            }
-            if (state->display.current_screen == Screen_SensorsMotionGraphical) {
-                state->display.current_screen = Screen_SensorsInputs;
-                break;
-            }
-            if (state->display.current_screen == Screen_SensorsInputs) {
-                state->display.current_screen = Screen_GPS;
+            if (state->display.current_screen == Screen_Sensors) {
+                state->display.subscreen.sensors++;
+                if (state->display.subscreen.sensors >= ScreenSensors_MAX_VALUE) {
+                    state->display.subscreen.sensors = 0;
+                }
                 break;
             }
             if (state->display.current_screen == Screen_About) {
-                state->display.current_screen = Screen_AboutCruiseControl;
-                break;
-            }
-            if (state->display.current_screen == Screen_AboutCruiseControl) {
-                state->display.current_screen = Screen_AboutCar;
+                state->display.subscreen.about++;
+                if (state->display.subscreen.about >= ScreenAbout_MAX_VALUE) {
+                    state->display.subscreen.about = 0;
+                }
                 break;
             }
 
@@ -158,16 +146,12 @@ void control_buttons_handle(State *state, Button button) {
             }
 
             if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl)
-                || state->display.current_screen == Screen_SensorsMotionValues
-                || state->display.current_screen == Screen_SensorsMotionGraphical
-                || state->display.current_screen == Screen_SensorsInputs
-                || state->display.current_screen == Screen_GPS
+                || state->display.current_screen == Screen_Sensors
                 || state->display.current_screen == Screen_Actions
                 || state->display.current_screen == Screen_About
-                || state->display.current_screen == Screen_AboutCruiseControl
-                || state->display.current_screen == Screen_AboutCar
                 ) {
                 state->display.current_screen = Screen_Menu;
+                state->display.subscreen.current = 0;
             } else if (state->display.current_screen == Screen_CruiseControl) {
                 if (state->cruise_control.enabled) printf("Disconnecting cruise control because of user input\n");
                 state->cruise_control.enabled = false;

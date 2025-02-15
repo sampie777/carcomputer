@@ -250,7 +250,7 @@ int canbus_send_lock_doors(const State *state, bool lock_doors) {
 }
 
 int canbus_send_seatbelt_message(const State *state, bool set_seatbelt_on) {
-    printf("Locking doors... ");
+    printf("Turning seatbelt on... ");
     int result = canbus_generate_seatbelt_message(state->car.speed, set_seatbelt_on, state->car.is_ignition_on);
     if (result != RESULT_OK) printf("failed");
     printf("\n");

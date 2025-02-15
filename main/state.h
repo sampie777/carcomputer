@@ -16,16 +16,32 @@ typedef enum {
     Screen_Rebooting,
     Screen_Menu,
     Screen_CruiseControl,
-    Screen_SensorsMotionValues,
-    Screen_SensorsMotionGraphical,
-    Screen_SensorsInputs,
+    Screen_Sensors,
     Screen_Actions,
-    Screen_GPS,
     Screen_ActivateDiagnostics,
     Screen_About,
-    Screen_AboutCruiseControl,
-    Screen_AboutCar,
 } Screen;
+
+typedef enum {
+    ScreenSensors_SensorsMotionValues = 0,
+    ScreenSensors_SensorsMotionGraphical,
+    ScreenSensors_SensorsInputs,
+    ScreenSensors_GPS,
+    ScreenSensors_MAX_VALUE,
+} ScreenSensors;
+
+typedef enum {
+    ScreenAbout_SD = 0,
+    ScreenAbout_AboutCruiseControl,
+    ScreenAbout_AboutCar,
+    ScreenAbout_MAX_VALUE,
+} ScreenAbout;
+
+typedef union {
+    int current;
+    ScreenSensors sensors;
+    ScreenAbout about;
+} SubScreen;
 
 // This also determines the order in which the options are shown on the display
 typedef enum {
@@ -58,6 +74,7 @@ typedef struct {
     Screen current_screen;
     MainMenuScreenOptions menu_option_selection;
     ActionsScreenOptions actions_option_selection;
+    SubScreen subscreen;
 } DisplayState;
 
 typedef struct {

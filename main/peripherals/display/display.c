@@ -174,33 +174,47 @@ void show_screen(State *state, SH1106Config *display) {
         case Screen_CruiseControl:
             content_cruise_control(state, display);
             break;
-        case Screen_SensorsMotionValues:
-            content_motion_sensors_data(state, display);
+        case Screen_Sensors: {
+            switch (state->display.subscreen.sensors) {
+                case ScreenSensors_SensorsMotionValues:
+                    content_motion_sensors_data(state, display);
+                    break;
+                case ScreenSensors_SensorsMotionGraphical:
+                    content_motion_sensors_data_graphical(state, display);
+                    break;
+                case ScreenSensors_SensorsInputs:
+                    content_sensors_input(state, display);
+                    break;
+                case ScreenSensors_GPS:
+                    content_location_data(state, display);
+                    break;
+                default:
+                    break;
+            }
             break;
-        case Screen_SensorsMotionGraphical:
-            content_motion_sensors_data_graphical(state, display);
-            break;
-        case Screen_SensorsInputs:
-            content_sensors_input(state, display);
-            break;
+        }
         case Screen_Actions:
             content_actions(state, display);
-            break;
-        case Screen_GPS:
-            content_location_data(state, display);
             break;
         case Screen_ActivateDiagnostics:
             content_activate_diagnostics(state, display);
             break;
-        case Screen_About:
-            content_about(state, display);
+        case Screen_About: {
+            switch (state->display.subscreen.sensors) {
+                case ScreenAbout_SD:
+                    content_about(state, display);
+                    break;
+                case ScreenAbout_AboutCruiseControl:
+                    content_about_cruise_control(state, display);
+                    break;
+                case ScreenAbout_AboutCar:
+                    content_about_car(state, display);
+                    break;
+                default:
+                    break;
+            }
             break;
-        case Screen_AboutCruiseControl:
-            content_about_cruise_control(state, display);
-            break;
-        case Screen_AboutCar:
-            content_about_car(state, display);
-            break;
+        }
     }
 }
 
