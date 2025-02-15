@@ -105,7 +105,8 @@ typedef struct {
 typedef struct {
     bool connected;
     bool has_compass;
-    Vector3Spherical basis;
+    Vector3 bias;
+    double rotation_matrix[3][3];
     double accel_x;
     double accel_y;
     double accel_z;

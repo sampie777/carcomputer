@@ -63,78 +63,70 @@ double deg_to_rad(double deg) {
     return deg * M_PI / 180;
 }
 
-void bound_spherical(Vector3Spherical *vector) {
-    vector->theta = fmod(vector->theta, M_PI);
-    // Check if theta should have been 180 degrees
-    if (vector->theta == 0 && fmod(vector->theta, 2 * M_PI) < M_PI) {
-        vector->theta = M_PI;
-    }
-
-    vector->phi = fmod(vector->phi, 2 * M_PI);
-    if (vector->phi < M_PI) {
-        vector->phi = fmod(vector->phi + 2 * M_PI, 2 * M_PI);
-    }
-    if (vector->phi > M_PI) {
-        vector->phi = fmod(vector->phi - 2 * M_PI, 2 * M_PI);
+void normalize(Vector3 *v) {
+    double mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
+    if (mag > 0.0001) {  // Avoid division by zero
+        v->x /= mag;
+        v->y /= mag;
+        v->z /= mag;
     }
 }
 
-void rotate_spherical(Vector3Spherical *vector, double theta, double phi) {
-    Vector3Spherical temp = {
-        .r = vector->r,
-        .theta = vector->theta,
-        .phi = vector->phi,
+void compute_rotation_matrix(double rotation_matrix[3][3], Vector3 initial) {
+    normalize(&initial);  // Ensure unit vector
+
+    // Assume we want to rotate this initial reading to (0, 0, 1)
+    Vector3 target = {0, 0, -1};
+
+    // Compute cross product to get the rotation axis
+    Vector3 axis = {
+        initial.y * target.z - initial.z * target.y,
+        initial.z * target.x - initial.x * target.z,
+        initial.x * target.y - initial.y * target.x
     };
 
-    temp.theta += theta;
+    double dot = initial.x * target.x + initial.y * target.y + initial.z * target.z;
+    double angle = acos(dot);  // Angle between the two vectors
 
-    Vector3 temp_cartesian = {0};
-    spherical_to_cartesian_vectors(temp, &temp_cartesian);
-    cartesian_to_spherical_vectors(temp_cartesian, &temp);
-    vector->theta = temp.theta;
+    // Normalize the axis
+    normalize(&axis);
 
-    // No need to calculate phi if the vector is vertical
-    if (temp.theta == 0 || temp.theta == M_PI) return;
+    // Compute rotation matrix using Rodrigues' formula
+    double c = cos(angle);
+    double s = sin(angle);
+    double t = 1 - c;
 
-    temp.phi += phi;
-    spherical_to_cartesian_vectors(temp, &temp_cartesian);
-    cartesian_to_spherical_vectors(temp_cartesian, &temp);
+    rotation_matrix[0][0] = t * axis.x * axis.x + c;
+    rotation_matrix[0][1] = t * axis.x * axis.y - s * axis.z;
+    rotation_matrix[0][2] = t * axis.x * axis.z + s * axis.y;
 
-    vector->theta = temp.theta;
-    vector->phi = temp.phi;
+    rotation_matrix[1][0] = t * axis.x * axis.y + s * axis.z;
+    rotation_matrix[1][1] = t * axis.y * axis.y + c;
+    rotation_matrix[1][2] = t * axis.y * axis.z - s * axis.x;
+
+    rotation_matrix[2][0] = t * axis.x * axis.z - s * axis.y;
+    rotation_matrix[2][1] = t * axis.y * axis.z + s * axis.x;
+    rotation_matrix[2][2] = t * axis.z * axis.z + c;
 }
 
-void rotate_spherical_fast(Vector3Spherical *vector, double theta, double phi) {
-    if (theta == 0 && phi == 0) return;
+void rotate_accelerometer(double rotation_matrix[3][3], Vector3 *input, Vector3 *output) {
+    output->x = rotation_matrix[0][0] * input->x +
+        rotation_matrix[0][1] * input->y +
+        rotation_matrix[0][2] * input->z;
 
-    if (theta != 0) {
-        double new_theta = M_PI - vector->theta + theta;
-        vector->theta = fmod(new_theta, 2 * M_PI);
+    output->y = rotation_matrix[1][0] * input->x +
+        rotation_matrix[1][1] * input->y +
+        rotation_matrix[1][2] * input->z;
 
-        if (fabs(vector->theta) > M_PI) {
-            vector->theta -= sign(vector->theta) * 2 * M_PI;
-        }
-        if (vector->theta == -1 * M_PI) {
-            vector->theta *= -1;
-        }
+    output->z = rotation_matrix[2][0] * input->x +
+        rotation_matrix[2][1] * input->y +
+        rotation_matrix[2][2] * input->z;
+}
 
-        if (vector->theta < 0) {
-            vector->theta *= -1;
-            vector->phi = fmod(vector->phi + M_PI, 2 * M_PI);
-        }
-    }
-
-    // No need to calculate phi if the vector is vertical
-    if (vector->theta == 0 || vector->theta == M_PI || phi == 0) return;
-
-    vector->phi += phi;
-    vector->phi = fmod(vector->phi, 2 * M_PI);
-
-    if (fabs(vector->phi) > M_PI) {
-        vector->phi -= sign(vector->phi) * 2 * M_PI;
-        vector->phi = fmod(vector->phi, 2 * M_PI);
-    }
-    if (vector->phi == -1 * M_PI) {
-        vector->phi *= -1;
-    }
+void rotate_vector(double rotation_matrix[3][3], Vector3 *input) {
+    Vector3 rotated_reading;
+    rotate_accelerometer(rotation_matrix, input, &rotated_reading);
+    input->x = rotated_reading.x;
+    input->y = rotated_reading.y;
+    input->z = rotated_reading.z;
 }

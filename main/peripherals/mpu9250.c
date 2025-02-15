@@ -139,14 +139,14 @@ int mpu9250_get_whois() {
     return data;
 }
 
-void calculate_vector(Vector3Spherical basis, Vector3Spherical *vector, double x, double y, double z) {
-    Vector3 gyro = {
+void calculate_vector(MotionState *state, Vector3Spherical *vector, double x, double y, double z) {
+    Vector3 cartesian = {
         .x = x,
         .y = y,
         .z = z,
     };
-    cartesian_to_spherical_vectors(gyro, vector);
-    rotate_spherical_fast(vector, basis.theta, basis.phi);
+    rotate_vector(state->rotation_matrix, &cartesian);
+    cartesian_to_spherical_vectors(cartesian, vector);
 }
 
 void mpu9250_read_motion(State *state) {
@@ -178,7 +178,7 @@ void mpu9250_read_motion(State *state) {
     state->motion.accel_z = state->motion.accel_z * 0.9 + 0.1 *
         ((int16_t) ((accel_data[4] << 8) | accel_data[5]) / 32768.0 * 4);
 
-    calculate_vector(state->motion.basis, &state->motion.accel,
+    calculate_vector(&state->motion, &state->motion.accel,
                      state->motion.accel_x, state->motion.accel_y, state->motion.accel_z);
 
     state->motion.gyro_x = state->motion.gyro_x * 0.9 + 0.1 *
@@ -188,7 +188,7 @@ void mpu9250_read_motion(State *state) {
     state->motion.gyro_z = state->motion.gyro_z * 0.9 + 0.1 *
         ((int16_t) ((gyro_data[4] << 8) | gyro_data[5]) / 32768.0 * 500);
 
-    calculate_vector(state->motion.basis, &state->motion.gyro,
+    calculate_vector(&state->motion, &state->motion.gyro,
                      state->motion.gyro_x, state->motion.gyro_y, state->motion.gyro_z);
 
     double temperature = (int16_t) ((temperature_data[0] << 8) | temperature_data[1]) * 0.15;
@@ -236,7 +236,7 @@ void mpu9250_read_compass(State *state) {
             ((int16_t) (data[4] | (data[5] << 8)) / 32768.0 * 4912);
     }
 
-    calculate_vector(state->motion.basis, &state->motion.compass,
+    calculate_vector(&state->motion, &state->motion.compass,
                      state->motion.compass_x, state->motion.compass_y, state->motion.compass_z);
 }
 
@@ -329,6 +329,8 @@ void mpu9250_init(State *state) {
         return;
     }
     state->motion.connected = true;
+
+    compute_rotation_matrix(state->motion.rotation_matrix, state->motion.bias);
 
     printf("[mpu9250] Init done\n");
 }
