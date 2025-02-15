@@ -263,7 +263,7 @@ void mpu9250_read(State *state) {
 
 int mpu9250_init_compass(MotionState *state) {
     int device_id = mpu9250_get_whois();
-    state->has_compass = device_id == 0x71;
+    state->has_compass = device_id == 0x73;
 
     if (!state->has_compass) return RESULT_OK;
 

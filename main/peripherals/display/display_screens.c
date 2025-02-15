@@ -217,6 +217,7 @@ void content_motion_sensors_data(const State *state, SH1106Config *display) {
     offset_x += 7 * 5 + 1;
     offset_y = STATUS_BAR_HEIGHT + 5;
 
+    if (!state->motion.has_compass) return;
     sh1106_draw_string(display, offset_x + 2 * 5, offset_y, FONT_SMALL, FONT_WHITE, " Comp");
     offset_y += 10;
     sprintf(buffer, " %7.0f", state->motion.compass_x);
@@ -269,10 +270,11 @@ void content_motion_sensors_data_graphical(const State *state, SH1106Config *dis
     sh1106_draw_string(display, offset_x - font_width * length / 2, display->height - 8,
                        FONT_SMALL, FONT_WHITE, buffer);
 
+    if (!state->motion.has_compass) return;
     offset_x += margin + 2 * radius;
     draw_level_circle(display, offset_x, offset_y, radius,
-                      &state->motion.compass, 1.0 / 0.3);
-    length = snprintf(buffer, sizeof buffer, "%4.2f", state->motion.compass.r);
+                      &state->motion.compass, 1.0 / 40);
+    length = snprintf(buffer, sizeof buffer, "%3.0f", state->motion.compass.r);
     sh1106_draw_string(display, offset_x - font_width * length / 2, display->height - 8,
                        FONT_SMALL, FONT_WHITE, buffer);
 }

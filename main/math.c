@@ -65,30 +65,36 @@ double deg_to_rad(double deg) {
 
 void normalize(Vector3 *v) {
     double mag = sqrt(v->x * v->x + v->y * v->y + v->z * v->z);
-    if (mag > 0.0001) {  // Avoid division by zero
-        v->x /= mag;
-        v->y /= mag;
-        v->z /= mag;
-    }
+    if (mag == 0) return;
+
+    v->x /= mag;
+    v->y /= mag;
+    v->z /= mag;
+}
+
+Vector3 cross_product(Vector3 a, Vector3 b) {
+    Vector3 result;
+    result.x = a.y * b.z - a.z * b.y;
+    result.y = a.z * b.x - a.x * b.z;
+    result.z = a.x * b.y - a.y * b.x;
+    return result;
+}
+
+double dot_product(Vector3 a, Vector3 b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
 void compute_rotation_matrix(double rotation_matrix[3][3], Vector3 initial) {
     normalize(&initial);  // Ensure unit vector
 
-    // Assume we want to rotate this initial reading to (0, 0, 1)
+    // Assume we want to rotate this initial reading
     Vector3 target = {0, 0, -1};
 
     // Compute cross product to get the rotation axis
-    Vector3 axis = {
-        initial.y * target.z - initial.z * target.y,
-        initial.z * target.x - initial.x * target.z,
-        initial.x * target.y - initial.y * target.x
-    };
+    Vector3 axis = cross_product(initial, target);
 
-    double dot = initial.x * target.x + initial.y * target.y + initial.z * target.z;
-    double angle = acos(dot);  // Angle between the two vectors
+    double angle = acos(dot_product(initial, target));
 
-    // Normalize the axis
     normalize(&axis);
 
     // Compute rotation matrix using Rodrigues' formula
@@ -124,9 +130,20 @@ void rotate_accelerometer(double rotation_matrix[3][3], Vector3 *input, Vector3 
 }
 
 void rotate_vector(double rotation_matrix[3][3], Vector3 *input) {
+    double xy_flip_matrix[3][3] = {
+        {0, 1, 0},
+        {-1, 0, 0},
+        {0, 0, 1}
+    };
+
     Vector3 rotated_reading;
     rotate_accelerometer(rotation_matrix, input, &rotated_reading);
-    input->x = rotated_reading.x;
-    input->y = rotated_reading.y;
-    input->z = rotated_reading.z;
+
+    // This seems to be necessary for our sensor
+    Vector3 xy_flipped_reading;
+    rotate_accelerometer(xy_flip_matrix, &rotated_reading, &xy_flipped_reading);
+
+    input->x = xy_flipped_reading.x;
+    input->y = xy_flipped_reading.y;
+    input->z = xy_flipped_reading.z;
 }
