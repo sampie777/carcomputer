@@ -27,7 +27,7 @@ typedef enum {
     BUTTON_DOWN_LONG_PRESS,
 } Button;
 
-Button buttons_get_pressed(ButtonsState *state);
+Button buttons_get_pressed(ButtonsState *state, MotionState *motion);
 void buttons_init();
 
 #endif //APP_TEMPLATE_BUTTONS_H

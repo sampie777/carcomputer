@@ -42,7 +42,7 @@ void control_read_user_input(State *state) {
     if (esp_timer_get_time_ms() < last_read_time + BUTTONS_READ_INTERVAL_MS) return;
     last_read_time = esp_timer_get_time_ms();
 
-    Button button = buttons_get_pressed(&state->buttons);
+    Button button = buttons_get_pressed(&state->buttons, &state->motion);
     control_buttons_handle(state, button);
 //    control_buttons_handle_pid_config(state, button);
 }
