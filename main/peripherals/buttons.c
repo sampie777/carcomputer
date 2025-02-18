@@ -120,13 +120,13 @@ Button buttons_get_pressed(ButtonsState *state, MotionState *motion) {
 
     // Check compass as only our dev setup has no compass. We don't want to use this next piece in production!
     if (button == BUTTON_NONE && !motion->has_compass) {
-        if (motion->accel_y > 0.3) {
+        if (motion->accel_y > 0.3 && previous_button != BUTTON_VOLUME_DOWN) {
             button = BUTTON_VOLUME_UP;
-        } else if (motion->accel_y < -0.3) {
+        } else if (motion->accel_y < -0.3 && previous_button != BUTTON_VOLUME_UP) {
             button = BUTTON_VOLUME_DOWN;
-        } else if (motion->accel_z > 0.5) {
+        } else if (motion->gyro_x > 60 && previous_button != BUTTON_SOURCE) {
             button = BUTTON_UP;
-        } else if (motion->accel_z < -0.25) {
+        } else if (motion->gyro_x < -90 && previous_button != BUTTON_UP) {
             button = BUTTON_SOURCE;
         }
     }

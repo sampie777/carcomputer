@@ -147,3 +147,20 @@ void rotate_vector(double rotation_matrix[3][3], Vector3 *input) {
     input->y = xy_flipped_reading.y;
     input->z = xy_flipped_reading.z;
 }
+
+
+void bound_spherical(Vector3Spherical *vector) {
+    vector->theta = fmod(vector->theta, M_PI);
+    // Check if theta should have been 180 degrees
+    if (vector->theta == 0 && fmod(vector->theta, 2 * M_PI) < M_PI) {
+        vector->theta = M_PI;
+    }
+
+    vector->phi = fmod(vector->phi, 2 * M_PI);
+    if (vector->phi < M_PI) {
+        vector->phi = fmod(vector->phi + 2 * M_PI, 2 * M_PI);
+    }
+    if (vector->phi > M_PI) {
+        vector->phi = fmod(vector->phi - 2 * M_PI, 2 * M_PI);
+    }
+}

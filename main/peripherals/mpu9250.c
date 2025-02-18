@@ -196,6 +196,21 @@ void mpu9250_read_motion(State *state) {
     state->motion.temperature = state->motion.temperature * 0.9 + 0.1 * temperature;
 }
 
+Vector3 compensateMagnetometer(Vector3 compass, Vector3 accel) {
+    Vector3 magCompensated;
+
+    // Compute Roll and Pitch
+    double roll = atan2(accel.y, accel.z);
+    double pitch = atan2(-accel.x, sqrt(accel.y * accel.y + accel.z * accel.z));
+
+    // Apply tilt compensation
+    magCompensated.x = compass.x * cos(pitch) + compass.z * sin(pitch);
+    magCompensated.y = compass.x * sin(roll) * sin(pitch) + compass.y * cos(roll) - compass.z * sin(roll) * cos(pitch);
+    magCompensated.z = -compass.x * cos(roll) * sin(pitch) + compass.y * sin(roll) + compass.z * cos(roll) * cos(pitch);
+
+    return magCompensated;
+}
+
 void mpu9250_read_compass(State *state) {
     if (!state->motion.has_compass) return;
 
@@ -221,6 +236,10 @@ void mpu9250_read_compass(State *state) {
         return;
     }
 
+    double offset_x = -35.4;
+    double offset_y = 15.4;
+    double offset_z = 32.4;
+
     // Check for Magnetic sensor overflow: data is not correct
     if (status2 & 0x08) {
         printf("[mpu9250] Magnetic sensor overflow exception\n");
@@ -228,16 +247,30 @@ void mpu9250_read_compass(State *state) {
         state->motion.compass_y = 0;
         state->motion.compass_z = 0;
     } else {
-        state->motion.compass_x = state->motion.compass_x * 0.9 + 0.1 *
-            ((int16_t) (data[0] | (data[1] << 8)) / 32768.0 * 4912);
-        state->motion.compass_y = state->motion.compass_y * 0.9 + 0.1 *
-            ((int16_t) (data[2] | (data[3] << 8)) / 32768.0 * 4912);
-        state->motion.compass_z = state->motion.compass_z * 0.9 + 0.1 *
-            ((int16_t) (data[4] | (data[5] << 8)) / 32768.0 * 4912);
+        double reading_x = ((int16_t) (data[0] | (data[1] << 8))) / 32768.0 * 4912 - offset_x;
+        double reading_y = ((int16_t) (data[2] | (data[3] << 8))) / 32768.0 * 4912 - offset_y;
+        double reading_z = ((int16_t) (data[4] | (data[5] << 8))) / 32768.0 * 4912 - offset_z;
+
+        state->motion.compass_x = state->motion.compass_x * 0.9 + 0.1 * reading_x;
+        state->motion.compass_y = state->motion.compass_y * 0.9 + 0.1 * reading_y;
+        state->motion.compass_z = state->motion.compass_z * 0.9 + 0.1 * reading_z;
     }
 
-    calculate_vector(&state->motion, &state->motion.compass,
-                     state->motion.compass_x, state->motion.compass_y, state->motion.compass_z);
+    // Tilt compensation
+    Vector3 accel = {
+        .x = state->motion.accel_x,
+        .y = state->motion.accel_y,
+        .z = state->motion.accel_z,
+    };
+    Vector3 compass = {
+        .x = state->motion.compass_x,
+        .y = state->motion.compass_y,
+        .z = state->motion.compass_z,
+    };
+
+    Vector3 compensated = compensateMagnetometer(compass, accel);
+
+    cartesian_to_spherical_vectors(compensated, &state->motion.compass);
 }
 
 void mpu9250_read(State *state) {
@@ -323,7 +356,7 @@ void mpu9250_init(State *state) {
     printf("[mpu9250] Initializing...\n");
 
     if (mpu9250_init_motion() != RESULT_OK
-    || mpu9250_init_compass(&state->motion) != RESULT_OK) {
+        || mpu9250_init_compass(&state->motion) != RESULT_OK) {
         printf("[mpu9250] Failed to initialize motion\n");
         state->motion.connected = false;
         return;

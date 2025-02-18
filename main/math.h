@@ -30,5 +30,6 @@ void spherical_to_cartesian_vectors(Vector3Spherical input, Vector3 *output);
 
 void compute_rotation_matrix(double rotation_matrix[3][3], Vector3 initial);
 void rotate_vector(double rotation_matrix[3][3], Vector3 *input);
+void bound_spherical(Vector3Spherical *vector);
 
 #endif //CARCOMPUTER_MATH_H
