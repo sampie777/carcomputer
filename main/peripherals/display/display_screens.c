@@ -258,7 +258,7 @@ void content_motion_sensors_data_graphical(const State *state, SH1106Config *dis
     int offset_y = STATUS_BAR_HEIGHT + (display->height - STATUS_BAR_HEIGHT - 8) / 2;
 
     draw_level_circle(display, offset_x, offset_y, radius,
-                      &state->motion.accel, 1.0 / 0.4);
+                      &state->motion.accel, 1.0 / 0.2);
     int length = snprintf(buffer, sizeof buffer, "%3.1f", state->motion.accel.r);
     sh1106_draw_string(display, offset_x - font_width * length / 2, display->height - 8,
                        FONT_SMALL, FONT_WHITE, buffer);
