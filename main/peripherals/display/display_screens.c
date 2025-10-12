@@ -129,11 +129,6 @@ void content_cruise_control(State *state, SH1106Config *display) {
     sprintf(buffer, "%.1f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
-    offset_y -= 9;
-    double ratio = state->car.rpm == 0 ? 0 : state->car.speed / state->car.rpm_raw * 10000;
-    sprintf(buffer, "%.1f", ratio);
-    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-
     // --- End of debug stuff
 
     if (!state->cruise_control.enabled) return;
