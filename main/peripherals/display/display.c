@@ -234,10 +234,21 @@ void set_current_screen(State *state) {
     }
 }
 
+void check_if_was_disconnected(SH1106Config* display) {
+    if (display->transmission_failures == 0) return;
+
+    // This means the display was disconnected at some point, so we need to re-init it
+    display_init();
+
+    display->transmission_failures = 0;
+}
+
 void display_update(State *state) {
     static int64_t last_update_time = 0;
     if (esp_timer_get_time_ms() < last_update_time + DISPLAY_UPDATE_MIN_INTERVAL) return;
     last_update_time = esp_timer_get_time_ms();
+
+    check_if_was_disconnected(&sh1106_config);
 
     set_current_screen(state);
 

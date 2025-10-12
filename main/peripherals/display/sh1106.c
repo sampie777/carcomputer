@@ -312,6 +312,7 @@ int sh1106_send_byte(SH1106Config *config, uint8_t data) {
     esp_err_t result = i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(command);
     if (result != ESP_OK) {
+        config->transmission_failures++;
         if (!has_shown_error) {
             printf("[sh1106] I2C byte transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
             has_shown_error = true;
@@ -353,6 +354,7 @@ void sh1106_display(SH1106Config *config) {
         i2c_master_stop(command);
         if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
             printf("[sh1106] I2C graphics transmission failed\n");
+            config->transmission_failures++;
         }
         i2c_cmd_link_delete(command);
     }

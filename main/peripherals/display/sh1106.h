@@ -12,6 +12,7 @@ typedef struct {
     bool mirror_vertical;
     int height;
     int width;
+    int transmission_failures;
     uint8_t **buffer;
 } SH1106Config;
 
