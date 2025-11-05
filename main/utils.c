@@ -229,3 +229,10 @@ void format_time(int64_t milliseconds, char *output_string) {
     uint8_t seconds = total_seconds - hours * 3600 - minutes * 60;
     sprintf(output_string, "%s%lu:%02u:%02u", hours == 0 ? " " : "", hours, minutes, seconds);
 }
+
+void format_time_h_mm(int64_t milliseconds, char *output_string) {
+    unsigned long total_seconds = milliseconds / 1000;
+    unsigned long hours = total_seconds / 3600;
+    uint8_t minutes = (uint8_t) round(((double) total_seconds - (double) hours * 3600) / 60);
+    sprintf(output_string, "%s%lu:%02u", hours == 0 ? " " : "", hours, minutes);
+}

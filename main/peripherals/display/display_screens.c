@@ -10,6 +10,7 @@
 #include "special_chars.h"
 #include "../../version.h"
 #include "font.h"
+#include "../../control/cruise_control.h"
 
 /**
  * Display all available ASCII characters on the current screen.
@@ -122,10 +123,20 @@ void content_cruise_control(State *state, SH1106Config *display) {
     }
     sh1106_draw_string(display, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
 
+
+    offset_x = 25;
+    offset_y += 7;
+    double hourly_eta_deviation = cruise_control_calculate_hour_eta_deviation_for_curren_speed(state);
+    if (hourly_eta_deviation >= 0) {
+        offset_x += sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "ETA diff:  ");
+        format_time_h_mm((int64_t) (hourly_eta_deviation * 3600 * 1000), buffer);
+        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    }
+
     // --- Debug stuff
 
-    offset_x += 20;
-    offset_y += 7;
+    offset_x = 25;
+    offset_y += 10;
     sprintf(buffer, "%.1f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
