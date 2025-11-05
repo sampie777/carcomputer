@@ -65,6 +65,11 @@ void cruise_control_apply_pid(State *state) {
         integral = previous_integral;
     }
 
+    // Prevent over shooting after overshooting 2 km/h
+    if (error < -2.0 && integral > 0) {
+        integral = 0;
+    }
+
     previous_error = error;
     previous_integral = integral;
 
