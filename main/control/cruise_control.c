@@ -3,6 +3,7 @@
 //
 
 #include "cruise_control.h"
+#include <stdio.h>
 #include <math.h>
 #include "../utils.h"
 #include "../peripherals/gas_pedal.h"
@@ -23,6 +24,7 @@ void cruise_control_apply_pid(State *state) {
         return;
     }
 
+
     if (esp_timer_get_time_ms() < last_iteration_time + CRUISE_CONTROL_PID_ITERATION_TIME) return;
     int64_t iteration_time = last_iteration_time == 0
                              ? CRUISE_CONTROL_PID_ITERATION_TIME
@@ -39,6 +41,8 @@ void cruise_control_apply_pid(State *state) {
 
     // Calculate PID
     double error = state->cruise_control.target_speed - state->car.speed;
+
+    printf("%lf = %lf - %lf | ", error, state->cruise_control.target_speed, state->car.speed);
     // Prevent car from accelerating too fast
     if (state->car.acceleration > CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND) {
         double percentage = 1.0 - max(0.0, min(1.0,

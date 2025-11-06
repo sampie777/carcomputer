@@ -14,7 +14,7 @@ int is_pedal_connected(double reading_0, double reading_1) {
 }
 
 double read_pedal_volts(adc_channel_t channel, int sample_count_factor) {
-    return RESULT_OK;
+    return 0;
 }
 
 void read_pedals(State *state, int sample_count_factor) {
