@@ -3,6 +3,7 @@
 #include "state.h"
 #include "control/cruise_control.h"
 #include "utils.h"
+#include "control/control.h"
 #include "test/mocks/idf/esp_timer.h"
 #include "test/mocks/carcomputer/peripherals/gas_pedal.h"
 
@@ -43,6 +44,8 @@ int append_csv(const char* data, unsigned long size) {
     return 0;
 }
 
+void step_time() { _esp_timer_set_time((esp_timer_get_time_ms() + STEP) * 1000); }
+
 double friction = 0;
 void simulate_car_step(State* state, int32_t delta) {
     double v = state->car.speed / 3.6;
@@ -61,6 +64,8 @@ void simulate_car_step(State* state, int32_t delta) {
          / CAR_MASS;
     state->car.acceleration = acceleration;
     state->car.speed += acceleration * (delta / 1000.0);
+
+    state->car.estimated_gear = Gear1;
 }
 
 int main(void) {
@@ -109,7 +114,9 @@ int main(void) {
 
     for (int i = 0; i < RUN_TIME / STEP; i++) {
         simulate_car_step(&state, STEP);
-        cruise_control_step(&state);
+
+        control_cruise_control(&state);
+        control_process_car(&state);
 
         sprintf(buffer, "%lld;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf\n",
                 esp_timer_get_time_ms(),
@@ -127,7 +134,7 @@ int main(void) {
         string_char_replace(buffer, '.', ',');
         append_csv(buffer, strlen(buffer));
 
-        _esp_timer_set_time((esp_timer_get_time_ms() + STEP) * 1000);
+        step_time();
 
         max_speed = max(max_speed, state.car.speed);
         min_speed = min(min_speed, state.car.speed);
