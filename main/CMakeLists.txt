@@ -1,8 +1,26 @@
-# Edit following two lines to set component requirements (see docs)
-set(COMPONENT_REQUIRES)
-set(COMPONENT_PRIV_REQUIRES)
+option(RUN_TESTS "Build and run component tests" OFF)
 
-set(COMPONENT_SRCS "main.c tasks/task_primary.c tasks/task_secondary.c utils.c control/control.c control/cruise_control.c connectivity/i2c.c connectivity/spi.c lib/esp32-mcp2515/mcp2515.cpp peripherals/canbus/canbus.c peripherals/gas_pedal.c peripherals/canbus/mcp2515_wrapper.cpp peripherals/buttons.c peripherals/display/display.c peripherals/display/sh1106.c peripherals/display/display_screens.c peripherals/mpu9250.c control/buttons.c peripherals/sd_card.c control/data_logger.c peripherals/gpsgsm/utils.c peripherals/gpsgsm/gpsgsm.c peripherals/gpsgsm/a9g.c peripherals/adc.c math.c")
-set(COMPONENT_ADD_INCLUDEDIRS "")
+if (RUN_TESTS)
+    cmake_minimum_required(VERSION 3.16)
+    project(tests C)
 
-register_component()
+    set(CMAKE_C_STANDARD 11)
+
+    add_executable(tests test.c utils.c math.c test/mocks/peripherals/adc.c test/mocks/peripherals/gas_pedal.c control/cruise_control.c  )
+
+    # Add the directory containing your mock headers
+    target_include_directories(tests PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}/test/mocks  # Assuming mocks/ is relative to the test CMakeLists.txt
+            # Add other necessary include directories for your project
+    )
+
+else ()
+    # Edit following two lines to set component requirements (see docs)
+    set(COMPONENT_REQUIRES)
+    set(COMPONENT_PRIV_REQUIRES)
+
+    set(COMPONENT_SRCS "main.c tasks/task_primary.c tasks/task_secondary.c utils.c control/control.c control/cruise_control.c connectivity/i2c.c connectivity/spi.c lib/esp32-mcp2515/mcp2515.cpp peripherals/canbus/canbus.c peripherals/gas_pedal.c peripherals/canbus/mcp2515_wrapper.cpp peripherals/buttons.c peripherals/display/display.c peripherals/display/sh1106.c peripherals/display/display_screens.c peripherals/mpu9250.c control/buttons.c peripherals/sd_card.c control/data_logger.c peripherals/gpsgsm/utils.c peripherals/gpsgsm/gpsgsm.c peripherals/gpsgsm/a9g.c peripherals/adc.c math.c")
+    set(COMPONENT_ADD_INCLUDEDIRS "")
+
+    register_component()
+endif ()

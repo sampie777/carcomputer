@@ -32,4 +32,7 @@ void compute_rotation_matrix(double rotation_matrix[3][3], Vector3 initial);
 void rotate_vector(double rotation_matrix[3][3], Vector3 *input);
 void bound_spherical(Vector3Spherical *vector);
 
+#define max(x, y) (((x) > (y)) ? (x) : (y))
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+
 #endif //CARCOMPUTER_MATH_H

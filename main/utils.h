@@ -8,9 +8,6 @@
 #include "state.h"
 #include <string.h>
 
-#define max(x, y) (((x) > (y)) ? (x) : (y))
-#define min(x, y) (((x) < (y)) ? (x) : (y))
-
 int64_t esp_timer_get_time_ms();
 void delay_ms(unsigned long ms);
 void utils_reboot(State *state);

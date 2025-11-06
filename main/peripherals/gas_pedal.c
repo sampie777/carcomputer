@@ -7,6 +7,7 @@
 #include <esp_timer.h>
 #include <math.h>
 #include "../config.h"
+#include "../utils.h"
 #include "gas_pedal.h"
 #include "../return_codes.h"
 #include "adc.h"

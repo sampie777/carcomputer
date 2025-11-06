@@ -5,7 +5,9 @@
 #ifndef APP_TEMPLATE_GAS_PEDAL_H
 #define APP_TEMPLATE_GAS_PEDAL_H
 
-#include "../state.h"
+#include <stdint.h>
+
+#include "../../../state.h"
 #include <hal/ledc_types.h>
 
 void gas_pedal_enable(uint8_t enable);
