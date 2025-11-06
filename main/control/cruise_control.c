@@ -24,7 +24,6 @@ void cruise_control_apply_pid(State *state) {
         return;
     }
 
-
     if (esp_timer_get_time_ms() < last_iteration_time + CRUISE_CONTROL_PID_ITERATION_TIME) return;
     int64_t iteration_time = last_iteration_time == 0
                              ? CRUISE_CONTROL_PID_ITERATION_TIME
@@ -49,12 +48,18 @@ void cruise_control_apply_pid(State *state) {
                                                    CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND)
                                                    / (CRUISE_CONTROL_MAX_ACCELERATION_MS2_UPPER_BOUND -
                                                    CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND)));
-        error *= percentage;
+        // error *= percentage;
     }
 
     state->cruise_control.error = error;
     state->cruise_control.integral = previous_integral + error * (double) iteration_time;
     state->cruise_control.derivative = (error - previous_error) / (double) iteration_time;
+
+    // Prevent over shooting after overshooting 2 km/h
+    if (error < -1.5 && state->cruise_control.integral > 0) {
+        state->cruise_control.integral *= 0.9;
+    }
+
     double output = state->cruise_control.initial_control_value
         + state->cruise_control.pidKp * error
         + state->cruise_control.pidKi * state->cruise_control.integral
@@ -67,11 +72,6 @@ void cruise_control_apply_pid(State *state) {
     } else if (output <= 0.0) {
         output = 0.0;
         state->cruise_control.integral = previous_integral;
-    }
-
-    // Prevent over shooting after overshooting 2 km/h
-    if (error < -1.0 && state->cruise_control.integral > 0) {
-        // state->cruise_control.integral *= 0.9;
     }
 
     previous_error = error;
