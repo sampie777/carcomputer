@@ -3,8 +3,8 @@
 #include "state.h"
 #include "control/cruise_control.h"
 #include "utils.h"
-#include "test/mocks/esp_timer.h"
-#include "test/mocks/peripherals/gas_pedal.h"
+#include "test/mocks/idf/esp_timer.h"
+#include "test/mocks/carcomputer/peripherals/gas_pedal.h"
 
 #define CAR_MASS (1200.0)
 #define FORCE_FACTOR (16500.0)
@@ -90,7 +90,7 @@ int main(void) {
     state.car.gas_pedal = 0;
     state.cruise_control.enabled = true;
     cruise_control_step(&state);
-    state.car.speed = 30;
+    state.car.speed = 45;
 
     char buffer[512];
     sprintf(buffer, "resp_timer_get_time_ms();"

@@ -49,7 +49,7 @@ void cruise_control_apply_pid(State *state) {
                                                    CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND)
                                                    / (CRUISE_CONTROL_MAX_ACCELERATION_MS2_UPPER_BOUND -
                                                    CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND)));
-        // error *= percentage;
+        error *= percentage;
     }
 
     state->cruise_control.error = error;
@@ -70,8 +70,8 @@ void cruise_control_apply_pid(State *state) {
     }
 
     // Prevent over shooting after overshooting 2 km/h
-    if (error < -2.0 && state->cruise_control.integral > 0) {
-        // state->cruise_control.integral = 0;
+    if (error < -1.0 && state->cruise_control.integral > 0) {
+        // state->cruise_control.integral *= 0.9;
     }
 
     previous_error = error;

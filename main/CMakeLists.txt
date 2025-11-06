@@ -6,11 +6,12 @@ if (RUN_TESTS)
 
     set(CMAKE_C_STANDARD 11)
 
-    add_executable(tests test.c test/mocks/esp_timer.c utils.c math.c test/mocks/peripherals/adc.c test/mocks/peripherals/gas_pedal.c control/cruise_control.c  )
+    add_executable(tests test.c test/mocks/idf/esp_timer.c utils.c math.c test/mocks/carcomputer/peripherals/adc.c test/mocks/carcomputer/peripherals/gas_pedal.c control/cruise_control.c
 
     # Add the directory containing your mock headers
     target_include_directories(tests PRIVATE
-            ${CMAKE_CURRENT_SOURCE_DIR}/test/mocks  # Assuming mocks/ is relative to the test CMakeLists.txt
+            ${CMAKE_CURRENT_SOURCE_DIR}/test/mocks/idf  # Assuming mocks/ is relative to the test CMakeLists.txt
+            ${CMAKE_CURRENT_SOURCE_DIR}/test/mocks/carcomputer  # Assuming mocks/ is relative to the test CMakeLists.txt
             # Add other necessary include directories for your project
     )
 

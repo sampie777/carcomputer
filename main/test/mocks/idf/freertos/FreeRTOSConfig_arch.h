@@ -8,7 +8,7 @@
 
 /* Xtensa Architecture specific configuration. This file is included in the common FreeRTOSConfig.h. */
 
-#include "../sdkconfig.h"
+#include "../idf/sdkconfig.h"
 
 /* Required for configuration-dependent settings. */
 // #include "xtensa_config.h"

@@ -12,4 +12,6 @@
 esp_err_t gpio_set_level(gpio_num_t gpio_num, uint32_t level) {return 0;}
 esp_err_t gpio_set_direction(gpio_num_t gpio_num, gpio_mode_t mode);
 
+void esp_restart(void);
+
 #endif //CARCOMPUTER_GPIO_H
