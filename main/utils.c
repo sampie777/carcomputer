@@ -236,3 +236,7 @@ void format_time_h_mm(int64_t milliseconds, char *output_string) {
     uint8_t minutes = (uint8_t) round(((double) total_seconds - (double) hours * 3600) / 60);
     sprintf(output_string, "%s%lu:%02u", hours == 0 ? " " : "", hours, minutes);
 }
+
+double random_d() {
+    return rand() / (RAND_MAX + 1.0);
+}

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "state.h"
 #include "control/cruise_control.h"
@@ -9,8 +10,9 @@
 
 #define CAR_MASS (1200.0)
 #define FORCE_FACTOR (16500.0)
+#define CAR_VELOCITY_RANDOMNESS (0.0)
 #define STEP (100)
-#define RUN_TIME (20000)
+#define RUN_TIME (40000)
 
 const char* file_name = "../../../test1.csv";
 
@@ -62,8 +64,7 @@ void simulate_car_step(State* state, int32_t delta) {
     // F = m*a -> a = F / m
     double acceleration = (engineForce - friction)
          / CAR_MASS;
-    state->car.acceleration = acceleration;
-    state->car.speed += acceleration * (delta / 1000.0);
+    state->car.speed += acceleration * (delta / 1000.0) + (random_d() - 0.5) * CAR_VELOCITY_RANDOMNESS * (delta / 1000.0);
 
     state->car.estimated_gear = Gear1;
 }
@@ -95,7 +96,7 @@ int main(void) {
     state.car.gas_pedal = 0;
     state.cruise_control.enabled = true;
     cruise_control_step(&state);
-    state.car.speed = 45;
+    state.car.speed = 35;
 
     char buffer[512];
     sprintf(buffer, "resp_timer_get_time_ms();"
@@ -108,7 +109,8 @@ int main(void) {
             "state.cruise_control.target_speed;"
             "state.cruise_control.error;"
             "state.cruise_control.integral;"
-            "state.cruise_control.derivative"
+            "state.cruise_control.derivative;"
+            "state.cruise_control.enabled"
             "\n");
     append_csv(buffer, strlen(buffer));
 
@@ -118,7 +120,7 @@ int main(void) {
         control_cruise_control(&state);
         control_process_car(&state);
 
-        sprintf(buffer, "%lld;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf\n",
+        sprintf(buffer, "%lld;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%d\n",
                 esp_timer_get_time_ms(),
                 state.car.gas_pedal,
                 state.car.acceleration,
@@ -129,7 +131,8 @@ int main(void) {
                 state.cruise_control.target_speed,
                 state.cruise_control.error,
                 state.cruise_control.integral,
-                state.cruise_control.derivative
+                state.cruise_control.derivative,
+                state.cruise_control.enabled
         );
         string_char_replace(buffer, '.', ',');
         append_csv(buffer, strlen(buffer));

@@ -25,5 +25,6 @@ void debug_state(const State *state);
 void wdt_feed(int max_timeout_ms);
 void format_time(int64_t milliseconds, char *output_string);
 void format_time_h_mm(int64_t milliseconds, char *output_string);
+double random_d();
 
 #endif //APP_TEMPLATE_UTILS_H
