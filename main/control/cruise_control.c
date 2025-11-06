@@ -42,7 +42,6 @@ void cruise_control_apply_pid(State *state) {
     // Calculate PID
     double error = state->cruise_control.target_speed - state->car.speed;
 
-    printf("%lf = %lf - %lf | ", error, state->cruise_control.target_speed, state->car.speed);
     // Prevent car from accelerating too fast
     if (state->car.acceleration > CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND) {
         double percentage = 1.0 - max(0.0, min(1.0,
@@ -50,32 +49,33 @@ void cruise_control_apply_pid(State *state) {
                                                    CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND)
                                                    / (CRUISE_CONTROL_MAX_ACCELERATION_MS2_UPPER_BOUND -
                                                    CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND)));
-        error *= percentage;
+        // error *= percentage;
     }
 
-    double integral = previous_integral + error * (double) iteration_time;
-    double derivative = (error - previous_error) / (double) iteration_time;
+    state->cruise_control.error = error;
+    state->cruise_control.integral = previous_integral + error * (double) iteration_time;
+    state->cruise_control.derivative = (error - previous_error) / (double) iteration_time;
     double output = state->cruise_control.initial_control_value
         + state->cruise_control.pidKp * error
-        + state->cruise_control.pidKi * integral
-        + state->cruise_control.pidKd * derivative;
+        + state->cruise_control.pidKi * state->cruise_control.integral
+        + state->cruise_control.pidKd * state->cruise_control.derivative;
 
     // Anti reset wind-up
     if (output >= 1.0) {
         output = 1.0;
-        integral = previous_integral;
+        state->cruise_control.integral = previous_integral;
     } else if (output <= 0.0) {
         output = 0.0;
-        integral = previous_integral;
+        state->cruise_control.integral = previous_integral;
     }
 
     // Prevent over shooting after overshooting 2 km/h
-    if (error < -2.0 && integral > 0) {
-        integral = 0;
+    if (error < -2.0 && state->cruise_control.integral > 0) {
+        // state->cruise_control.integral = 0;
     }
 
     previous_error = error;
-    previous_integral = integral;
+    previous_integral = state->cruise_control.integral;
 
     if (state->car.gas_pedal > CRUISE_CONTROL_OVERRIDE_PEDAL_MIN) {
         // Pedal override interaction

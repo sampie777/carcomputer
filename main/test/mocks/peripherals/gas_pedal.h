@@ -16,4 +16,6 @@ void gas_pedal_write(State *state);
 void gas_pedal_init(State *state, uint32_t frequency);
 void set_pedal_volts(ledc_channel_t channel, double voltage);
 
+uint8_t _get_gas_penal_enabled();
+
 #endif //APP_TEMPLATE_GAS_PEDAL_H

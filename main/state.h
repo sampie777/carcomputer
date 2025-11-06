@@ -87,6 +87,9 @@ typedef struct {
     double pidKp;
     double pidKi;
     double pidKd;
+    double integral;
+    double derivative;
+    double error;
 } CruiseControlState;
 
 typedef struct {

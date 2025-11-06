@@ -3,10 +3,18 @@
 //
 
 #include "gas_pedal.h"
+#include <stdio.h>
 #include "../../return_codes.h"
 #include "adc.h"
 
+uint8_t _gas_penal_enabled = false;
+
 void gas_pedal_enable(uint8_t enable) {
+    _gas_penal_enabled = enable;
+}
+
+uint8_t _get_gas_penal_enabled() {
+    return _gas_penal_enabled;
 }
 
 int is_pedal_connected(double reading_0, double reading_1) {
