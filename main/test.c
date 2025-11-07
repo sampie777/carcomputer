@@ -7,44 +7,13 @@
 #include "control/control.h"
 #include "test/mocks/idf/esp_timer.h"
 #include "test/mocks/carcomputer/peripherals/gas_pedal.h"
+#include "test/utils/csv.h"
 
 #define CAR_MASS (1200.0)
 #define FORCE_FACTOR (16500.0)
 #define CAR_VELOCITY_RANDOMNESS (0.0)
 #define STEP (100)
 #define RUN_TIME (40000)
-
-const char* file_name = "../../../test1.csv";
-
-int write_csv() {
-    FILE* file = fopen(file_name, "w");
-    if (file == NULL) {
-        printf("ERROR: Could not open file %s for writing\n", file_name);
-        return 1;
-    }
-
-    fwrite("", sizeof(char), 0, file);
-    fclose(file);
-    return 0;
-}
-
-int append_csv(const char* data, unsigned long size) {
-    if (!data) {
-        printf("ERROR: Input BMP_File pointer is NULL\n");
-        return 1;
-    }
-
-    FILE* file = fopen(file_name, "a+");
-    if (file == NULL) {
-        printf("ERROR: Could not open file %s for writing\n", file_name);
-        return 1;
-    }
-
-    fwrite(data, sizeof(char), size, file);
-    fclose(file);
-    printf("%s", data);
-    return 0;
-}
 
 void step_time() { _esp_timer_set_time((esp_timer_get_time_ms() + STEP) * 1000); }
 
