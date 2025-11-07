@@ -21,7 +21,7 @@ void read_bmp(const char* file_name, BMP_File* image) {
     }
 
     fread(image->header, sizeof(char), 14, file);
-    printf("Reading header: %lu\n", sizeof(BmpInfoHeader));
+    printf("Reading header: %lu\n", (unsigned long) sizeof(BmpInfoHeader));
     fread(image->header + 14, sizeof(BmpInfoHeader), 1, file);
     BmpInfoHeader header = *(BmpInfoHeader*)&image->header[14];
     printf("Read header\n");
