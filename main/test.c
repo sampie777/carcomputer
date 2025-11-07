@@ -69,7 +69,7 @@ void simulate_car_step(State* state, int32_t delta) {
     state->car.estimated_gear = Gear1;
 }
 
-int main(void) {
+void test_cruise_control(void) {
     write_csv();
     double max_speed = 0;
     double min_speed = 100;
@@ -145,5 +145,21 @@ int main(void) {
 
     printf("Max speed: %lf\n", max_speed);
     printf("Min speed: %lf\n", min_speed);
+}
+
+void test_hourly_eta() {
+    State state = {0};
+    state.car.speed = 50;
+    state.cruise_control.target_speed = 100;
+
+    double hourly_eta_deviation = cruise_control_calculate_hour_eta_deviation_for_curren_speed(&state);
+    char buffer[32];
+    format_time_h_mm((int64_t) (hourly_eta_deviation * 3600 * 1000), buffer);
+    printf("%s\n", buffer);
+}
+
+int main(void) {
+    test_cruise_control();
+    // test_hourly_eta();
     return 0;
 }

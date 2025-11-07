@@ -191,5 +191,5 @@ void cruise_control_step(State *state) {
 double cruise_control_calculate_hour_eta_deviation_for_curren_speed(const State *state) {
     if (!state->cruise_control.target_speed) return -1;
 
-    return state->cruise_control.target_speed / state->car.speed * 3600 * 1000;
+    return state->cruise_control.target_speed / state->car.speed;
 }
