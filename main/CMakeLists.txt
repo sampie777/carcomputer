@@ -6,7 +6,7 @@ if (RUN_TESTS)
 
     set(CMAKE_C_STANDARD 11)
 
-    add_executable(tests test.c test/utils/csv.c test/utils/bmp.c test/test_cruisecontrol.c test/mocks/idf/esp_timer.c utils.c math.c test/mocks/carcomputer/peripherals/adc.c test/mocks/carcomputer/peripherals/gas_pedal.c control/cruise_control.c control/control.c test/mocks/carcomputer/peripherals/buttons.c test/mocks/carcomputer/peripherals/canbus/canbus.c test/mocks/carcomputer/control/buttons.c test/mocks/carcomputer/peripherals/mpu9250.c test/mocks/idf/driver/gpio.c )
+    add_executable(tests test.c test/utils/csv.c test/utils/bmp.c test/test_cruisecontrol.c test/mocks/idf/esp_timer.c utils.c math.c test/mocks/carcomputer/peripherals/adc.c test/mocks/carcomputer/peripherals/gas_pedal.c control/cruise_control.c control/control.c test/mocks/carcomputer/peripherals/buttons.c test/mocks/carcomputer/peripherals/canbus/canbus.c test/mocks/carcomputer/control/buttons.c test/mocks/carcomputer/peripherals/mpu9250.c test/mocks/idf/driver/gpio.c peripherals/display/display_screens.c peripherals/display/sh1106.c test/test_display.c test/mocks/carcomputer/peripherals/display/sh1106_i2c.c peripherals/display/display.c)
 
     # Add the directory containing your mock headers
     target_include_directories(tests PRIVATE
@@ -20,7 +20,7 @@ else ()
     set(COMPONENT_REQUIRES)
     set(COMPONENT_PRIV_REQUIRES)
 
-    set(COMPONENT_SRCS "main.c tasks/task_primary.c tasks/task_secondary.c utils.c control/control.c control/cruise_control.c connectivity/i2c.c connectivity/spi.c lib/esp32-mcp2515/mcp2515.cpp peripherals/canbus/canbus.c peripherals/gas_pedal.c peripherals/canbus/mcp2515_wrapper.cpp peripherals/buttons.c peripherals/display/display.c peripherals/display/sh1106.c peripherals/display/display_screens.c peripherals/mpu9250.c control/buttons.c peripherals/sd_card.c control/data_logger.c peripherals/gpsgsm/utils.c peripherals/gpsgsm/gpsgsm.c peripherals/gpsgsm/a9g.c peripherals/adc.c math.c")
+    set(COMPONENT_SRCS "main.c tasks/task_primary.c tasks/task_secondary.c utils.c control/control.c control/cruise_control.c connectivity/i2c.c connectivity/spi.c lib/esp32-mcp2515/mcp2515.cpp peripherals/canbus/canbus.c peripherals/gas_pedal.c peripherals/canbus/mcp2515_wrapper.cpp peripherals/buttons.c peripherals/display/display.c peripherals/display/sh1106.c peripherals/display/display_screens.c peripherals/mpu9250.c control/buttons.c peripherals/sd_card.c control/data_logger.c peripherals/gpsgsm/utils.c peripherals/gpsgsm/gpsgsm.c peripherals/gpsgsm/a9g.c peripherals/adc.c math.c peripherals/display/sh1106_i2c.c")
     set(COMPONENT_ADD_INCLUDEDIRS "")
 
     register_component()

@@ -1,10 +1,12 @@
 #include <stdio.h>
 
 #include "test/test_cruisecontrol.h"
+#include "test/test_display.h"
 
 
 int main(void) {
-    test_cruise_control();
+    // test_cruise_control();
     // test_hourly_eta();
+    test_display();
     return 0;
 }

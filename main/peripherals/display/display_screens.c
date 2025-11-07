@@ -3,6 +3,7 @@
 //
 
 #include <math.h>
+#include <stdio.h>
 #include "display_screens.h"
 #include "display.h"
 #include "../../utils.h"

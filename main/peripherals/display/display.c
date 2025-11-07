@@ -16,6 +16,7 @@
 #include "../../return_codes.h"
 #include "special_chars.h"
 #include "font.h"
+#include "sh1106_i2c.h"
 
 SH1106Config sh1106_config = {
     .address = DISPLAY_I2C_ADDRESS,

@@ -5,7 +5,8 @@
 #ifndef APP_TEMPLATE_SH1106_H
 #define APP_TEMPLATE_SH1106_H
 
-#include "../../config.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
 typedef struct {
     int address;
@@ -28,9 +29,9 @@ typedef enum {
 } FontColor;
 
 int sh1106_init(SH1106Config *config);
-void sh1106_display(SH1106Config *config);
 void sh1106_clear(SH1106Config *config);
 void sh1106_draw_pixel(SH1106Config *config, int x, int y, FontColor color);
+FontColor sh1106_read_pixel(SH1106Config *config, int x, int y);
 void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontColor color, char c);
 int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c);
 int sh1106_draw_string_centered_x(SH1106Config *config, int y, FontSize size, FontColor color, const char *c);
