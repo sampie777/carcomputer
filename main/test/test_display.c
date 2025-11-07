@@ -35,7 +35,10 @@ void update_bitmap() {
 void test_display() {
     _esp_timer_set_time(1000 * 1000);
     State state = {
-            .car.speed = 120,
+            .car.speed = 130,
+            .car.acceleration = 1,
+            .cruise_control.target_speed = 120,
+            .power_off_count_down_sec = -1,
         };
 
     display_init();

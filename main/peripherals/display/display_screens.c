@@ -126,7 +126,6 @@ void content_cruise_control(State *state, SH1106Config *display) {
 
 
     offset_x = 25;
-    offset_y += 7;
     double hourly_eta_deviation = cruise_control_calculate_hour_eta_deviation_for_curren_speed(state);
     if (hourly_eta_deviation >= 0) {
         offset_x += sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "ETA diff:  ");
