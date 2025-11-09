@@ -25,7 +25,8 @@ void update_bitmap() {
         for (int x = 0; x < config->width; x++) {
             char pixel = sh1106_read_pixel(config, x, y);
             if (pixel == FONT_BLACK) continue;
-            putpixel(0, x, y);
+            int destination_y = (y + 1) % config->height;
+            putpixel(0, x, destination_y);
         }
     }
 

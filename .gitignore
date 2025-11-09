@@ -5,3 +5,5 @@ cmake-build-*/
 .idea/
 CMakeListsPrivate.txt
 secrets.h
+test1.csv
+display.bmp
