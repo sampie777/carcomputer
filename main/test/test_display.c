@@ -33,7 +33,7 @@ void update_bitmap() {
     writebmp("../../../display.bmp", 0);
 }
 
-void test_display() {
+void test_display_cruisecontrol() {
     _esp_timer_set_time(1000 * 1000);
     State state = {
             .car.speed = 130,
@@ -41,6 +41,27 @@ void test_display() {
             .cruise_control.target_speed = 120,
             .power_off_count_down_sec = -1,
         };
+
+    display_init();
+
+    display_update(&state);
+
+    update_bitmap();
+}
+
+void test_display_aboutcar() {
+    _esp_timer_set_time(1000 * 1000);
+    State state = {
+            .power_off_count_down_sec = -1,
+            .display.current_screen = Screen_About,
+            .display.subscreen.about = ScreenAbout_AboutCar,
+            .car.is_ignition_on = true,
+            .car.is_braking = true,
+            .storage.is_connected = true,
+        };
+    sprintf(state.storage.filename, "file.csv");
+
+    printf("Letter: %c = %d\n", 'B', (int)'B');
 
     display_init();
 

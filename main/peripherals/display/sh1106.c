@@ -91,7 +91,7 @@ void sh1106_draw_byte(SH1106Config *config, int x, int y, unsigned char data, Fo
     }
 }
 
-void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontColor color, char c) {
+void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontColor color, uint8_t c) {
     int font_char_index = c * font_width;
 
     if (size == FONT_SMALL) {
@@ -126,7 +126,7 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontCol
  * @param text_spacing The minimum extra spacing between the letters (default = 0 as this will result in a 1 pixel gap between each letter)
  * @return the total horizontal pixel length used to draw the string
  */
-int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c,
+int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize size, FontColor color, const uint8_t *c,
                                     int text_spacing) {
     int letter_spacing = 0;
     for (int i = 0; i < strlen(c); i++) {
