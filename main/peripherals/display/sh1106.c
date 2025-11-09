@@ -42,7 +42,7 @@ uint8_t **scale_data(const uint8_t *data, int data_length, int scale, int *scale
 }
 
 void sh1106_clear(SH1106Config *config) {
-    for (int i = 0; i < config->height >> 3; i++) {
+    for (int i = 0; i < config->height >> 5; i++) {
         memset(config->buffer[i], 0, config->width);
     }
 }
@@ -51,8 +51,8 @@ void sh1106_draw_pixel(SH1106Config *config, int x, int y, FontColor color) {
     if (x < 0 || x >= config->width) return;
     if (y < 0 || y >= config->height) return;
 
-    int top_row = y >> 3;
-    int char_y = y % 8;
+    int top_row = y >> 5;
+    int char_y = y % 32;
 
     if (color == FONT_BLACK) {
         config->buffer[top_row][x] &= ~(1 << char_y);
@@ -65,8 +65,8 @@ FontColor sh1106_read_pixel(SH1106Config *config, int x, int y) {
     if (x < 0 || x >= config->width) return FONT_BLACK;
     if (y < 0 || y >= config->height) return FONT_BLACK;
 
-    int top_row = y >> 3;
-    int char_y = y % 8;
+    int top_row = y >> 5;
+    int char_y = y % 32;
 
     int mask = 1 << char_y;
     return (config->buffer[top_row][x] & mask) ? FONT_WHITE : FONT_BLACK;
@@ -76,18 +76,19 @@ void sh1106_draw_byte(SH1106Config *config, int x, int y, unsigned char data, Fo
     if (x < 0 || x >= config->width) return;
     if (y < -7 || y >= config->height) return;
 
-    int top_row = y >> 3;
+    int top_row = y >> 5;
     int bottom_row = top_row + 1;
-    int char_y = y >= 0 ? y % 8 : 8 + (y % 8);
+    int char_y = y >= 0 ? y % 32 : 32 + (y % 32);
+    int char_y_overflow = 32 - char_y;
 
     if (color == FONT_BLACK) {
         config->buffer[top_row][x] &= ~(data << char_y);
-        if (bottom_row < (config->height >> 3))
-            config->buffer[bottom_row][x] &= ~(data >> (8 - char_y));
+        if (bottom_row < (config->height >> 5) && char_y_overflow <= 8)
+            config->buffer[bottom_row][x] &= ~(data >> char_y_overflow);
     } else {
         config->buffer[top_row][x] |= data << char_y;
-        if (bottom_row < (config->height >> 3))
-            config->buffer[bottom_row][x] |= data >> (8 - char_y);
+        if (bottom_row < (config->height >> 5) && char_y_overflow <= 8)
+            config->buffer[bottom_row][x] |= data >> char_y_overflow;
     }
 }
 
@@ -126,7 +127,8 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontCol
  * @param text_spacing The minimum extra spacing between the letters (default = 0 as this will result in a 1 pixel gap between each letter)
  * @return the total horizontal pixel length used to draw the string
  */
-int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize size, FontColor color, const uint8_t *c,
+int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize size, FontColor color,
+                                    const uint8_t *c,
                                     int text_spacing) {
     int letter_spacing = 0;
     for (int i = 0; i < strlen(c); i++) {
@@ -175,8 +177,8 @@ void sh1106_draw_horizontal_line(SH1106Config *config, int x, int y, int length)
         return;
     }
 
-    int row = y >> 3;
-    int char_y = y % 8;
+    int row = y >> 5;
+    int char_y = y % 32;
 
     for (int col = 0; col < length; col++) {
         // Allow overflow horizontal edges
@@ -193,21 +195,21 @@ void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length) {
         return;
     }
 
-    int top_row = y >> 3;
-    int bottom_row = (y + length) >> 3;
+    int top_row = y >> 5;
+    int bottom_row = (y + length) >> 5;
 
     for (int row = top_row; row <= bottom_row; row++) {
-        if (row < 0 || row >= (config->height >> 3)) {
+        if (row < 0 || row >= (config->height >> 5)) {
             continue;
         }
 
-        int mask = 0xff;
+        uint32_t mask = 0xffffffff;
 
         if (row == top_row) {
-            mask &= 0xff << y % 8;
+            mask &= 0xffffffff << y % 32;
         }
         if (row == bottom_row) {
-            mask &= 0xff >> (8 - (y + length) % 8);
+            mask &= 0xffffffff >> (32 - (y + length) % 32);
         }
         config->buffer[row][x] |= mask;
     }
@@ -278,9 +280,9 @@ void sh1106_draw_icon(SH1106Config *config, int x, int y, const unsigned char *i
 int sh1106_init(SH1106Config *config) {
     printf("[sh1106] Initializing...\n");
 
-    config->buffer = malloc((config->height >> 3) * sizeof(uint8_t *));
-    for (int i = 0; i < config->height >> 3; i++) {
-        config->buffer[i] = malloc(config->width * sizeof(uint8_t));
+    config->buffer = malloc((config->height >> 5) * sizeof(uint32_t *));
+    for (int i = 0; i < config->height >> 5; i++) {
+        config->buffer[i] = malloc(config->width * sizeof(uint32_t));
     }
 
     int result = sh1106_i2c_init(config);

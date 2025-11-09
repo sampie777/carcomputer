@@ -119,11 +119,7 @@ void show_statusbar(State *state, SH1106Config *display) {
         short_blink_state = false;
     }
 
-    if (state->cruise_control.enabled) {
-        sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, "Cruise control");
-    } else {
-        sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, APP_VERSION);
-    }
+    sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, APP_VERSION);
 
     int offset_right = display->width + 1;
 

@@ -14,7 +14,7 @@ typedef struct {
     int height;
     int width;
     int transmission_failures;
-    uint8_t **buffer;
+    uint32_t **buffer;
 } SH1106Config;
 
 typedef enum {
