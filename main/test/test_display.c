@@ -59,6 +59,7 @@ void test_display_aboutcar() {
         .car.is_ignition_on = true,
         .car.is_braking = true,
         .storage.is_connected = true,
+        .car.speed = 100,
         .cruise_control.target_speed = 120,
         // .cruise_control.enabled = true,
         .cruise_control.virtual_gas_pedal = 0.3,

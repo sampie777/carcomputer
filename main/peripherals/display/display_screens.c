@@ -100,7 +100,7 @@ void content_main_menu(const State *state, SH1106Config *display) {
 void content_cruise_control(State *state, SH1106Config *display) {
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 10;
-    char buffer[20];
+    char buffer[32];
     snprintf(buffer, sizeof buffer, "%3.0f%s ", state->car.speed, state->cruise_control.enabled ? "/" : " km/h");
     offset_x += sh1106_draw_string(display, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
 
@@ -126,21 +126,19 @@ void content_cruise_control(State *state, SH1106Config *display) {
 
 
     offset_x = 25;
-    double hourly_eta_deviation = cruise_control_calculate_hour_eta_deviation_for_curren_speed(state);
-    if (hourly_eta_deviation >= 0) {
-        offset_x += sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "ETA diff:  ");
-        format_time_h_mm((int64_t) (hourly_eta_deviation * 3600 * 1000), buffer);
-        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-    }
-
-    // --- Debug stuff
-
-    offset_x = 25;
-    offset_y += 10;
     sprintf(buffer, "%.1f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
-    // --- End of debug stuff
+    offset_x = 25;
+    offset_y += 10;
+    double hourly_eta_deviation = cruise_control_calculate_hour_eta_deviation_for_curren_speed(state);
+    if (hourly_eta_deviation >= 0) {
+        char time_buffer[16];
+        format_time_h_mm((int64_t) (hourly_eta_deviation * 3600 * 1000), time_buffer);
+        snprintf(buffer, sizeof buffer, "1h ETA -> %sh", time_buffer);
+
+        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    }
 
     if (!state->cruise_control.enabled) return;
 

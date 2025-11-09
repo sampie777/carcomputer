@@ -149,7 +149,7 @@ int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize
         }
     }
 
-    return (int) strlen(c) * font_width * (int) size + letter_spacing * (int) size - 1;
+    return (int) strlen(c) * font_width * (int) size + letter_spacing * (int) size;
 }
 
 /**
