@@ -151,7 +151,6 @@ void control_buttons_handle(State *state, Button button) {
                 || state->display.current_screen == Screen_About
                 ) {
                 state->display.current_screen = Screen_Menu;
-                state->display.subscreen.current = 0;
             } else if (state->display.current_screen == Screen_CruiseControl) {
                 if (state->cruise_control.enabled) printf("Disconnecting cruise control because of user input\n");
                 state->cruise_control.enabled = false;

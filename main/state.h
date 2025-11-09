@@ -38,7 +38,6 @@ typedef enum {
 } ScreenAbout;
 
 typedef union {
-    int current;
     ScreenSensors sensors;
     ScreenAbout about;
 } SubScreen;
