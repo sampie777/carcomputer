@@ -2,6 +2,10 @@
 // Created by Samuel-Anton Jansen on 2025/11/07.
 //
 
+
+#define STEP (5)
+#define RUN_TIME (10000)
+
 #include "test_display.h"
 
 #include <stdio.h>
@@ -16,9 +20,6 @@
 #include "utils/common.h"
 #include "../control/cruise_control.h"
 #include "../control/control.h"
-
-#define STEP (50)
-#define RUN_TIME (10000)
 
 
 void update_bitmap() {
@@ -39,7 +40,7 @@ void update_bitmap() {
     }
 
     char filename[128];
-    snprintf(filename, sizeof(filename), "../../../test_output/screen%03d.bmp", i++);
+    snprintf(filename, sizeof(filename), "../../../test_output/screen%05d.bmp", i++);
     writebmp(filename, 0);
 }
 
@@ -56,7 +57,6 @@ void test_display_cruisecontrol() {
 
     State state = {
         .car.speed = 130,
-        .car.acceleration = 1,
         .cruise_control.target_speed = 120,
         .power_off_count_down_sec = -1,
     };
@@ -93,7 +93,7 @@ void test_display_cruisecontrol() {
 
         display_update(&state);
         update_bitmap();
-        step_time();
+        step_time(STEP);
     }
 
     render_video();

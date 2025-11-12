@@ -4,7 +4,6 @@
 
 #include "test_cruisecontrol.h"
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "../control/cruise_control.h"
 #include "../utils.h"
@@ -14,32 +13,8 @@
 #include "utils/common.h"
 #include "utils/csv.h"
 
-#define CAR_MASS (1200.0)
-#define FORCE_FACTOR (16500.0)
-#define CAR_VELOCITY_RANDOMNESS (0.0)
 #define STEP (100)
 #define RUN_TIME (40000)
-
-double friction = 0;
-void simulate_car_step(State* state, int32_t delta) {
-    double v = state->car.speed / 3.6;
-    double m = CAR_MASS;
-    double g = 9.81;
-    double A = 3;       // Front area
-    double u = 0.1;     // Friction coefficient
-    double P0 = 3750;
-    double p = 1.3;
-    double c = 0.27;
-    friction = v < 0.1 && v > -0.1 ? 0 : P0 / v + u * m * g + c * p * A * v * v / 2.0;
-
-    double engineForce = (_get_gas_penal_enabled() ? state->cruise_control.virtual_gas_pedal : state->car.gas_pedal) * FORCE_FACTOR;
-    // F = m*a -> a = F / m
-    double acceleration = (engineForce - friction)
-         / CAR_MASS;
-    state->car.speed += acceleration * (delta / 1000.0) + (random_d() - 0.5) * CAR_VELOCITY_RANDOMNESS * (delta / 1000.0);
-
-    state->car.estimated_gear = Gear1;
-}
 
 void test_cruise_control(void) {
     write_csv();
@@ -92,11 +67,10 @@ void test_cruise_control(void) {
         control_cruise_control(&state);
         control_process_car(&state);
 
-        sprintf(buffer, "%lld;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%d\n",
+        sprintf(buffer, "%lld;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%d\n",
                 esp_timer_get_time_ms(),
                 state.car.gas_pedal,
                 state.car.acceleration,
-                friction,
                 state.car.speed,
                 state.cruise_control.virtual_gas_pedal,
                 state.cruise_control.control_value,
@@ -109,7 +83,7 @@ void test_cruise_control(void) {
         string_char_replace(buffer, '.', ',');
         append_csv(buffer, strlen(buffer));
 
-        step_time();
+        step_time(STEP);
 
         max_speed = max(max_speed, state.car.speed);
         min_speed = min(min_speed, state.car.speed);
