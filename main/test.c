@@ -7,6 +7,6 @@
 int main(void) {
     // test_cruise_control();
     // test_hourly_eta();
-    test_display_aboutcar();
+    test_display_cruisecontrol();
     return 0;
 }

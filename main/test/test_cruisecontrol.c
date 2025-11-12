@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../state.h"
 #include "../control/cruise_control.h"
 #include "../utils.h"
 #include "../control/control.h"

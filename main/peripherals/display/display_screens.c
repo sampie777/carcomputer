@@ -98,6 +98,7 @@ void content_main_menu(const State *state, SH1106Config *display) {
 }
 
 void content_cruise_control(State *state, SH1106Config *display) {
+    static double hourly_eta_deviation = -1;
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 10;
     char buffer[32];
@@ -131,8 +132,11 @@ void content_cruise_control(State *state, SH1106Config *display) {
 
     offset_x = 25;
     offset_y += 10;
-    double hourly_eta_deviation = cruise_control_calculate_hour_eta_deviation_for_curren_speed(state);
-    if (hourly_eta_deviation >= 0) {
+    double new_hourly_eta_deviation = cruise_control_calculate_hour_eta_deviation_for_curren_speed(state);
+    if (new_hourly_eta_deviation >= 0) {
+        if (hourly_eta_deviation < 0) hourly_eta_deviation = new_hourly_eta_deviation;
+        hourly_eta_deviation = new_hourly_eta_deviation * 0.2 + hourly_eta_deviation * 0.8;
+
         char time_buffer[16];
         format_time_h_mm((int64_t) (hourly_eta_deviation * 3600 * 1000), time_buffer);
         snprintf(buffer, sizeof buffer, "ETA 1h %c %sh", SPECIAL_CHAR_ARROW_RIGHT, time_buffer);

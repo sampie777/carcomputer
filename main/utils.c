@@ -232,9 +232,10 @@ void format_time(int64_t milliseconds, char *output_string) {
 
 void format_time_h_mm(int64_t milliseconds, char *output_string) {
     unsigned long total_seconds = milliseconds / 1000;
-    unsigned long hours = total_seconds / 3600;
-    uint8_t minutes = (uint8_t) round(((double) total_seconds - (double) hours * 3600) / 60);
-    sprintf(output_string, "%s%lu:%02u", hours == 0 ? " " : "", hours, minutes);
+    unsigned long total_minutes = (unsigned long) round((double) total_seconds / 60);
+    unsigned long hours = total_minutes / 60;
+    uint8_t minutes = total_minutes - hours * 60;
+    sprintf(output_string, "%lu:%02u", hours, minutes);
 }
 
 double random_d() {

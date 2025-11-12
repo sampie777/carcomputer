@@ -8,14 +8,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "test_cruisecontrol.h"
 #include "../peripherals/display/display.h"
 #include "mocks/carcomputer/peripherals/display/sh1106_i2c.h"
 #include "mocks/idf/esp_timer.h"
 #include "utils/bmp.h"
 #include "utils/common.h"
+#include "../control/cruise_control.h"
+#include "../control/control.h"
 
-#define STEP (100)
-#define RUN_TIME (1000)
+#define STEP (50)
+#define RUN_TIME (10000)
 
 
 void update_bitmap() {
@@ -36,24 +39,64 @@ void update_bitmap() {
     }
 
     char filename[128];
-    snprintf(filename, sizeof(filename), "../../../test_output/screen%d.bmp", i++);
+    snprintf(filename, sizeof(filename), "../../../test_output/screen%03d.bmp", i++);
     writebmp(filename, 0);
 }
 
+void render_video(void) {
+    int framerate = 1000 / STEP;
+    char command[512];
+    snprintf(command, sizeof(command), "ffmpeg -y -framerate %d -pattern_type glob -i '../../../test_output/*.bmp' -c:v libx264 -pix_fmt yuv420p '../../../test_output/out.mp4'", framerate);
+    system(command);
+}
+
 void test_display_cruisecontrol() {
+    system("rm ../../../test_output/*.bmp");
     _esp_timer_set_time(1000 * 1000);
+
     State state = {
         .car.speed = 130,
         .car.acceleration = 1,
         .cruise_control.target_speed = 120,
         .power_off_count_down_sec = -1,
     };
+    state.boot.is_booting = false;
+    state.power_off_count_down_sec = -1;
+    state.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
+    state.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
+    state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
+    state.device_name = "Default";
+    state.location.time.timezone = 2; // GMT+2
+    state.motion.bias.x = 1.1;
+    state.motion.bias.y = -0.04;
+    state.motion.bias.z = 0.01;
+
+    state.car.gas_pedal_connected = true;
+    state.car.is_connected = true;
+    state.car.is_braking = false;
+    state.car.estimated_gear = Gear1;
+    state.car.is_parking_brake_on = false;
+
+    state.car.speed = 50;
+    state.car.gas_pedal = 0;
+    state.cruise_control.enabled = true;
+    cruise_control_step(&state);
+    state.car.speed = 35;
 
     display_init();
 
-    display_update(&state);
+    for (int i = 0; i < RUN_TIME / STEP; i++) {
+        simulate_car_step(&state, STEP);
 
-    update_bitmap();
+        control_cruise_control(&state);
+        control_process_car(&state);
+
+        display_update(&state);
+        update_bitmap();
+        step_time();
+    }
+
+    render_video();
 }
 
 void test_display_aboutcar() {
@@ -81,11 +124,7 @@ void test_display_aboutcar() {
     display_init();
     SH1106Config *config = getConfig();
 
-    for (int i = 0; i < RUN_TIME / STEP; i++) {
-        state.car.speed += 1;
-        display_update(&state);
+    display_update(&state);
 
-        update_bitmap();
-        step_time();
-    }
+    update_bitmap();
 }
