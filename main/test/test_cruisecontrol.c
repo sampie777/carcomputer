@@ -12,6 +12,7 @@
 #include "../control/control.h"
 #include "mocks/idf/esp_timer.h"
 #include "mocks/carcomputer/peripherals/gas_pedal.h"
+#include "utils/common.h"
 #include "utils/csv.h"
 
 #define CAR_MASS (1200.0)
@@ -19,8 +20,6 @@
 #define CAR_VELOCITY_RANDOMNESS (0.0)
 #define STEP (100)
 #define RUN_TIME (40000)
-
-void step_time() { _esp_timer_set_time((esp_timer_get_time_ms() + STEP) * 1000); }
 
 double friction = 0;
 void simulate_car_step(State* state, int32_t delta) {

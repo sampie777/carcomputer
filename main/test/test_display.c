@@ -12,15 +12,19 @@
 #include "mocks/carcomputer/peripherals/display/sh1106_i2c.h"
 #include "mocks/idf/esp_timer.h"
 #include "utils/bmp.h"
+#include "utils/common.h"
+
+#define STEP (100)
+#define RUN_TIME (1000)
+
 
 void update_bitmap() {
+    static int i = 0;
     initgraph3();
-    clrscr(0); //clears vp0 to black
     setcolor(0, 255, 255, 255); //sets current color to white
 
     SH1106Config *config = getConfig();
 
-    printf("Width: %d, Height: %d\n", config->width, config->height);
     for (int y = 0; y < config->height; y++) {
         for (int x = 0; x < config->width; x++) {
             char pixel = sh1106_read_pixel(config, x, y);
@@ -31,7 +35,9 @@ void update_bitmap() {
         }
     }
 
-    writebmp("../../../display.bmp", 0);
+    char filename[128];
+    snprintf(filename, sizeof(filename), "../../../test_output/screen%d.bmp", i++);
+    writebmp(filename, 0);
 }
 
 void test_display_cruisecontrol() {
@@ -75,17 +81,11 @@ void test_display_aboutcar() {
     display_init();
     SH1106Config *config = getConfig();
 
-    display_update(&state);
-    // sh1106_draw_char(config, 50, 0, FONT_SMALL, FONT_WHITE, 'A');
-    // sh1106_draw_char(config, 50 + 10, 30, FONT_SMALL, FONT_WHITE, 'S');
-    // sh1106_draw_char(config, 50 + 20, 30, FONT_MEDIUM, FONT_WHITE, 'S');
-    // sh1106_draw_char(config, 50 + 40, 30, FONT_LARGE, FONT_WHITE, 'S');
-    // // sh1106_draw_rectangle(config, 10, 10, 30, 30);
-    // for (int i = 2; i < config->height; i += 6) {
-    //     sh1106_draw_pixel(config, 10 + i, i, FONT_WHITE);
-    //     sh1106_draw_circle(config, i, i, 2, FONT_WHITE);
-    // }
-    //
-    // sh1106_draw_pixel(config, 0, 63, FONT_WHITE);
-    update_bitmap();
+    for (int i = 0; i < RUN_TIME / STEP; i++) {
+        state.car.speed += 1;
+        display_update(&state);
+
+        update_bitmap();
+        step_time();
+    }
 }

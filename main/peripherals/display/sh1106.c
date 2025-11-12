@@ -43,7 +43,7 @@ uint8_t **scale_data(const uint8_t *data, int data_length, int scale, int *scale
 
 void sh1106_clear(SH1106Config *config) {
     for (int i = 0; i < config->height >> 5; i++) {
-        memset(config->buffer[i], 0, config->width);
+        memset(config->buffer[i], 0, config->width * sizeof(uint32_t));
     }
 }
 

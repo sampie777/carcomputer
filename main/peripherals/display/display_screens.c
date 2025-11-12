@@ -135,7 +135,7 @@ void content_cruise_control(State *state, SH1106Config *display) {
     if (hourly_eta_deviation >= 0) {
         char time_buffer[16];
         format_time_h_mm((int64_t) (hourly_eta_deviation * 3600 * 1000), time_buffer);
-        snprintf(buffer, sizeof buffer, "1h ETA %c %sh", SPECIAL_CHAR_ARROW_RIGHT, time_buffer);
+        snprintf(buffer, sizeof buffer, "ETA 1h %c %sh", SPECIAL_CHAR_ARROW_RIGHT, time_buffer);
 
         sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     }

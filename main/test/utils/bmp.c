@@ -56,6 +56,7 @@ void initgraph3() {
         cur_red[a] = 255;
         cur_green[a] = 255;
         cur_blue[a] = 255;
+        clrscr(a);
     }
 }
 

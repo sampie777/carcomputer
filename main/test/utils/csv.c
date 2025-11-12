@@ -5,7 +5,7 @@
 #include "csv.h"
 #include <stdio.h>
 
-const char* file_name = "../../../test1.csv";
+const char* file_name = "../../../test_output/test1.csv";
 
 int write_csv() {
     FILE* file = fopen(file_name, "w");
