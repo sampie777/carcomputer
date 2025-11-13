@@ -1,6 +1,6 @@
-option(RUN_TESTS "Build and run component tests" OFF)
+option(RUN_MY_TESTS "Build and run component tests" OFF)
 
-if (RUN_TESTS)
+if (RUN_MY_TESTS)
     cmake_minimum_required(VERSION 3.16)
     project(tests C)
 
