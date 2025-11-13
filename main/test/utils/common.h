@@ -10,5 +10,7 @@
 
 void step_time(uint64_t delta);
 void simulate_car_step(State* state, int32_t delta);
+void update_bitmap();
+
 
 #endif //CARCOMPUTER_COMMON_H

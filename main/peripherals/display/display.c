@@ -139,12 +139,27 @@ void show_statusbar(State *state, SH1106Config *display) {
     if (state->location.quality > 0
         || (long_blink_state && state->location.is_gps_on)
         || (short_blink_state && state->a9g.initialized)
-        ) {
+    ) {
         sprintf(buffer, "%c", SPECIAL_CHAR_LOCATION);
         sh1106_draw_string(display, offset_right, 1, FONT_SMALL, FONT_WHITE, buffer);
     }
 
     sh1106_draw_horizontal_line(display, 0, STATUS_BAR_HEIGHT, display->width);
+}
+
+void content_sms_state(State *state, SH1106Config *display) {
+    if (state->gsm.sms_state == Idle) return;
+
+    int offset_y = 0;
+    char buffer[32];
+    int margin = 2;
+    int row_height = 8 + 2 * margin;
+
+    snprintf(buffer, sizeof buffer, "Sending sms...");
+    sh1106_draw_filled_rectangle(display, 0, offset_y,
+                                 display->width, row_height);
+    sh1106_draw_string_centered_x(display, offset_y + margin,
+                                  FONT_SMALL, FONT_BLACK, buffer);
 }
 
 void show_content_overlay(State *state, SH1106Config *display) {
@@ -153,6 +168,7 @@ void show_content_overlay(State *state, SH1106Config *display) {
         return;
     }
 
+    content_sms_state(state, display);
     show_error_message(state, display);
 }
 
@@ -231,7 +247,7 @@ void set_current_screen(State *state) {
     }
 }
 
-void check_if_was_disconnected(SH1106Config* display) {
+void check_if_was_disconnected(SH1106Config *display) {
     if (display->transmission_failures == 0) return;
 
     // This means the display was disconnected at some point, so we need to re-init it

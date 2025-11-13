@@ -99,23 +99,9 @@ void _esp_error_check_failed_without_abort(esp_err_t rc, const char *file, int l
  *
  * Disabled if assertions are disabled.
  */
-#ifdef NDEBUG
-#define ESP_ERROR_CHECK(x) do {                                         \
-        esp_err_t err_rc_ = (x);                                        \
-        (void) sizeof(err_rc_);                                         \
-    } while(0)
-#elif defined(CONFIG_COMPILER_OPTIMIZATION_ASSERTIONS_SILENT)
-#define ESP_ERROR_CHECK(x) do {                                         \
-        esp_err_t err_rc_ = (x);                                        \
-        if (unlikely(err_rc_ != ESP_OK)) {                              \
-            abort();                                                    \
-        }                                                               \
-    } while(0)
-#else
 #define ESP_ERROR_CHECK(x) do {                                         \
         esp_err_t err_rc_ = (x);                                        \
     } while(0)
-#endif
 
 /**
  * Macro which can be used to check the error code. Prints the error code, error location, and the failed statement to

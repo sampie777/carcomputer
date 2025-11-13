@@ -68,12 +68,10 @@ typedef struct {
     uint8_t network_error_count;
 } A9GState;
 
-enum SmsState {
+typedef enum {
     Idle = 0,
     Sending,
-    SentSuccess,
-    SentFailed
-};
+} SmsState;
 
 enum A9GCommand {
     A9GCommand_Skip,

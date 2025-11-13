@@ -3,9 +3,14 @@
 //
 
 #include "common.h"
+
+#include <stdio.h>
+
+#include "bmp.h"
 #include "../mocks/idf/esp_timer.h"
 #include "../../utils.h"
 #include "../mocks/carcomputer/peripherals/gas_pedal.h"
+#include "../mocks/carcomputer/peripherals/display/sh1106_i2c.h"
 
 void step_time(uint64_t delta) { _esp_timer_set_time((esp_timer_get_time_ms() + delta) * 1000); }
 
@@ -32,4 +37,26 @@ void simulate_car_step(State* state, int32_t delta) {
     state->car.speed += speed_increase * (delta / 1000.0);
 
     state->car.estimated_gear = Gear1;
+}
+
+void update_bitmap() {
+    static int i = 0;
+    initgraph3();
+    setcolor(0, 255, 255, 255); //sets current color to white
+
+    SH1106Config *config = getConfig();
+
+    for (int y = 0; y < config->height; y++) {
+        for (int x = 0; x < config->width; x++) {
+            char pixel = sh1106_read_pixel(config, x, y);
+            if (pixel == FONT_BLACK) continue;
+            int destination_y = (y + 1) % config->height;
+            int destination_x = y == config->height - 1 ? x + 1 : x;;
+            putpixel(0, destination_x, destination_y);
+        }
+    }
+
+    char filename[128];
+    snprintf(filename, sizeof(filename), "../../../test_output/screen%05d.bmp", i++);
+    writebmp(filename, 0);
 }

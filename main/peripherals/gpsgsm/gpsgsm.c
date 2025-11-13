@@ -2,16 +2,15 @@
 // Created by samuel on 23-8-22.
 //
 
-#include <hal/uart_types.h>
-#include <esp_check.h>
-#include <driver/uart.h>
-#include <hal/gpio_types.h>
 #include <string.h>
 #include "gpsgsm.h"
+
+#include "a9g.h"
 #include "../../config.h"
 #include "../../utils.h"
 #include "utils.h"
 #include "../../error_codes.h"
+#include "driver/uart.h"
 
 #define MESSAGE_MAX_LENGTH 512
 
@@ -322,29 +321,31 @@ void gpsgsm_init(A9GState *a9g_state) {
     printf("[GPS] Init done\n");
 }
 
-// void gsm_send_sms(const char *number, const char *message) {
-//     printf("[GSM] Sending SMS to %s with content: '%s'\n", number, message);
-//
-//     char buffer[32];
-//     // Enable text mode
-//     transmit("AT+CMGF=1\r", true);
-//     delay_ms(100);
-//
-//     // Start SMS to number
-//     snprintf(buffer, sizeof buffer, "AT+CMGS=%s\r", number);
-//     transmit(buffer, true);
-//     delay_ms(500);
-//
-//     // Insert SMS message
-//     transmit_safe(message, 8, false);
-//     transmit("\r", true);
-//     delay_ms(500);
-//
-//     // Send SMS
-//     sprintf(buffer, "%c\r", 0x1a);
-//     transmit(buffer, true);
-//     sms_state = Sending;
-// }
+void gsm_send_sms(GsmState *gsm_state, const char *number, const char *message) {
+    printf("[GSM] Sending SMS to %s with content: '%s'\n", number, message);
+    gsm_state->sms_state = Sending;
+
+    char buffer[32];
+    // Enable text mode
+    a9g_transmit("AT+CMGF=1", true);
+    delay_ms(100);
+
+    // Start SMS to number
+    snprintf(buffer, sizeof buffer, "AT+CMGS=%s", number);
+    a9g_transmit(buffer, true);
+    delay_ms(500);
+
+    // Insert SMS message
+    a9g_transmit(message, true);
+    // transmit_safe(message, 8, false);
+    delay_ms(500);
+
+    // Send SMS
+    sprintf(buffer, "%c", 0x1a);
+    a9g_transmit(buffer, true);
+
+    gsm_state->sms_state = Idle;
+}
 
 // void gsm_http_get(State *state, const char *url, void (*callback)(State *state, const HttpResponseMessage *response)) {
 //     printf("[GSM] HTTP GET request to %s\n", url);

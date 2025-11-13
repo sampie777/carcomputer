@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 typedef uint32_t TickType_t;
-void vTaskDelay( const TickType_t xTicksToDelay ) {};
+void vTaskDelay( const TickType_t xTicksToDelay );
+void set_update_function(void *function);
 
 #endif //CARCOMPUTER_TASK_H

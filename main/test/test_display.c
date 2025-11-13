@@ -3,7 +3,7 @@
 //
 
 
-#define STEP (5)
+#define STEP (50)
 #define RUN_TIME (10000)
 
 #include "test_display.h"
@@ -13,42 +13,31 @@
 #include <string.h>
 
 #include "test_cruisecontrol.h"
+#include "../utils.h"
 #include "../peripherals/display/display.h"
 #include "mocks/carcomputer/peripherals/display/sh1106_i2c.h"
 #include "mocks/idf/esp_timer.h"
-#include "utils/bmp.h"
 #include "utils/common.h"
 #include "../control/cruise_control.h"
 #include "../control/control.h"
+#include "../control/buttons.h"
+#include "mocks/idf/freertos/task.h"
 
-
-void update_bitmap() {
-    static int i = 0;
-    initgraph3();
-    setcolor(0, 255, 255, 255); //sets current color to white
-
-    SH1106Config *config = getConfig();
-
-    for (int y = 0; y < config->height; y++) {
-        for (int x = 0; x < config->width; x++) {
-            char pixel = sh1106_read_pixel(config, x, y);
-            if (pixel == FONT_BLACK) continue;
-            int destination_y = (y + 1) % config->height;
-            int destination_x = y == config->height - 1 ? x + 1 : x;;
-            putpixel(0, destination_x, destination_y);
-        }
-    }
-
-    char filename[128];
-    snprintf(filename, sizeof(filename), "../../../test_output/screen%05d.bmp", i++);
-    writebmp(filename, 0);
-}
 
 void render_video(void) {
     int framerate = 1000 / STEP;
     char command[512];
-    snprintf(command, sizeof(command), "ffmpeg -y -framerate %d -pattern_type glob -i '../../../test_output/*.bmp' -c:v libx264 -pix_fmt yuv420p '../../../test_output/out.mp4'", framerate);
+    snprintf(command, sizeof(command),
+             "ffmpeg -y -framerate %d -pattern_type glob -i '../../../test_output/*.bmp' -c:v libx264 -pix_fmt yuv420p '../../../test_output/out.mp4'",
+             framerate);
     system(command);
+}
+
+State *_state;
+
+void update_function() {
+    display_update(_state);
+    update_bitmap();
 }
 
 void test_display_cruisecontrol() {
@@ -91,8 +80,47 @@ void test_display_cruisecontrol() {
         control_cruise_control(&state);
         control_process_car(&state);
 
-        display_update(&state);
-        update_bitmap();
+        update_function();
+        step_time(STEP);
+    }
+
+    render_video();
+}
+
+void test_display_sms() {
+    system("rm ../../../test_output/*.bmp");
+    _esp_timer_set_time(1000 * 1000);
+
+    State state = {0};
+    _state = &state;
+    state.boot.is_booting = false;
+    state.power_off_count_down_sec = -1;
+    state.device_name = "Default";
+    state.car.gas_pedal_connected = true;
+    state.car.is_connected = true;
+    state.car.is_braking = false;
+    state.car.estimated_gear = Gear1;
+    state.car.is_parking_brake_on = false;
+
+    state.display.current_screen = Screen_Actions;
+    state.display.actions_option_selection = ScreenActionsOptions_ActivateSim;
+
+    display_init();
+
+    set_update_function(&update_function);
+
+    for (int i = 0; i < RUN_TIME / STEP; i++) {
+        if (i == 5) {
+            control_buttons_handle(&state, BUTTON_UP);
+            state.display.actions_option_selection = ScreenActionsOptions_ActivateDiagnostics;
+        }
+
+        simulate_car_step(&state, STEP);
+
+        control_cruise_control(&state);
+        control_process_car(&state);
+
+        update_function();
         step_time(STEP);
     }
 

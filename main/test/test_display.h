@@ -7,5 +7,6 @@
 
 void test_display_cruisecontrol();
 void test_display_aboutcar();
+void test_display_sms();
 
 #endif //CARCOMPUTER_TEST_DISPLAY_H

@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include "definitions.h"
 #include "../../state.h"
+#include <driver/uart.h>
 
 void extract_uint16(char **source, uint16_t *destination, char *delimiter);
 void extract_uint8(char **source, uint8_t *destination, char *delimiter);

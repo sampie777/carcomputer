@@ -322,6 +322,8 @@ char *content_actions_get_option_text(ActionsScreenOptions option_index) {
             return "Set seatbelt on";
         case ScreenActionsOptions_ActivateDiagnostics:
             return "Initialize diagnostics";
+        case ScreenActionsOptions_ActivateSim:
+            return "Activate SIM";
         case ScreenActionsOptions_Reboot:
             return "Reboot";
         default:

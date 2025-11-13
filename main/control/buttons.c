@@ -6,6 +6,8 @@
 #include "buttons.h"
 #include "../utils.h"
 #include "../peripherals/canbus/canbus.h"
+#include "../peripherals/gpsgsm/gpsgsm.h"
+#include "../error_codes.h"
 
 void control_buttons_handle(State *state, Button button) {
     switch (button) {
@@ -42,6 +44,13 @@ void control_buttons_handle(State *state, Button button) {
                         break;
                     case ScreenActionsOptions_ActivateDiagnostics:
                         state->diagnostics.status = DiagnosticsStep_Off + 1;
+                        break;
+                    case ScreenActionsOptions_ActivateSim:
+#ifdef SIM_ACTIVATE_CONTACT_NUMBER
+                        gsm_send_sms(&(state->gsm), SIM_ACTIVATE_CONTACT_NUMBER, "Carcomputer SIM activation");
+#else
+                        set_error(state, ERROR_SMS_FAILED);
+#endif
                         break;
                     case ScreenActionsOptions_Reboot:
                         utils_reboot(state);

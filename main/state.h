@@ -55,6 +55,7 @@ typedef enum {
     ScreenActionsOptions_LockDoors,
     ScreenActionsOptions_ActivateSeatbelt,
     ScreenActionsOptions_ActivateDiagnostics,
+    ScreenActionsOptions_ActivateSim,
     ScreenActionsOptions_Reboot,
     ScreenActionsOptions_MAX_VALUE,
 } ActionsScreenOptions;
@@ -179,6 +180,7 @@ typedef struct {
     bool is_uploading;
     esp_http_client_method_t request_type;
     int64_t upload_start_time;
+    SmsState sms_state;
 
     Time time;
     enum SimStatus sim_status;
