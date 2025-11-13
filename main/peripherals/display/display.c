@@ -39,7 +39,7 @@ void show_error_message(State *state, SH1106Config *display) {
     static int64_t last_error_message_time = 0;
 
     // If no new errors, return
-    if (state->errors == 0) return;
+    if (current_error_to_show == 0 && state->errors == 0) return;
 
     // After a timeout to show the previous error, determine the next error to show
     if (last_error_message_time == 0
