@@ -68,35 +68,43 @@ int sh1106_send_byte(SH1106Config *config, uint8_t data) {
 void sh1106_display(SH1106Config *config) {
     if (sh1106_send_byte(config, SH1106_CONFIG_SET_START_LINE | 0x00) != RESULT_OK) return;
 
-    for (int row = 0; row < (config->height >> 3); row++) {
-        i2c_cmd_handle_t command = i2c_cmd_link_create();
-        i2c_master_start(command);
-        i2c_master_write_byte(command, (config->address << 1) | I2C_MASTER_WRITE, true);
-        i2c_master_write_byte(command, CONTROL_BYTE_CONFIG_SINGLE_DATA, true);
-        i2c_master_write_byte(command, SH1106_CONFIG_SET_PAGE | row, true);
-        i2c_master_write_byte(command, CONTROL_BYTE_CONFIG_SINGLE_DATA, true);
-        i2c_master_write_byte(command, SH1106_CONFIG_SET_COLUMN_LOW | SH1106_COL_OFFSET, true);
-        i2c_master_write_byte(command, CONTROL_BYTE_CONFIG_SINGLE_DATA, true);
-        i2c_master_write_byte(command, SH1106_CONFIG_SET_COLUMN_HIGH | (SH1106_COL_OFFSET >> 4), true);
+    for (int row = 0; row < config->height >> 5; row++) {
+        for (int subrow = 0; subrow < 4; subrow++) {
 
-        i2c_master_write_byte(command, CONTROL_BYTE_RAM_MULTI_DATA, true);
+            uint8_t subrow_data[config->width];
+            for (int i = 0; i < config->width; i++) {
+                subrow_data[i] = (uint8_t) (config->buffer[row][i] >> subrow * 8);
+            }
 
-        // For some reason the next if-statement cannot be put in a C if-statement.
-        // The display will then show scrambled pixels if DISPLAY_UPSIDE_DOWN == true.
+            i2c_cmd_handle_t command = i2c_cmd_link_create();
+            i2c_master_start(command);
+            i2c_master_write_byte(command, (config->address << 1) | I2C_MASTER_WRITE, true);
+            i2c_master_write_byte(command, CONTROL_BYTE_CONFIG_SINGLE_DATA, true);
+            i2c_master_write_byte(command, SH1106_CONFIG_SET_PAGE | (row * 4 + subrow), true);
+            i2c_master_write_byte(command, CONTROL_BYTE_CONFIG_SINGLE_DATA, true);
+            i2c_master_write_byte(command, SH1106_CONFIG_SET_COLUMN_LOW | SH1106_COL_OFFSET, true);
+            i2c_master_write_byte(command, CONTROL_BYTE_CONFIG_SINGLE_DATA, true);
+            i2c_master_write_byte(command, SH1106_CONFIG_SET_COLUMN_HIGH | (SH1106_COL_OFFSET >> 4), true);
+
+            i2c_master_write_byte(command, CONTROL_BYTE_RAM_MULTI_DATA, true);
+
+            // For some reason the next if-statement cannot be put in a C if-statement.
+            // The display will then show scrambled pixels if DISPLAY_UPSIDE_DOWN == true.
 #if DISPLAY_UPSIDE_DOWN
-        uint8_t data[config->width];
-        invert_array(config->buffer[row], data, config->width);
-        i2c_master_write(command, data, config->width, true);
+            uint8_t data[config->width];
+            invert_array(subrow_data, data, config->width);
+            i2c_master_write(command, data, config->width, true);
 #else
-        i2c_master_write(command, config->buffer[row], config->width, true);
+            i2c_master_write(command, config->buffer[row], config->width, true);
 #endif
 
-        i2c_master_stop(command);
-        if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
-            printf("[sh1106] I2C graphics transmission failed\n");
-            config->transmission_failures++;
+            i2c_master_stop(command);
+            if (i2c_master_cmd_begin(DISPLAY_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS) != ESP_OK) {
+                printf("[sh1106] I2C graphics transmission failed\n");
+                config->transmission_failures++;
+            }
+            i2c_cmd_link_delete(command);
         }
-        i2c_cmd_link_delete(command);
     }
 }
 

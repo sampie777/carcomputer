@@ -128,10 +128,9 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontCol
  * @return the total horizontal pixel length used to draw the string
  */
 int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize size, FontColor color,
-                                    const uint8_t *c,
-                                    int text_spacing) {
+                                    const uint8_t *c, int text_spacing) {
     int letter_spacing = 0;
-    for (int i = 0; i < strlen(c); i++) {
+    for (int i = 0; i < strlen((char *) c); i++) {
         // If current char starts with empty space, move it a bit to the left
         if (font[c[i] * font_width] == 0x00) {
             letter_spacing--;
@@ -144,12 +143,12 @@ int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize
             letter_spacing++;
         }
 
-        if (text_spacing != 0 && i < strlen(c) - 1) {
+        if (text_spacing != 0 && i < strlen((char *) c) - 1) {
             letter_spacing += text_spacing;
         }
     }
 
-    return (int) strlen(c) * font_width * (int) size + letter_spacing * (int) size;
+    return (int) strlen((char *) c) * font_width * (int) size + letter_spacing * (int) size;
 }
 
 /**
@@ -162,7 +161,7 @@ int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize
  * @return the total horizontal pixel length used to draw the string
  */
 int sh1106_draw_string(SH1106Config *config, int x, int y, FontSize size, FontColor color, const char *c) {
-    return sh1106_draw_string_with_spacing(config, x, y, size, color, c, 0);
+    return sh1106_draw_string_with_spacing(config, x, y, size, color, (uint8_t *) c, 0);
 }
 
 int sh1106_draw_string_centered_x(SH1106Config *config, int y, FontSize size, FontColor color,
