@@ -44,11 +44,8 @@ void test_display_cruisecontrol() {
     system("rm ../../../test_output/*.bmp");
     _esp_timer_set_time(1000 * 1000);
 
-    State state = {
-        .car.speed = 130,
-        .cruise_control.target_speed = 120,
-        .power_off_count_down_sec = -1,
-    };
+    State state = {0};
+    _state = &state;
     state.boot.is_booting = false;
     state.power_off_count_down_sec = -1;
     state.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
