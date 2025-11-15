@@ -12,6 +12,7 @@
 #include "mocks/carcomputer/peripherals/gas_pedal.h"
 #include "utils/common.h"
 #include "utils/csv.h"
+#include "utils/graph.h"
 
 #define STEP (100)
 #define RUN_TIME (40000)
@@ -45,6 +46,13 @@ void test_cruise_control(void) {
     cruise_control_step(&state);
     state.car.speed = 35;
 
+    Graph graph = {
+        .max = 60,
+        .min = 20,
+        .data = NULL,
+        .size = 0
+    };
+
     char buffer[512];
     sprintf(buffer, "resp_timer_get_time_ms();"
             "state.car.gas_pedal;"
@@ -67,6 +75,7 @@ void test_cruise_control(void) {
         control_cruise_control(&state);
         control_process_car(&state);
 
+        graph_add(&graph, state.car.speed);
         sprintf(buffer, "%lld;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%d\n",
                 esp_timer_get_time_ms(),
                 state.car.gas_pedal,
@@ -89,6 +98,7 @@ void test_cruise_control(void) {
         min_speed = min(min_speed, state.car.speed);
     }
 
+    graph_render(&graph);
     printf("Max speed: %lf\n", max_speed);
     printf("Min speed: %lf\n", min_speed);
 }

@@ -19,8 +19,6 @@
 
 //statically allocated arrays for graphics output
 //main historgram display. 10 viewports
-#define BMP_WIDTH (128)
-#define BMP_HEIGHT (64)
 char red[BMP_WIDTH][BMP_HEIGHT][10];
 char green[BMP_WIDTH][BMP_HEIGHT][10];
 char blue[BMP_WIDTH][BMP_HEIGHT][10];

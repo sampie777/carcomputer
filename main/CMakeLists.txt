@@ -6,7 +6,7 @@ if (RUN_MY_TESTS)
 
     set(CMAKE_C_STANDARD 11)
 
-    add_executable(tests test.c test/utils/csv.c test/utils/bmp.c test/test_cruisecontrol.c test/mocks/idf/esp_timer.c utils.c math.c test/mocks/carcomputer/peripherals/adc.c test/mocks/carcomputer/peripherals/gas_pedal.c control/cruise_control.c control/control.c test/mocks/carcomputer/peripherals/canbus/canbus.c test/mocks/carcomputer/peripherals/mpu9250.c test/mocks/idf/driver/gpio.c peripherals/display/display_screens.c peripherals/display/sh1106.c test/test_display.c test/mocks/carcomputer/peripherals/display/sh1106_i2c.c peripherals/display/display.c test/utils/common.c peripherals/buttons.c control/buttons.c peripherals/gpsgsm/gpsgsm.c test/mocks/carcomputer/peripherals/gpsgsm/a9g.c test/mocks/idf/driver/uart.c peripherals/gpsgsm/utils.c test/mocks/idf/freertos/task.c)
+    add_executable(tests test.c test/utils/csv.c test/utils/bmp.c test/test_cruisecontrol.c test/mocks/idf/esp_timer.c utils.c math.c test/mocks/carcomputer/peripherals/adc.c test/mocks/carcomputer/peripherals/gas_pedal.c control/cruise_control.c control/control.c test/mocks/carcomputer/peripherals/canbus/canbus.c test/mocks/carcomputer/peripherals/mpu9250.c test/mocks/idf/driver/gpio.c peripherals/display/display_screens.c peripherals/display/sh1106.c test/test_display.c test/mocks/carcomputer/peripherals/display/sh1106_i2c.c peripherals/display/display.c test/utils/common.c peripherals/buttons.c control/buttons.c peripherals/gpsgsm/gpsgsm.c test/mocks/carcomputer/peripherals/gpsgsm/a9g.c test/mocks/idf/driver/uart.c peripherals/gpsgsm/utils.c test/mocks/idf/freertos/task.c test/utils/graph.c)
 
     # Add the directory containing your mock headers
     target_include_directories(tests PRIVATE

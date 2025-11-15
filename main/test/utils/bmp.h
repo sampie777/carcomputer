@@ -7,6 +7,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define BMP_WIDTH (128)
+#define BMP_HEIGHT (64)
+
 void initgraph3();
 void setcolor(int vp, int r, int g, int b);
 void clrscr(int vp);
