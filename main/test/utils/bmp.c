@@ -10,165 +10,101 @@
 #include <string.h>
 
 // Gotten from: https://forums.raspberrypi.com/viewtopic.php?t=175498
-
-// *******************************************
-//
-// GRAPH3.C - Basic Graphics Support for CLI's
-//
-// *******************************************
-
-//statically allocated arrays for graphics output
-//main historgram display. 10 viewports
-char red[BMP_WIDTH][BMP_HEIGHT][10];
-char green[BMP_WIDTH][BMP_HEIGHT][10];
-char blue[BMP_WIDTH][BMP_HEIGHT][10];
-
-long sx = BMP_WIDTH; //dimensions of viewport
-long sy = BMP_HEIGHT;
+// Improved and refactored by myself
 
 //CURRENT COLOR SUPPORT
-long cur_red[10];
-long cur_green[10];
-long cur_blue[10];
+uint8_t cur_red;
+uint8_t cur_green;
+uint8_t cur_blue;
 
-//note if using a refreshing browser page for output remember to include cache defeating
-
-// FUNCTION PROTOTYPES
-
-// Limited graphics support
-//void writebmp(char *fname); //writes out the graphics arrays to a BMP file
-//void bar2(int x, int y, int w, int h, char i);
-//void clrscr();
-
-// END OF FUNCTION PROTOTYPES
-
-//Graphics Support Routines
-
-void initgraph3() {
-    int a;
-
-    //set all current colors to white
-    //for all viewports
-    //(this way it will draw right out of the package)
-    for (a = 0; a < 10; a++) {
-        cur_red[a] = 255;
-        cur_green[a] = 255;
-        cur_blue[a] = 255;
-        clrscr(a);
+void allocate_2d_array(uint8_t ***array, int width, int height) {
+    *array = malloc(width * sizeof(uint8_t *));
+    for (int i = 0; i < width; i++) {
+        (*array)[i] = malloc(height * sizeof(uint8_t));
     }
 }
 
-void setcolor(int vp, int r, int g, int b) {
-    cur_red[vp] = r;
-    cur_green[vp] = g;
-    cur_blue[vp] = b;
+void bmp_init(BmpImage *bmp) {
+    allocate_2d_array(&bmp->red, bmp->width, bmp->height);
+    allocate_2d_array(&bmp->blue, bmp->width, bmp->height);
+    allocate_2d_array(&bmp->green, bmp->width, bmp->height);
+
+    //set all current colors to white
+    //(this way it will draw right out of the package)
+    cur_red = 255;
+    cur_green = 255;
+    cur_blue = 255;
+    bmp_clear(bmp);
 }
 
-void clrscr(int vp) {
-    int x, y;
+void bmp_set_color(uint8_t r, uint8_t g, uint8_t b) {
+    cur_red = r;
+    cur_green = g;
+    cur_blue = b;
+}
 
-    //clearscreen to white
-    for (x = 0; x < sx; x++)
-        for (y = 0; y < sy; y++) {
-            //			red[x][y][vp]=255; //to white
-            //			green[x][y][vp]=255;
-            //			blue[x][y][vp]=255;
-
-            red[x][y][vp] = 0; //to black
-            green[x][y][vp] = 0;
-            blue[x][y][vp] = 0;
+void bmp_clear(BmpImage *bmp) {
+    for (int x = 0; x < bmp->width; x++)
+        for (int y = 0; y < bmp->height; y++) {
+            bmp->red[x][y] = 0; //to black
+            bmp->green[x][y] = 0;
+            bmp->blue[x][y] = 0;
         }
 }
 
-void getpixel(int vp, int x, int y, char* r, char* g, char* b) {
-    if ((x > 0) && (x < sx) && (y > 0) && (y < sy)) {
-        *r = red[x][y][vp];
-        *g = green[x][y][vp];
-        *b = blue[x][y][vp];
-    }
-    else {
+void bmp_read_pixel(const BmpImage *bmp, int x, int y, uint8_t *r, uint8_t *g, uint8_t *b) {
+    if (x > 0 && x < bmp->width && y > 0 && y < bmp->height) {
+        *r = bmp->red[x][y];
+        *g = bmp->green[x][y];
+        *b = bmp->blue[x][y];
+    } else {
         *r = 0; //returns black on a clip
         *g = 0;
         *b = 0;
     }
 }
 
-void putpixel(int vp, int x, int y) {
-    //wrap the putpixel to reduce segmentation faults
-    //"clipping"
+void bmp_draw_pixel(BmpImage *bmp, int x, int y) {
+    if (x < 0 || x >= bmp->width || y < 0 || y >= bmp->height) return;
 
-    if ((x >= 0) && (x < sx) && (y >= 0) && (y < sy)) {
-        //uses current color
-        red[x][y][vp] = cur_red[vp];
-        green[x][y][vp] = cur_green[vp];
-        blue[x][y][vp] = cur_blue[vp];
-    }
+    bmp->red[x][y] = cur_red;
+    bmp->green[x][y] = cur_green;
+    bmp->blue[x][y] = cur_blue;
 }
 
-int writebmp(char* fname, int vp) {
-    FILE* fptr;
-    long fs, is, a, b; //filesize, image size, counters
-    int yr;
-    char s[255];
-    char n, o, p; //color save values
-
-    //save the current color and restore at the end of the function
-    //usually this is the last call to a viewport, but sometimes not.
-    n = cur_red[vp];
-    o = cur_green[vp];
-    p = cur_blue[vp];
-
+int bmp_save(const BmpImage *bmp, const char *file_path) {
+    FILE *file = fopen(file_path, "wb");
+    if (file == NULL) {
+        printf("failed to open BMP file.\n");
+        return -1;
+    }
 
     //minimalist graphics support for CLI's
-    char bmp_hdr[54] = {
-            0x42, 0x4D, 0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x36, 0x00, 0x00, 0x00,
-            0x28, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00,
-            0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00,
-            0x13, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-        };
+    char bmp_header[54] = {
+        0x42, 0x4D, 0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x36, 0x00, 0x00, 0x00,
+        0x28, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00,
+        0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x13, 0x00, 0x00, 0x00,
+        0x13, 0x0B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
 
-    fs = 54 + (sx * sy * 3); //filesize is the dimentions of the array multiplied by 3 bytes (R,G and B bytes)
-    is = (sx * sy * 3);
+    //filesize is the dimension of the array multiplied by 3 bytes (R,G and B bytes)
+    int32_t file_size = sizeof(bmp_header) + bmp->width * bmp->height * 3;
+    int32_t image_size = bmp->width * bmp->height * 3;
 
-    //put RED registration square in top-left hand corner at (20,20), height =20, width=20
-    //for (a=0;a<20;a++)
-    //	for (b=0;b<20;b++)
-    //		red[a+20][b+20][vp]=255;
+    memcpy(&bmp_header[2], &file_size, 4);
+    memcpy(&bmp_header[18], &bmp->width, 4);
+    memcpy(&bmp_header[22], &bmp->height, 4);
+    memcpy(&bmp_header[34], &image_size, 4);
 
-    setcolor(vp, 255, 255, 255);
-    //textout(vp,20,20,"Reg",1);
+    fwrite(bmp_header, 54, 1, file);
 
-    //Stanford Systems copyright notice
-    yr = 2016;
-    //sprintf(s,"%d (c) Copyright Stanford Systems",yr);
-    //textout(vp,sx/2-(8*strlen(s))/2,sy-10,s,1);
+    for (int b = bmp->height; b > 0; b--)
+        for (int a = 0; a < bmp->width; a++) {
+            fwrite(&bmp->blue[a][b], 1, 1, file);
+            fwrite(&bmp->green[a][b], 1, 1, file);
+            fwrite(&bmp->red[a][b], 1, 1, file);
+        }
 
-    memcpy((void*)&bmp_hdr[2], (void*)&fs, 4);
-    memcpy((void*)&bmp_hdr[18], (void*)&sx, 4);
-    memcpy((void*)&bmp_hdr[22], (void*)&sy, 4);
-    memcpy((void*)&bmp_hdr[34], (void*)&is, 4);
-
-    if ((fptr = fopen(fname, "wb")) != NULL) {
-        fwrite(bmp_hdr, 54, 1, fptr);
-
-        for (b = sy; b > 0; b--)
-            for (a = 0; a < sx; a++) {
-                fwrite(&blue[a][b][vp], 1, 1, fptr);
-                fwrite(&green[a][b][vp], 1, 1, fptr);
-                fwrite(&red[a][b][vp], 1, 1, fptr);
-            }
-    }
-    else {
-        printf("failed to open BMP file.\n");
-        return -1; //error code indicating file could not be opened
-    }
-
-    fclose(fptr);
-
-    //restore any viewport vars we changed here
-    cur_red[vp] = n;
-    cur_green[vp] = o;
-    cur_blue[vp] = o;
-
+    fclose(file);
     return 1;
 }

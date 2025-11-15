@@ -16,24 +16,27 @@ void graph_add(Graph *graph, long value) {
 }
 
 void graph_render(Graph *graph) {
-    initgraph3();
-    setcolor(0, 255, 255, 255);
+    BmpImage bmp = {
+        .width = 64 * 8,
+        .height = 64 * 6,
+    };
+    bmp_init(&bmp);
 
-    for (int x = 0; x < BMP_WIDTH; x++) {
-        int closest_index = (x * graph->size) / BMP_WIDTH;
+    for (int x = 0; x < bmp.width; x++) {
+        int closest_index = (x * graph->size) / bmp.width;
         if (closest_index >= graph->size) continue;
         long value = graph->data[closest_index];
 
         int y = value - graph->min;
-        y = (y * BMP_HEIGHT) / (graph->max - graph->min);
-        if (y < 0 || y >= BMP_HEIGHT) continue;
+        y = (y * bmp.height) / (graph->max - graph->min);
+        if (y < 0 || y >= bmp.height) continue;
 
-        putpixel(0, x, BMP_HEIGHT - y);
+        bmp_draw_pixel(&bmp, x, bmp.height - y);
     }
 
     char filename[128];
     snprintf(filename, sizeof(filename), "../../../test_output/graph.bmp");
-    writebmp(filename, 0);
+    bmp_save(&bmp, filename);
 }
 
 

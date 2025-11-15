@@ -4,17 +4,22 @@
 
 #ifndef BMP_H
 #define BMP_H
-#include <stddef.h>
 #include <stdint.h>
 
-#define BMP_WIDTH (128)
-#define BMP_HEIGHT (64)
 
-void initgraph3();
-void setcolor(int vp, int r, int g, int b);
-void clrscr(int vp);
-void getpixel(int vp, int x, int y, char* r, char* g, char* b);
-void putpixel(int vp, int x, int y);
-int writebmp(char* fname, int vp);
+typedef struct {
+    int32_t width;
+    int32_t height;
+    uint8_t **red;
+    uint8_t **blue;
+    uint8_t **green;
+} BmpImage;
+
+void bmp_init(BmpImage *bmp);
+void bmp_set_color(uint8_t r, uint8_t g, uint8_t b);
+void bmp_clear(BmpImage *bmp);
+void bmp_read_pixel(const BmpImage *bmp, int x, int y, uint8_t *r, uint8_t *g, uint8_t *b);
+void bmp_draw_pixel(BmpImage *bmp, int x, int y);
+int bmp_save(const BmpImage *bmp, const char *file_path);
 
 #endif //BMP_H

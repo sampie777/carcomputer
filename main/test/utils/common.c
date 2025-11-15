@@ -41,8 +41,11 @@ void simulate_car_step(State* state, int32_t delta) {
 
 void update_bitmap() {
     static int i = 0;
-    initgraph3();
-    setcolor(0, 255, 255, 255); //sets current color to white
+    BmpImage bmp = {
+        .width = 128,
+        .height = 64,
+    };
+    bmp_init(&bmp);
 
     SH1106Config *config = getConfig();
 
@@ -52,11 +55,11 @@ void update_bitmap() {
             if (pixel == FONT_BLACK) continue;
             int destination_y = (y + 1) % config->height;
             int destination_x = y == config->height - 1 ? x + 1 : x;;
-            putpixel(0, destination_x, destination_y);
+            bmp_draw_pixel(&bmp, destination_x, destination_y);
         }
     }
 
     char filename[128];
     snprintf(filename, sizeof(filename), "../../../test_output/screen%05d.bmp", i++);
-    writebmp(filename, 0);
+    bmp_save(&bmp, filename);
 }
