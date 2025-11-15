@@ -14,6 +14,6 @@ typedef struct {
 } Graph;
 
 void graph_add(Graph *graph, double value);
-void graph_render(Graph *graph);
+void graph_render(Graph *graph, const char *file_path);
 
 #endif //CARCOMPUTER_GRAPH_H

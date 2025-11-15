@@ -98,7 +98,7 @@ void test_cruise_control(void) {
         min_speed = min(min_speed, state.car.speed);
     }
 
-    graph_render(&graph);
+    graph_render(&graph, "../../../test_output/graph.bmp");
     printf("Max speed: %lf\n", max_speed);
     printf("Min speed: %lf\n", min_speed);
 }

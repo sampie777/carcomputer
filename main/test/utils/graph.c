@@ -23,7 +23,7 @@ void graph_draw_pixel(Graph *graph, BmpImage *bmp, int x, double y) {
     bmp_draw_pixel(bmp, x, bmp->height - y);
 }
 
-void graph_render(Graph *graph) {
+void graph_render(Graph *graph, const char *file_path) {
     BmpImage bmp = {
         .width = 64 * 8,
         .height = 64 * 8,
@@ -54,7 +54,5 @@ void graph_render(Graph *graph) {
         graph_draw_pixel(graph, &bmp, x, value);
     }
 
-    char filename[128];
-    snprintf(filename, sizeof(filename), "../../../test_output/graph.bmp");
-    bmp_save(&bmp, filename);
+    bmp_save(&bmp, file_path);
 }
