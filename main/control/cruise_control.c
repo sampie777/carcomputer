@@ -55,7 +55,7 @@ void cruise_control_apply_pid(State *state) {
 
     // Prevent car from accelerating too fast
     if (state->car.acceleration > CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND) {
-        state->cruise_control.integral *= 0.95;
+        // state->cruise_control.integral *= 0.95;
     }
 
     double output = state->cruise_control.initial_control_value
@@ -84,7 +84,7 @@ void cruise_control_apply_pid(State *state) {
 
     // Apply PID
     state->cruise_control.control_value = output;
-    state->cruise_control.virtual_gas_pedal = state->cruise_control.control_value;
+    state->cruise_control.virtual_gas_pedal = state->cruise_control.control_value * 0.07+ state->cruise_control.virtual_gas_pedal * 0.93;
 }
 
 void cruise_control_safety_checks(State *state, uint8_t car_was_connected) {

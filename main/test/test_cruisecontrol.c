@@ -15,7 +15,7 @@
 #include "utils/graph.h"
 
 #define STEP (100)
-#define RUN_TIME (40000)
+#define RUN_TIME (30000)
 
 void test_cruise_control(void) {
     write_csv();
@@ -42,40 +42,19 @@ void test_cruise_control(void) {
 
     state.car.speed = 50;
     state.car.gas_pedal = 0;
-    state.cruise_control.enabled = true;
     cruise_control_step(&state);
-    state.car.speed = 35;
+    state.car.speed = 40;
 
-    Graph speed_graph = {
-        .max = 60,
-        .min = 20,
-        .data = NULL,
-        .size = 0
-    };
-    Graph gas_pedal_graph = {
-        .max = 1,
-        .min = 0,
-        .data = NULL,
-        .size = 0
-    };
-
-    char buffer[512];
-    sprintf(buffer, "resp_timer_get_time_ms();"
-            "state.car.gas_pedal;"
-            "state.car.acceleration;"
-            "friction;"
-            "state.car.speed;"
-            "state.cruise_control.virtual_gas_pedal;"
-            "state.cruise_control.control_value;"
-            "state.cruise_control.target_speed;"
-            "state.cruise_control.error;"
-            "state.cruise_control.integral;"
-            "state.cruise_control.derivative;"
-            "state.cruise_control.enabled"
-            "\n");
-    append_csv(buffer, strlen(buffer));
+    Graph speed_graph = {.max = 55, .min = 30, .size = 0};
+    Graph gas_pedal_graph = {.max = 1, .min = 0, .size = 0};
+    Graph acceleration_graph = {.max = 0.5, .min = -0.25, .size = 0};
 
     for (int i = 0; i < RUN_TIME / STEP; i++) {
+        if (esp_timer_get_time_ms() >= 3000) {
+            state.cruise_control.enabled = true;
+        }
+        state.cruise_control.target_speed = 50;
+
         simulate_car_step(&state, STEP);
 
         control_cruise_control(&state);
@@ -83,21 +62,7 @@ void test_cruise_control(void) {
 
         graph_add(&speed_graph, state.car.speed);
         graph_add(&gas_pedal_graph, state.cruise_control.virtual_gas_pedal);
-        sprintf(buffer, "%lld;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%d\n",
-                esp_timer_get_time_ms(),
-                state.car.gas_pedal,
-                state.car.acceleration,
-                state.car.speed,
-                state.cruise_control.virtual_gas_pedal,
-                state.cruise_control.control_value,
-                state.cruise_control.target_speed,
-                state.cruise_control.error,
-                state.cruise_control.integral,
-                state.cruise_control.derivative,
-                state.cruise_control.enabled
-        );
-        string_char_replace(buffer, '.', ',');
-        append_csv(buffer, strlen(buffer));
+        graph_add(&acceleration_graph, state.car.acceleration);
 
         step_time(STEP);
 
@@ -107,6 +72,7 @@ void test_cruise_control(void) {
 
     graph_render(&speed_graph, "../../../test_output/speed_graph.bmp");
     graph_render(&gas_pedal_graph, "../../../test_output/gas_pedal_graph.bmp");
+    graph_render(&acceleration_graph, "../../../test_output/acceleration_graph.bmp");
     printf("Max speed: %lf\n", max_speed);
     printf("Min speed: %lf\n", min_speed);
 }
