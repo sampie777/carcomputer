@@ -46,8 +46,11 @@ void cruise_control_apply_pid(State *state) {
     state->cruise_control.derivative = (error - previous_error) / (double) iteration_time;
 
     // Prevent over shooting after overshooting 2 km/h
-    if (error < -1.5 && state->cruise_control.integral > 0) {
-        state->cruise_control.integral *= 0.9;
+    if (error < -1.5 && state->cruise_control.integral > 0 && state->car.acceleration > 0) {
+        state->cruise_control.integral *= 0.95;
+        if (error < -3) {
+            state->cruise_control.integral *= 0.9;
+        }
     }
 
     // Prevent car from accelerating too fast
