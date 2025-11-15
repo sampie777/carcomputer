@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../../math.h"
 
 // Gotten from: https://forums.raspberrypi.com/viewtopic.php?t=175498
 // Improved and refactored by myself
@@ -70,6 +71,24 @@ void bmp_draw_pixel(BmpImage *bmp, int x, int y) {
     bmp->red[x][y] = cur_red;
     bmp->green[x][y] = cur_green;
     bmp->blue[x][y] = cur_blue;
+}
+
+void bmp_draw_line(BmpImage *bmp, int x0, int y0, int x1, int y1) {
+    if (x0 == x1) {
+        // Draw vertical line
+        for (int y = min(y0, y1); y <= max(y0, y1); y++) {
+            bmp_draw_pixel(bmp, x0, y);
+        }
+        return;
+    }
+
+    // y = ax  + b
+    float a = (float) (y1 - y0) / (float) (x1 - x0);
+    float b = y0 - a * x0;
+    for (int x = min(x0, x1); x <= max(x0, x1); x++) {
+        int y = a * x + b;
+        bmp_draw_pixel(bmp, x, y);
+    }
 }
 
 int bmp_save(const BmpImage *bmp, const char *file_path) {

@@ -20,6 +20,7 @@ void bmp_set_color(uint8_t r, uint8_t g, uint8_t b);
 void bmp_clear(BmpImage *bmp);
 void bmp_read_pixel(const BmpImage *bmp, int x, int y, uint8_t *r, uint8_t *g, uint8_t *b);
 void bmp_draw_pixel(BmpImage *bmp, int x, int y);
+void bmp_draw_line(BmpImage *bmp, int x0, int y0, int x1, int y1);
 int bmp_save(const BmpImage *bmp, const char *file_path);
 
 #endif //BMP_H
