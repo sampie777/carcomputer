@@ -9,34 +9,52 @@
 
 #include "bmp.h"
 
-void graph_add(Graph *graph, long value) {
-    graph->data = realloc(graph->data, (graph->size + 1) * sizeof(long));
+void graph_add(Graph *graph, double value) {
+    graph->data = realloc(graph->data, (graph->size + 1) * sizeof(double));
     graph->data[graph->size] = value;
     graph->size++;
+}
+
+void graph_draw_pixel(Graph *graph, BmpImage *bmp, int x, double y) {
+    y -= graph->min;
+    y = y * (double) bmp->height / (graph->max - graph->min);
+    if (y < 0 || y >= bmp->height) return;
+
+    bmp_draw_pixel(bmp, x, bmp->height - y);
 }
 
 void graph_render(Graph *graph) {
     BmpImage bmp = {
         .width = 64 * 8,
-        .height = 64 * 6,
+        .height = 64 * 8,
     };
     bmp_init(&bmp);
 
+    // Draw axis
+    bmp_set_color(0, 255, 255);
+    for (int i = graph->min; i <= graph->max; i++) {
+        for (int x = 0; x < (i % 10 ? 5 : 10); x++) {
+            graph_draw_pixel(graph, &bmp, x, i);
+        }
+    }
+    for (int i = 0; i <= graph->size; i += 10) {
+        int x = i * (double) bmp.width / graph->size;
+        for (int y = 0; y < (i % 100 == 0 ? 10 : 5); y++) {
+            bmp_draw_pixel(&bmp, x, bmp.height - y);
+        }
+    }
+
+    // Draw data
+    bmp_set_color(255, 255, 255);
     for (int x = 0; x < bmp.width; x++) {
-        int closest_index = (x * graph->size) / bmp.width;
+        int closest_index = x * (double) graph->size / bmp.width;
         if (closest_index >= graph->size) continue;
-        long value = graph->data[closest_index];
+        double value = graph->data[closest_index];
 
-        int y = value - graph->min;
-        y = (y * bmp.height) / (graph->max - graph->min);
-        if (y < 0 || y >= bmp.height) continue;
-
-        bmp_draw_pixel(&bmp, x, bmp.height - y);
+        graph_draw_pixel(graph, &bmp, x, value);
     }
 
     char filename[128];
     snprintf(filename, sizeof(filename), "../../../test_output/graph.bmp");
     bmp_save(&bmp, filename);
 }
-
-

@@ -7,13 +7,13 @@
 #include <stddef.h>
 
 typedef struct {
-    long max;
-    long min;
-    long *data;
+    double max;
+    double min;
+    double *data;
     size_t size;
 } Graph;
 
-void graph_add(Graph *graph, long value);
+void graph_add(Graph *graph, double value);
 void graph_render(Graph *graph);
 
 #endif //CARCOMPUTER_GRAPH_H
