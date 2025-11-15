@@ -127,7 +127,7 @@ void content_cruise_control(State *state, SH1106Config *display) {
 
 
     offset_x = 25;
-    sprintf(buffer, "%.1f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
+    sprintf(buffer, "%.2f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     offset_x = 25;
