@@ -141,7 +141,7 @@ void content_cruise_control(State *state, SH1106Config *display) {
         if (hourly_eta_deviation < 0) hourly_eta_deviation = new_hourly_eta_deviation;
         hourly_eta_deviation = new_hourly_eta_deviation * 0.2 + hourly_eta_deviation * 0.8;
 
-        int64_t milliseconds = -1 * (int64_t) ((hourly_eta_deviation - 1) * 3600 * 1000);
+        int64_t milliseconds = (int64_t) ((hourly_eta_deviation - 1) * 3600 * 1000);
         bool is_negative = milliseconds < 0;
         if (is_negative) milliseconds *= -1;
         char time_buffer[16];
