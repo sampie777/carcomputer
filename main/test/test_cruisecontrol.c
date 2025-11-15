@@ -46,9 +46,15 @@ void test_cruise_control(void) {
     cruise_control_step(&state);
     state.car.speed = 35;
 
-    Graph graph = {
+    Graph speed_graph = {
         .max = 60,
         .min = 20,
+        .data = NULL,
+        .size = 0
+    };
+    Graph gas_pedal_graph = {
+        .max = 1,
+        .min = 0,
         .data = NULL,
         .size = 0
     };
@@ -75,7 +81,8 @@ void test_cruise_control(void) {
         control_cruise_control(&state);
         control_process_car(&state);
 
-        graph_add(&graph, state.car.speed);
+        graph_add(&speed_graph, state.car.speed);
+        graph_add(&gas_pedal_graph, state.cruise_control.virtual_gas_pedal);
         sprintf(buffer, "%lld;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%lf;%d\n",
                 esp_timer_get_time_ms(),
                 state.car.gas_pedal,
@@ -98,7 +105,8 @@ void test_cruise_control(void) {
         min_speed = min(min_speed, state.car.speed);
     }
 
-    graph_render(&graph, "../../../test_output/graph.bmp");
+    graph_render(&speed_graph, "../../../test_output/speed_graph.bmp");
+    graph_render(&gas_pedal_graph, "../../../test_output/gas_pedal_graph.bmp");
     printf("Max speed: %lf\n", max_speed);
     printf("Min speed: %lf\n", min_speed);
 }

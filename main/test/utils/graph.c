@@ -26,7 +26,7 @@ void graph_draw_pixel(Graph *graph, BmpImage *bmp, int x, double y) {
 void graph_render(Graph *graph, const char *file_path) {
     BmpImage bmp = {
         .width = 64 * 8,
-        .height = 64 * 8,
+        .height = 64 * 6,
     };
     bmp_init(&bmp);
 
