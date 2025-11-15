@@ -15,12 +15,10 @@ void graph_add(Graph *graph, double value) {
     graph->size++;
 }
 
-void graph_draw_pixel(Graph *graph, BmpImage *bmp, int x, double y) {
+double graph_get_calculated_y(Graph *graph, BmpImage *bmp, double y) {
     y -= graph->min;
     y = y * (double) bmp->height / (graph->max - graph->min);
-    if (y < 0 || y >= bmp->height) return;
-
-    bmp_draw_pixel(bmp, x, bmp->height - y);
+    return bmp->height - y;
 }
 
 void graph_render(Graph *graph, const char *file_path) {
@@ -34,7 +32,7 @@ void graph_render(Graph *graph, const char *file_path) {
     bmp_set_color(0, 255, 255);
     for (int i = graph->min; i <= graph->max; i++) {
         for (int x = 0; x < (i % 10 ? 5 : 10); x++) {
-            graph_draw_pixel(graph, &bmp, x, i);
+            bmp_draw_pixel(&bmp, x, graph_get_calculated_y(graph, &bmp, i));
         }
     }
     for (int i = 0; i <= graph->size; i += 10) {
@@ -51,7 +49,7 @@ void graph_render(Graph *graph, const char *file_path) {
         if (closest_index >= graph->size) continue;
         double value = graph->data[closest_index];
 
-        graph_draw_pixel(graph, &bmp, x, value);
+        bmp_draw_pixel(&bmp, x, graph_get_calculated_y(graph, &bmp, value));
     }
 
     bmp_save(&bmp, file_path);
