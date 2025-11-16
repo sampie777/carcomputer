@@ -89,15 +89,16 @@ CarGearPosition estimate_car_gear(CarState *car) {
 
 void calculate_acceleration(CarState *car) {
     static int64_t last_speed_update_time = 0;
-    static double last_speed_ms = 0.0;
+    static double last_speed_ms = -999;
 
     int64_t current_time = esp_timer_get_time_ms();
     if (current_time < last_speed_update_time + CAR_SPEED_AVERAGE_PERIOD_MS) return;
 
     double current_speed_ms = car->speed * 1000.0 / 3600.0; // Convert km/h to m/s
+    if (last_speed_ms < -900) last_speed_ms = current_speed_ms;
 
     double speed_difference = current_speed_ms - last_speed_ms;
-    car->acceleration = speed_difference * (CAR_SPEED_AVERAGE_PERIOD_MS / 1000.0) + car->acceleration * (1 - CAR_SPEED_AVERAGE_PERIOD_MS / 1000.0);
+    car->acceleration = speed_difference * 0.2 + car->acceleration * 0.8;
 
     last_speed_update_time = current_time;
     last_speed_ms = current_speed_ms;

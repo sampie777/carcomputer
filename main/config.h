@@ -80,7 +80,7 @@ extern "C" {
 #define CAR_GEAR_4_RATIO (32.8)
 #define CAR_GEAR_5_RATIO (41.2)
 
-#define CAR_SPEED_AVERAGE_PERIOD_MS (250)
+#define CAR_SPEED_AVERAGE_PERIOD_MS (100)
 
 #define BUTTONS_ADC_CHANNEL_0 ADC_CHANNEL_0    // Mapped to PIN 36
 #define BUTTONS_ADC_CHANNEL_1 ADC_CHANNEL_3    // Mapped to PIN 39
