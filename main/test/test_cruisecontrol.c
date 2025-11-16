@@ -45,9 +45,12 @@ void test_cruise_control(void) {
     cruise_control_step(&state);
     state.car.speed = 40;
 
-    Graph speed_graph = {.max = 55, .min = 30, .size = 0};
+    Graph speed_graph = {.max = 55, .min = 30, .highlight_y = 50, .size = 0};
     Graph gas_pedal_graph = {.max = 1, .min = 0, .size = 0};
-    Graph acceleration_graph = {.max = 0.5, .min = -0.25, .size = 0};
+    Graph acceleration_graph = {
+        .max = 0.5, .min = -0.25, .size = 0,
+        .highlight_y = CRUISE_CONTROL_MAX_ACCELERATION_MS2_LOWER_BOUND
+    };
 
     for (int i = 0; i < RUN_TIME / STEP; i++) {
         if (esp_timer_get_time_ms() >= 3000) {

@@ -9,6 +9,7 @@
 typedef struct {
     double max;
     double min;
+    double highlight_y;
     double *data;
     size_t size;
 } Graph;

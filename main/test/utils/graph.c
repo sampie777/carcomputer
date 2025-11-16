@@ -34,12 +34,24 @@ void graph_render(Graph *graph, const char *file_path) {
         for (int x = 0; x < (i % 10 ? 5 : 10); x++) {
             bmp_draw_pixel(&bmp, x, graph_get_calculated_y(graph, &bmp, i));
         }
+
+        if (i % 10) continue;
+        // Draw horizontal axis
+        for (int x = 0; x < bmp.width; x += 10) {
+            bmp_draw_pixel(&bmp, x, graph_get_calculated_y(graph, &bmp, i));
+            // bmp_draw_pixel(&bmp, x+1, graph_get_calculated_y(graph, &bmp, graph->highlight_y));
+        }
     }
     for (int i = 0; i <= graph->size; i += 10) {
         int x = i * (double) bmp.width / graph->size;
-        for (int y = 0; y < (i % 100 == 0 ? 10 : 5); y++) {
+        for (int y = 0; y < (i % 100 ? 5 : 10); y++) {
             bmp_draw_pixel(&bmp, x, bmp.height - y);
         }
+    }
+    bmp_set_color(0, 200, 200);
+    for (int x = 0; x < bmp.width; x += 5) {
+        bmp_draw_pixel(&bmp, x, graph_get_calculated_y(graph, &bmp, graph->highlight_y));
+        bmp_draw_pixel(&bmp, x + 1, graph_get_calculated_y(graph, &bmp, graph->highlight_y));
     }
 
     // Draw data
