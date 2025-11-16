@@ -26,8 +26,8 @@ void cruise_control_apply_pid(State *state) {
 
     if (esp_timer_get_time_ms() < last_iteration_time + CRUISE_CONTROL_PID_ITERATION_TIME) return;
     int64_t iteration_time = last_iteration_time == 0
-                             ? CRUISE_CONTROL_PID_ITERATION_TIME
-                             : esp_timer_get_time_ms() - last_iteration_time;
+                                 ? CRUISE_CONTROL_PID_ITERATION_TIME
+                                 : esp_timer_get_time_ms() - last_iteration_time;
     last_iteration_time = esp_timer_get_time_ms();
 
     // If pedal is still depressed when cruise control is engaged, just keep using the current pedal value,
@@ -45,10 +45,14 @@ void cruise_control_apply_pid(State *state) {
     state->cruise_control.integral = previous_integral + error * (double) iteration_time;
     state->cruise_control.derivative = (error - previous_error) / (double) iteration_time;
 
-    // Prevent over shooting after overshooting 2 km/h
-    if (error < -1.5 && state->cruise_control.integral > 0 && state->car.acceleration > 0) {
-        state->cruise_control.integral *= 0.95;
+    // Prevent over shooting after overshooting 1.5 km/h too fast
+    if (error < -1.5 && state->car.acceleration > -0.05) {
+        state->cruise_control.virtual_gas_pedal *= 0.9;
+        if (state->cruise_control.integral > 0) {
+            state->cruise_control.integral *= 0.95;
+        }
         if (error < -3) {
+            state->cruise_control.virtual_gas_pedal *= 0.9;
             state->cruise_control.integral *= 0.9;
         }
     }
@@ -59,9 +63,9 @@ void cruise_control_apply_pid(State *state) {
     }
 
     double output = state->cruise_control.initial_control_value
-        + state->cruise_control.pidKp * error
-        + state->cruise_control.pidKi * state->cruise_control.integral
-        + state->cruise_control.pidKd * state->cruise_control.derivative;
+                    + state->cruise_control.pidKp * error
+                    + state->cruise_control.pidKi * state->cruise_control.integral
+                    + state->cruise_control.pidKd * state->cruise_control.derivative;
 
     // Anti reset wind-up
     if (output >= 1.0) {
@@ -84,7 +88,8 @@ void cruise_control_apply_pid(State *state) {
 
     // Apply PID
     state->cruise_control.control_value = output;
-    state->cruise_control.virtual_gas_pedal = state->cruise_control.control_value * 0.07+ state->cruise_control.virtual_gas_pedal * 0.93;
+    state->cruise_control.virtual_gas_pedal = state->cruise_control.control_value * 0.12
+                                              + state->cruise_control.virtual_gas_pedal * 0.88;
 }
 
 void cruise_control_safety_checks(State *state, uint8_t car_was_connected) {
