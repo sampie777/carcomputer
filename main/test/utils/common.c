@@ -14,7 +14,7 @@
 
 void step_time(uint64_t delta) { _esp_timer_set_time((esp_timer_get_time_ms() + delta) * 1000); }
 
-#define CAR_MASS (1200.0)
+#define CAR_MASS (1000.0)
 #define FORCE_FACTOR (16500.0)
 #define CAR_VELOCITY_RANDOMNESS (0.0)
 
