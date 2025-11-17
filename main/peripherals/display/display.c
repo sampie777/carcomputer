@@ -109,12 +109,14 @@ void show_statusbar(State *state, SH1106Config *display) {
     if (esp_timer_get_time_ms() > last_long_blink_time + DISPLAY_LONG_BLINK_INTERVAL) {
         last_long_blink_time = esp_timer_get_time_ms();
         long_blink_state = !long_blink_state;
-
-        last_short_blink_time = last_long_blink_time;
-        short_blink_state = long_blink_state;
     }
 
-    if (esp_timer_get_time_ms() > last_short_blink_time + DISPLAY_SHORT_BLINK_PULSE_LENGTH) {
+    if (esp_timer_get_time_ms() > last_short_blink_time + (DISPLAY_SHORT_BLINK_INTERVAL - DISPLAY_SHORT_BLINK_PULSE_LENGTH)) {
+        last_short_blink_time = esp_timer_get_time_ms();
+        short_blink_state = true;
+    }
+
+    if (short_blink_state && esp_timer_get_time_ms() > last_short_blink_time + DISPLAY_SHORT_BLINK_PULSE_LENGTH) {
         last_short_blink_time = esp_timer_get_time_ms();
         short_blink_state = false;
     }
@@ -138,7 +140,7 @@ void show_statusbar(State *state, SH1106Config *display) {
     offset_right -= 3 + font_width;
     if (state->location.quality > 0
         || (long_blink_state && state->location.is_gps_on)
-        || (short_blink_state && state->a9g.initialized)
+        || (short_blink_state && state->a9g.initialized && !state->location.is_gps_on)
     ) {
         sprintf(buffer, "%c", SPECIAL_CHAR_LOCATION);
         sh1106_draw_string(display, offset_right, 1, FONT_SMALL, FONT_WHITE, buffer);
