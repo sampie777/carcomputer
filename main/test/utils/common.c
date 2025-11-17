@@ -23,7 +23,7 @@ void simulate_car_step(State* state, int32_t delta) {
     double m = CAR_MASS;
     double g = 9.81;
     double A = 3;       // Front area
-    double u = 0.1;     // Friction coefficient
+    double u = 0.03;     // Friction coefficient
     double P0 = 3750;
     double p = 1.3;
     double c = 0.27;

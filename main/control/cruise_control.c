@@ -46,14 +46,14 @@ void cruise_control_apply_pid(State *state) {
     state->cruise_control.derivative = (error - previous_error) / (double) iteration_time;
 
     // Prevent over shooting after overshooting 1.5 km/h too fast
-    if (error < -1 * CRUISE_CONTROL_MAX_SPEED_OVERSHOOT && state->car.acceleration > -0.05) {
-        state->cruise_control.virtual_gas_pedal *= 0.9;
+    if (error < -1 * CRUISE_CONTROL_MAX_SPEED_OVERSHOOT) {
+        state->cruise_control.virtual_gas_pedal *= 0.85;
         if (state->cruise_control.integral > 0) {
-            state->cruise_control.integral *= 0.95;
+            state->cruise_control.integral *= 0.75;
         }
         if (error < -2 * CRUISE_CONTROL_MAX_SPEED_OVERSHOOT) {
-            state->cruise_control.virtual_gas_pedal *= 0.9;
-            state->cruise_control.integral *= 0.9;
+            state->cruise_control.virtual_gas_pedal *= 0.7;
+            state->cruise_control.integral *= 0.8;
         }
     }
 
