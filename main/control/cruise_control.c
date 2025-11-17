@@ -119,7 +119,7 @@ void cruise_control_safety_checks(State *state, uint8_t car_was_connected) {
         state->cruise_control.enabled = false;
     }
 
-    if (state->car.speed > 0 && state->car.estimated_gear == GearNeutral) {
+    if (state->car.speed > 1 && state->car.estimated_gear == GearNeutral) {
         // Disconnect CC if the car is out of gear for longer than 600 ms while driving
         if (gear_in_neutral_since_time < 0) {
             gear_in_neutral_since_time = esp_timer_get_time_ms();
@@ -131,7 +131,7 @@ void cruise_control_safety_checks(State *state, uint8_t car_was_connected) {
         gear_in_neutral_since_time = -1;
     }
 
-    if (state->car.speed > 0 && state->car.is_parking_brake_on) {
+    if (state->car.speed > 1 && state->car.is_parking_brake_on) {
         if (state->cruise_control.enabled) printf("Disconnecting cruise control because of parking brake\n");
         state->cruise_control.enabled = false;
     }
