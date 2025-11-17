@@ -25,5 +25,6 @@ void control_process_car(State *state);
 void control_mpu_power(State *state);
 void control_crash_detection(State *state);
 void control_run_diagnostics_activation(State *state);
+void control_manage_car_lock(State *state);
 
 #endif //APP_TEMPLATE_CONTROL_H

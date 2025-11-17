@@ -122,6 +122,8 @@ typedef struct {
     bool is_locked;
     bool is_parking_brake_on;
     bool is_seatbelt_on;
+
+    bool should_be_locked;
 } CarState;
 
 typedef struct {

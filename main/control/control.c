@@ -381,3 +381,21 @@ void control_run_diagnostics_activation(State *state) {
         }
     }
 }
+
+void control_manage_car_lock(State *state) {
+    static uint32_t last_unlocked_odometer = 0;
+    static bool was_locked = false;
+    state->car.should_be_locked = false;
+
+    if ((!state->car.is_locked && was_locked) || (last_unlocked_odometer == 0 && state->car.odometer > 0)) {
+        last_unlocked_odometer = state->car.odometer;
+    }
+    was_locked = state->car.is_locked;
+
+    if (state->car.is_locked) return;
+    if (state->car.speed < 30) return;
+    // Dismiss alert after 3 km of driving
+    if (state->car.odometer_start > 0 && state->car.odometer - last_unlocked_odometer > 3) return;
+
+    state->car.should_be_locked = true;
+}

@@ -21,6 +21,7 @@ typedef enum {
     FONT_SMALL = 1,
     FONT_MEDIUM = 2,
     FONT_LARGE = 3,
+    FONT_EXTRA_LARGE = 5,
 } FontSize;
 
 typedef enum {

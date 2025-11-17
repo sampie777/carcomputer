@@ -164,12 +164,44 @@ void content_sms_state(State *state, SH1106Config *display) {
                                   FONT_SMALL, FONT_BLACK, buffer);
 }
 
+void show_car_lock_message(State *state, SH1106Config *display) {
+    static int64_t last_long_blink_time = 0;
+    static uint8_t long_blink_state = false;
+
+    if (!state->car.should_be_locked) return;
+
+    if (esp_timer_get_time_ms() > last_long_blink_time + DISPLAY_LONG_BLINK_INTERVAL) {
+        last_long_blink_time = esp_timer_get_time_ms();
+        long_blink_state = !long_blink_state;
+    }
+
+    if (!long_blink_state) return;
+
+    char buffer[4];
+    sprintf(buffer, "%c", SPECIAL_CHAR_LOCK);
+    int x = 97;
+    int y = 18;
+
+    // Text shadow/border
+    sh1106_draw_string(display, x - 5, y, FONT_EXTRA_LARGE, FONT_BLACK, buffer);
+    sh1106_draw_string(display, x + 5, y, FONT_EXTRA_LARGE, FONT_BLACK, buffer);
+    sh1106_draw_string(display, x, y - 5, FONT_EXTRA_LARGE, FONT_BLACK, buffer);
+    sh1106_draw_string(display, x, y + 5, FONT_EXTRA_LARGE, FONT_BLACK, buffer);
+    sh1106_draw_string(display, x - 5, y + 5, FONT_EXTRA_LARGE, FONT_BLACK, buffer);
+    sh1106_draw_string(display, x + 5, y + 5, FONT_EXTRA_LARGE, FONT_BLACK, buffer);
+    sh1106_draw_string(display, x - 5, y - 5, FONT_EXTRA_LARGE, FONT_BLACK, buffer);
+    sh1106_draw_string(display, x + 5, y - 5, FONT_EXTRA_LARGE, FONT_BLACK, buffer);
+
+    sh1106_draw_string(display, x, y, FONT_EXTRA_LARGE, FONT_WHITE, buffer);
+}
+
 void show_content_overlay(State *state, SH1106Config *display) {
     if (state->power_off_count_down_sec > -1 && state->power_off_count_down_sec <= 10) {
         content_power_off_count_down(state, display);
         return;
     }
 
+    show_car_lock_message(state, display);
     content_sms_state(state, display);
     show_error_message(state, display);
 }

@@ -72,6 +72,7 @@ _Noreturn void task_primary(void *args) {
         control_process_car(state);
         data_logger_process(state);
         control_run_diagnostics_activation(state);
+        control_manage_car_lock(state);
     }
 
     vTaskDelete(NULL);

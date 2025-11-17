@@ -56,6 +56,8 @@ void test_display_cruisecontrol() {
     state.motion.bias.x = 1.1;
     state.motion.bias.y = -0.04;
     state.motion.bias.z = 0.01;
+    state.a9g.initialized = true;
+    state.location.is_gps_on = true;
 
     state.car.gas_pedal_connected = true;
     state.car.is_connected = true;
@@ -152,4 +154,50 @@ void test_display_aboutcar() {
     display_update(&state);
 
     update_bitmap();
+}
+
+void test_display_lock_car() {
+    system("rm ../../../test_output/*.bmp");
+    _esp_timer_set_time(100 * 1000);
+    State state = {
+        .power_off_count_down_sec = -1,
+        .car.is_ignition_on = true,
+        .car.is_braking = true,
+        .storage.is_connected = true,
+        .car.speed = 100,
+        .car.odometer_start = 100,
+        .car.odometer = 110,
+        .car.is_locked = false,
+        .cruise_control.target_speed = 120,
+        .cruise_control.virtual_gas_pedal = 0.3,
+    };
+    _state = &state;
+    sprintf(state.storage.filename, "file.csv");
+
+    display_init();
+
+    for (int i = 0; i < RUN_TIME / STEP; i++) {
+        simulate_car_step(&state, STEP);
+        if (esp_timer_get_time_ms() == 7000) {
+            state.car.odometer += 10;
+        }
+
+        if (esp_timer_get_time_ms() == 4000) {
+            printf("Unlock car\n");
+            state.car.is_locked = false;
+        }
+        if (esp_timer_get_time_ms() == 3000) {
+            printf("Lock car\n");
+            state.car.is_locked = true;
+        }
+
+        control_manage_car_lock(&state);
+        control_cruise_control(&state);
+        control_process_car(&state);
+
+        update_function();
+        step_time(STEP);
+    }
+
+    render_video();
 }
