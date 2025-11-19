@@ -21,23 +21,24 @@ double adc_average_read_channel(adc_channel_t channel, int sample_count) {
         total += result;
 
         // Add a bit of delay (10 clock cycles) to get a new sample
-        for (volatile int j = 0; j < 10; j++) {}
+        for (volatile int j = 0; j < 10; j++) {
+        }
     }
     return total / sample_count;
 }
 
 void adc_oneshot_init_channel(adc_channel_t channel) {
     adc_oneshot_chan_cfg_t adc_config = {
-            .bitwidth = ADC_RESOLUTION,
-            .atten = ADC_ATTEN_DB_12,
+        .bitwidth = ADC_RESOLUTION,
+        .atten = ADC_ATTEN_DB_12,
     };
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, channel, &adc_config));
 }
 
 void adc_oneshot_init() {
     adc_oneshot_unit_init_cfg_t init_adc_config0 = {
-            .unit_id = ADC_UNIT_1,
-            .ulp_mode = ADC_ULP_MODE_DISABLE,
+        .unit_id = ADC_UNIT_1,
+        .ulp_mode = ADC_ULP_MODE_DISABLE,
     };
     ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_adc_config0, &adc1_handle));
 }

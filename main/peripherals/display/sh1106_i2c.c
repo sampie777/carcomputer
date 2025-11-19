@@ -70,7 +70,6 @@ void sh1106_display(SH1106Config *config) {
 
     for (int row = 0; row < config->height >> 5; row++) {
         for (int subrow = 0; subrow < 4; subrow++) {
-
             uint8_t subrow_data[config->width];
             for (int i = 0; i < config->width; i++) {
                 subrow_data[i] = (uint8_t) (config->buffer[row][i] >> subrow * 8);

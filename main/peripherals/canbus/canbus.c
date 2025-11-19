@@ -60,8 +60,8 @@ void handle_odometer_message(State *state, CanMessage *message) {
     }
 
     state->car.odometer = (uint32_t) message->data[1] << 16
-        | (uint32_t) message->data[2] << 8
-        | message->data[3];
+                          | (uint32_t) message->data[2] << 8
+                          | message->data[3];
 
     if (state->car.odometer_start == 0) {
         state->car.odometer_start = state->car.odometer;
@@ -232,11 +232,11 @@ int canbus_send_lock_doors(const State *state, bool lock_doors) {
             state->car.is_blower_on << CAN_DOOR_LOCKS_BLOWER_BIT,
             0,
             lock_doors
-            ? (CAN_DOOR_LOCKS_LOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_LOCK_OTHER_DOORS)
-            : (CAN_DOOR_LOCKS_UNLOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_UNLOCK_OTHER_DOORS),
+                ? (CAN_DOOR_LOCKS_LOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_LOCK_OTHER_DOORS)
+                : (CAN_DOOR_LOCKS_UNLOCK_DRIVER_DOOR | CAN_DOOR_LOCKS_UNLOCK_OTHER_DOORS),
             1,
             (state->car.is_drivers_door_locked << CAN_DOOR_LOCKS_DRIVER_DOOR_STATUS_BIT)
-                | (state->car.is_other_doors_locked << CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT),
+            | (state->car.is_other_doors_locked << CAN_DOOR_LOCKS_OTHER_DOORS_STATUS_BIT),
             0,
             0
         }

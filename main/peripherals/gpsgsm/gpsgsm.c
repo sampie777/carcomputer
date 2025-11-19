@@ -61,7 +61,7 @@ void process_gnrmc_message(State *state, const char *message) {
                                                             decoded_message.longitude_direction);
 
     state->location.is_effective_positioning = decoded_message.status == 'A';
-    state->location.ground_speed = decoded_message.ground_speed * 1.852;    // knots -> km/h
+    state->location.ground_speed = decoded_message.ground_speed * 1.852; // knots -> km/h
     state->location.ground_heading = decoded_message.ground_heading;
 
     uint8_t day = decoded_message.date / 10000;
@@ -83,11 +83,11 @@ void process_ctzv_message(State *state, const char *message) {
 
     // We can ignore day etc, as we don't expect the device running that long
     uint64_t total_seconds = time.seconds
-        + time.minutes * 60
-        + time.hours * 3600;
+                             + time.minutes * 60
+                             + time.hours * 3600;
     uint64_t total_seconds_current = state->gsm.time.seconds
-        + state->gsm.time.minutes * 60
-        + state->gsm.time.hours * 3600;
+                                     + state->gsm.time.minutes * 60
+                                     + state->gsm.time.hours * 3600;
     if (total_seconds <= total_seconds_current) return;
 
     memcpy(&(state->gsm.time), &time, sizeof(time));
@@ -189,7 +189,7 @@ void process_message(State *state, const char *message) {
     }
 
     if (starts_with(stripped_message, "+CMGS=")) {
-//        sms_state = SentSuccess;
+        //        sms_state = SentSuccess;
     }
 
     if (strstr(stripped_message, "$GNGGA") != NULL) {
@@ -232,13 +232,13 @@ void update_time(State *state) {
 
     if (state->gsm.time.day < 30) return;
     if ((state->gsm.time.month == 1 ||
-        state->gsm.time.month == 3 ||
-        state->gsm.time.month == 5 ||
-        state->gsm.time.month == 7 ||
-        state->gsm.time.month == 8 ||
-        state->gsm.time.month == 10 ||
-        state->gsm.time.month == 12) && state->gsm.time.day == 30
-        )
+         state->gsm.time.month == 3 ||
+         state->gsm.time.month == 5 ||
+         state->gsm.time.month == 7 ||
+         state->gsm.time.month == 8 ||
+         state->gsm.time.month == 10 ||
+         state->gsm.time.month == 12) && state->gsm.time.day == 30
+    )
         return;
     state->gsm.time.day = 1;
     state->gsm.time.month++;
@@ -249,7 +249,7 @@ void update_time(State *state) {
 }
 
 void gpsgsm_process(State *state) {
-//    static int64_t sms_sent_time = 0;
+    //    static int64_t sms_sent_time = 0;
 
     // if (sms_state == Sending) {
     //     if (sms_sent_time == 0) {
@@ -292,7 +292,6 @@ void gpsgsm_process(State *state) {
     //     http_request_body = NULL;
     //     state->gsm.is_uploading = false;
     // }
-
 }
 
 void gpsgsm_init(A9GState *a9g_state) {
@@ -310,13 +309,13 @@ void gpsgsm_init(A9GState *a9g_state) {
     // Configure UART parameters
     ESP_ERROR_CHECK(uart_param_config(GPSGSM_UART_NUMBER, &uart_config));
     ESP_ERROR_CHECK(uart_set_pin(GPSGSM_UART_NUMBER, GPSGSM_UART_TX_PIN, GPSGSM_UART_RX_PIN, UART_PIN_NO_CHANGE,
-                                 UART_PIN_NO_CHANGE));
+        UART_PIN_NO_CHANGE));
 
     // Setup UART buffered IO with event queue
     // Install UART driver using an event queue here
     // Multiplying the BUF_SIZE by a factor of 2 in the uart_driver_install function call is done to allocate a larger buffer for both the transmit and receive buffers. This helps to ensure that there is enough space to handle the data being transmitted and received, reducing the risk of buffer overflows and data loss, especially when dealing with high data rates or large amounts of data.
-    ESP_ERROR_CHECK(uart_driver_install(GPSGSM_UART_NUMBER, A9G_UART_BUFFER_SIZE * 2, \
-                                        A9G_UART_BUFFER_SIZE * 2, 10, &uart_queue, 0));
+    ESP_ERROR_CHECK(uart_driver_install(GPSGSM_UART_NUMBER, A9G_UART_BUFFER_SIZE * 2,
+        A9G_UART_BUFFER_SIZE * 2, 10, &uart_queue, 0));
 
     printf("[GPS] Init done\n");
 }

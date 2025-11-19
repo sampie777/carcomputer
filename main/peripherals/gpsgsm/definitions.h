@@ -47,7 +47,7 @@ typedef struct {
     char latitude_direction;
     double longitude;
     char longitude_direction;
-    double ground_speed;    // knots
+    double ground_speed; // knots
     double ground_heading;
     int date;
     double declination;

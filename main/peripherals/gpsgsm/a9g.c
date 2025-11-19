@@ -27,10 +27,10 @@ void debug_print_message_log() {
         return;
     }
     int i = message_log_length - 1;
-//    for (int i = 0; i < message_log_length; i++) {
-        printf("DEBUG [GPS] Log: %d [%lld] '%s' %d\n", i, message_log_timestamps[i], message_log[i],
-               strlen(message_log[i]));
-//    }
+    //    for (int i = 0; i < message_log_length; i++) {
+    printf("DEBUG [GPS] Log: %d [%lld] '%s' %d\n", i, message_log_timestamps[i], message_log[i],
+           strlen(message_log[i]));
+    //    }
 }
 
 void a9g_log_message(const char *message) {
@@ -50,7 +50,7 @@ void a9g_log_message(const char *message) {
     message_log_timestamps[message_log_length] = esp_timer_get_time_ms();
     message_log_length++;
 
-//    debug_print_message_log();
+    //    debug_print_message_log();
 }
 
 void a9g_transmit(const char *data, uint8_t with_break) {
@@ -82,7 +82,7 @@ void a9g_receive(A9GState *state) {
     // Initialize static pointer
     if (last_message == NULL) {
         last_message = malloc(MESSAGE_MAX_LENGTH);
-        memset(last_message, 0, MESSAGE_MAX_LENGTH);  // Clear buffer
+        memset(last_message, 0, MESSAGE_MAX_LENGTH); // Clear buffer
     }
 
     // Check if UART has data available
@@ -93,7 +93,7 @@ void a9g_receive(A9GState *state) {
     char *data = malloc(A9G_UART_BUFFER_SIZE);
     switch (event.type) {
         case UART_DATA:
-            memset(data, 0, A9G_UART_BUFFER_SIZE);  // Clear buffer
+            memset(data, 0, A9G_UART_BUFFER_SIZE); // Clear buffer
             uart_read_bytes(GPSGSM_UART_NUMBER, data, event.size, portMAX_DELAY);
             // printf("[uart] Received data: %s with length %d / %d\n", data, event.size, strlen(data));
             break;
@@ -209,9 +209,9 @@ bool a9g_send_and_wait_for_command(const char *command) {
     // Check if we got a response already
     int command_received_index = message_logs_contains_exact(command);
 
-//    printf("%d / %d\t", command_received_index, message_log_length);
+    //    printf("%d / %d\t", command_received_index, message_log_length);
     if (command_received_index < 0 || message_log_length <= command_received_index + 1) {
-//        printf("Command %s not received\n", command);
+        //        printf("Command %s not received\n", command);
         return false;
     }
 
@@ -224,8 +224,8 @@ bool a9g_send_and_wait_for_command(const char *command) {
     if (command_is_ok) {
         printf("Command %s is OK\n", command);
     } else {
-//        printf("Command %s is not OK: %d '%s'\n", command, command_received_index,
-//               message_log[command_received_index + 1]);
+        //        printf("Command %s is not OK: %d '%s'\n", command, command_received_index,
+        //               message_log[command_received_index + 1]);
     }
     return command_is_ok;
 }
@@ -362,7 +362,7 @@ void a9g_process_messages(State *state) {
     for (int i = message_log_length - 1; i >= 0; i--) {
         if (!process_gngga_message_done &&
             (starts_with(message_log[i], "$GNGGA")
-                || starts_with(message_log[i], "+GPSRD:$GNGGA"))) {
+             || starts_with(message_log[i], "+GPSRD:$GNGGA"))) {
             state->a9g.gps_logging_started = true;
             state->location.is_gps_on = true;
             process_gngga_message(state, message_log[i]);

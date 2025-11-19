@@ -7,6 +7,7 @@
 
 #ifdef __cplusplus
 extern "C" {
+
 #endif
 
 #include <driver/spi_master.h>

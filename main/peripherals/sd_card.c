@@ -124,7 +124,7 @@ void sd_card_create_directory(const char *directory, char *created_directory) {
 }
 
 void sd_card_delete_file(const char *file_name) {
-//    printf("[SD] Deleting file %s\n", file_name);
+    //    printf("[SD] Deleting file %s\n", file_name);
     char path[SD_PATH_MAX_LENGTH * 2];
     snprintf(path, sizeof path, "%s/%s", MOUNT_POINT, file_name);
 
@@ -288,10 +288,10 @@ int sd_card_init() {
     if (ret != ESP_OK) {
         if (ret == ESP_FAIL) {
             ESP_LOGE(TAG, "Failed to mount filesystem. "
-                          "If you want the card to be formatted, set the EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
+                     "If you want the card to be formatted, set the EXAMPLE_FORMAT_IF_MOUNT_FAILED menuconfig option.");
         } else {
             ESP_LOGE(TAG, "Failed to initialize the card (%s). "
-                          "Make sure SD card lines have pull-up resistors in place.", esp_err_to_name(ret));
+                     "Make sure SD card lines have pull-up resistors in place.", esp_err_to_name(ret));
         }
         return RESULT_FAILED;
     }

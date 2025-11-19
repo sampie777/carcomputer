@@ -85,7 +85,7 @@ double dot_product(Vector3 a, Vector3 b) {
 }
 
 void compute_rotation_matrix(double rotation_matrix[3][3], Vector3 initial) {
-    normalize(&initial);  // Ensure unit vector
+    normalize(&initial); // Ensure unit vector
 
     // Assume we want to rotate this initial reading
     Vector3 target = {0, 0, -1};
@@ -117,16 +117,16 @@ void compute_rotation_matrix(double rotation_matrix[3][3], Vector3 initial) {
 
 void rotate_accelerometer(double rotation_matrix[3][3], Vector3 *input, Vector3 *output) {
     output->x = rotation_matrix[0][0] * input->x +
-        rotation_matrix[0][1] * input->y +
-        rotation_matrix[0][2] * input->z;
+                rotation_matrix[0][1] * input->y +
+                rotation_matrix[0][2] * input->z;
 
     output->y = rotation_matrix[1][0] * input->x +
-        rotation_matrix[1][1] * input->y +
-        rotation_matrix[1][2] * input->z;
+                rotation_matrix[1][1] * input->y +
+                rotation_matrix[1][2] * input->z;
 
     output->z = rotation_matrix[2][0] * input->x +
-        rotation_matrix[2][1] * input->y +
-        rotation_matrix[2][2] * input->z;
+                rotation_matrix[2][1] * input->y +
+                rotation_matrix[2][2] * input->z;
 }
 
 void rotate_vector(double rotation_matrix[3][3], Vector3 *input) {

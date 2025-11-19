@@ -7,6 +7,7 @@
 
 #ifdef __cplusplus
 extern "C" {
+
 #endif
 
 #include <soc/gpio_num.h>

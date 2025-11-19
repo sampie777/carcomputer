@@ -210,9 +210,9 @@ void content_motion_sensors_data(const State *state, SH1106Config *display) {
     offset_y += 12;
 
     sprintf(buffer, "G: %6.2f", sqrt(
-        state->motion.accel_x * state->motion.accel_x
-            + state->motion.accel_y * state->motion.accel_y
-            + state->motion.accel_z * state->motion.accel_z));
+                state->motion.accel_x * state->motion.accel_x
+                + state->motion.accel_y * state->motion.accel_y
+                + state->motion.accel_z * state->motion.accel_z));
     sh1106_draw_string(display, 0, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     snprintf(buffer, sizeof buffer, " Temp: %5.1f%c", state->motion.temperature, SPECIAL_CHAR_DEGREES);
@@ -260,9 +260,9 @@ void draw_level_circle(SH1106Config *display, int center_x, int center_y, int ra
     sh1106_draw_circle(display, center_x, center_y, radius, FONT_WHITE);
 
     sh1106_draw_circle(display,
-                      center_x + (int) round(vector_cartesian.x),
-                      center_y + (int) round(vector_cartesian.y),
-                      2, FONT_WHITE);
+                       center_x + (int) round(vector_cartesian.x),
+                       center_y + (int) round(vector_cartesian.y),
+                       2, FONT_WHITE);
 }
 
 void content_motion_sensors_data_graphical(const State *state, SH1106Config *display) {
@@ -483,7 +483,7 @@ void content_activate_diagnostics(const State *state, SH1106Config *display) {
     offset_y -= 10;
 
     double total_time = (double) (state->diagnostics.process_estimated_end_time -
-        state->diagnostics.process_start_time);
+                                  state->diagnostics.process_start_time);
     double current_time = (double) (esp_timer_get_time_ms() - state->diagnostics.process_start_time);
     double progress = min(1.0, max(0, current_time / total_time));
 
@@ -587,9 +587,9 @@ void content_about_car(const State *state, SH1106Config *display) {
     sprintf(buffer, "%c Other doors locked",
             state->car.is_other_doors_locked ? SPECIAL_CHAR_CIRCLE_CLOSED : SPECIAL_CHAR_CIRCLE_OPEN);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-//    offset_y += 9;
-//    sprintf(buffer, "[%c] Parking brake", state->car.is_parking_brake_on ? 'Y' : ' ');
-//    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    //    offset_y += 9;
+    //    sprintf(buffer, "[%c] Parking brake", state->car.is_parking_brake_on ? 'Y' : ' ');
+    //    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
     offset_x = display->width / 2;
     offset_y = STATUS_BAR_HEIGHT + 5;

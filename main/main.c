@@ -19,7 +19,7 @@ void app_main(void) {
     state.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
     state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
     state.device_name = "Default";
-    state.location.time.timezone = 2;    // GMT+2
+    state.location.time.timezone = 2; // GMT+2
     state.motion.bias.x = 1.1;
     state.motion.bias.y = -0.04;
     state.motion.bias.z = 0.01;

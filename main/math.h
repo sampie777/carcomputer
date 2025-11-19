@@ -14,9 +14,9 @@ typedef struct {
 } Vector3;
 
 typedef struct {
-    double r;       // [0, ->]
-    double theta;   // [0, M_PI]
-    double phi;     // (-M_PI, M_PI]
+    double r;     // [0, ->]
+    double theta; // [0, M_PI]
+    double phi;   // (-M_PI, M_PI]
 } Vector3Spherical;
 
 double rad_to_deg(double rad);

@@ -79,11 +79,11 @@ typedef struct {
 
 typedef struct {
     bool enabled;
-    double previous_target_speed;   // Absolute value in km/h. Used for resetting the CC to the last used target speed after disconnecting or whatever
-    double target_speed;            // Absolute value in km/h
-    double virtual_gas_pedal;       // Relative value between 0.0 and 1.0
-    double initial_control_value;   // Relative value between 0.0 and 1.0
-    double control_value;           // Relative value between 0.0 and 1.0
+    double previous_target_speed; // Absolute value in km/h. Used for resetting the CC to the last used target speed after disconnecting or whatever
+    double target_speed;          // Absolute value in km/h
+    double virtual_gas_pedal;     // Relative value between 0.0 and 1.0
+    double initial_control_value; // Relative value between 0.0 and 1.0
+    double control_value;         // Relative value between 0.0 and 1.0
     double pidKp;
     double pidKi;
     double pidKd;
@@ -98,9 +98,9 @@ typedef struct {
     bool is_braking;
     bool is_ignition_on;
     bool is_in_reverse;
-    double speed;                   // Absolute value in km/h
-    double acceleration;            // Value in m/s2
-    double rpm;                     // Absolute value in rpm
+    double speed;        // Absolute value in km/h
+    double acceleration; // Value in m/s2
+    double rpm;          // Absolute value in rpm
     uint16_t rpm_raw;
     int64_t last_can_message_time;
     uint32_t odometer_start;
@@ -108,13 +108,13 @@ typedef struct {
     CarGearPosition estimated_gear;
 
     bool gas_pedal_connected;
-    double gas_pedal_0_min_value_volts;      // Absolute value in Volts
-    double gas_pedal_1_min_value_volts;      // Absolute value in Volts
-    double gas_pedal_0_max_value_volts;      // Absolute value in Volts
-    double gas_pedal_1_max_value_volts;      // Absolute value in Volts
-    double gas_pedal;               // Relative value between 0.0 and 1.0
-    double gas_pedal_0_volts;       // Current value in absolute Volts
-    double gas_pedal_1_volts;       // Current value in absolute Volts
+    double gas_pedal_0_min_value_volts; // Absolute value in Volts
+    double gas_pedal_1_min_value_volts; // Absolute value in Volts
+    double gas_pedal_0_max_value_volts; // Absolute value in Volts
+    double gas_pedal_1_max_value_volts; // Absolute value in Volts
+    double gas_pedal;                   // Relative value between 0.0 and 1.0
+    double gas_pedal_0_volts;           // Current value in absolute Volts
+    double gas_pedal_1_volts;           // Current value in absolute Volts
 
     bool is_drivers_door_locked;
     bool is_other_doors_locked;
@@ -169,8 +169,8 @@ typedef struct {
     bool is_effective_positioning;
     double latitude;
     double longitude;
-    double altitude;        // m
-    double ground_speed;    // km/h
+    double altitude;     // m
+    double ground_speed; // km/h
     double ground_heading;
 
     Time time;

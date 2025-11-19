@@ -172,21 +172,21 @@ void mpu9250_read_motion(State *state) {
     }
 
     state->motion.accel_x = state->motion.accel_x * 0.9 + 0.1 *
-        ((int16_t) ((accel_data[0] << 8) | accel_data[1]) / 32768.0 * 4);
+                            ((int16_t) ((accel_data[0] << 8) | accel_data[1]) / 32768.0 * 4);
     state->motion.accel_y = state->motion.accel_y * 0.9 + 0.1 *
-        ((int16_t) ((accel_data[2] << 8) | accel_data[3]) / 32768.0 * 4);
+                            ((int16_t) ((accel_data[2] << 8) | accel_data[3]) / 32768.0 * 4);
     state->motion.accel_z = state->motion.accel_z * 0.9 + 0.1 *
-        ((int16_t) ((accel_data[4] << 8) | accel_data[5]) / 32768.0 * 4);
+                            ((int16_t) ((accel_data[4] << 8) | accel_data[5]) / 32768.0 * 4);
 
     calculate_vector(&state->motion, &state->motion.accel,
                      state->motion.accel_x, state->motion.accel_y, state->motion.accel_z);
 
     state->motion.gyro_x = state->motion.gyro_x * 0.9 + 0.1 *
-        ((int16_t) ((gyro_data[0] << 8) | gyro_data[1]) / 32768.0 * 500);
+                           ((int16_t) ((gyro_data[0] << 8) | gyro_data[1]) / 32768.0 * 500);
     state->motion.gyro_y = state->motion.gyro_y * 0.9 + 0.1 *
-        ((int16_t) ((gyro_data[2] << 8) | gyro_data[3]) / 32768.0 * 500);
+                           ((int16_t) ((gyro_data[2] << 8) | gyro_data[3]) / 32768.0 * 500);
     state->motion.gyro_z = state->motion.gyro_z * 0.9 + 0.1 *
-        ((int16_t) ((gyro_data[4] << 8) | gyro_data[5]) / 32768.0 * 500);
+                           ((int16_t) ((gyro_data[4] << 8) | gyro_data[5]) / 32768.0 * 500);
 
     calculate_vector(&state->motion, &state->motion.gyro,
                      state->motion.gyro_x, state->motion.gyro_y, state->motion.gyro_z);
@@ -326,15 +326,15 @@ int mpu9250_init_motion() {
 
     int result = RESULT_OK;
     delay_ms(100);
-    result |= mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x00);    // Wake-up chip
+    result |= mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x00); // Wake-up chip
     delay_ms(50);
-    result |= mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x01);    // Auto select clock
+    result |= mpu9250_set_register(MPU9250_REGISTER_PWR_MGMT_1, 0x01); // Auto select clock
     delay_ms(50);
 
     result |= mpu9250_set_register(MPU9250_REGISTER_CONFIG,
-                                   0x03);            // Set bandwidth of gyro and temp to 41/42 Hz
-    result |= mpu9250_set_register(MPU9250_REGISTER_SMPLRT_DIV, 4);           // Set sample rate to 200 Hz
-    result |= mpu9250_set_register(MPU9250_REGISTER_GYRO_CONFIG, 0x01 << 3);  // Set sensitivity to +/-500 dps
+                                   0x03);                                    // Set bandwidth of gyro and temp to 41/42 Hz
+    result |= mpu9250_set_register(MPU9250_REGISTER_SMPLRT_DIV, 4);          // Set sample rate to 200 Hz
+    result |= mpu9250_set_register(MPU9250_REGISTER_GYRO_CONFIG, 0x01 << 3); // Set sensitivity to +/-500 dps
     result |= mpu9250_set_register(MPU9250_REGISTER_XG_OFFSET_H,
                                    ((int16_t) (GYRO_X_OFFSET * 32768 / 500.0 / -2.0)) >> 8);
     result |= mpu9250_set_register(MPU9250_REGISTER_XG_OFFSET_L, ((int16_t) (GYRO_X_OFFSET * 32768 / 500.0 / -2.0)));

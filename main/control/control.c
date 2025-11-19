@@ -44,7 +44,7 @@ void control_read_user_input(State *state) {
 
     Button button = buttons_get_pressed(&state->buttons, &state->motion);
     control_buttons_handle(state, button);
-//    control_buttons_handle_pid_config(state, button);
+    //    control_buttons_handle_pid_config(state, button);
 }
 
 void control_cruise_control(State *state) {
@@ -112,10 +112,10 @@ void control_process_car(State *state) {
 void control_mpu_power(State *state) {
     static int64_t ignition_off_time = 0;
     if (!state->boot.is_rebooting && (
-        state->car.is_ignition_on ||
+            state->car.is_ignition_on ||
             state->diagnostics.status != DiagnosticsStep_Off || // Whether diagnostics is running
-            !state->car.is_controller_connected  // Don't power off the module as we are most probably not in a car environment
-    )) {
+            !state->car.is_controller_connected                 // Don't power off the module as we are most probably not in a car environment
+        )) {
         gpio_set_level(POWER_PIN, 1);
         ignition_off_time = 0;
         state->power_off_count_down_sec = -1;
@@ -145,8 +145,8 @@ void control_crash_detection(State *state) {
     static int64_t last_sent = 0;
     double total_force = sqrt(
         state->motion.accel_x * state->motion.accel_x
-            + state->motion.accel_y * state->motion.accel_y
-            + state->motion.accel_z * state->motion.accel_z
+        + state->motion.accel_y * state->motion.accel_y
+        + state->motion.accel_z * state->motion.accel_z
     );
     if (total_force < CRASH_DETECTION_CRASH_MIN_G) return;
 
@@ -156,7 +156,7 @@ void control_crash_detection(State *state) {
     printf("[LOG] control_crash_detection crash detected\n");
 
 #ifdef ICE_CONTACT_NUMBER
-    char message[158];   // Max SMS length
+    char message[158]; // Max SMS length
 
     set_error(state, ERROR_CRASH_DETECTED);
 
@@ -166,22 +166,22 @@ void control_crash_detection(State *state) {
         timestamp[0] = '\0';
     } else {
         snprintf(timestamp, sizeof timestamp, "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d",
-                time.year,
-                time.month,
-                time.day,
-                time.hours,
-                time.minutes,
-                time.seconds,
-                time.timezone);
+                 time.year,
+                 time.month,
+                 time.day,
+                 time.hours,
+                 time.minutes,
+                 time.seconds,
+                 time.timezone);
     }
 
     printf("[LOG] control_crash_detection constructing message\n");
     snprintf(message, sizeof message, "CRASH! Location: %.5f,%.5f at %s (accuracy: %d%%). Force: %.1f g.",
-            state->location.latitude,
-            state->location.longitude,
-            timestamp,
-            state->location.satellites / 4 * 100,
-            total_force
+             state->location.latitude,
+             state->location.longitude,
+             timestamp,
+             state->location.satellites / 4 * 100,
+             total_force
     );
 
     // Loop over all specified numbers and send them
@@ -287,10 +287,10 @@ void control_run_diagnostics_activation(State *state) {
         state->diagnostics.status++;
         state->diagnostics.process_start_time = esp_timer_get_time_ms();
         state->diagnostics.process_estimated_end_time = state->diagnostics.process_start_time +
-            DIAGNOSTICS_1_WAIT3SEC_MS +
-            DIAGNOSTICS_2_DEPRESS_PEDAL_COUNT * 2 * DIAGNOSTICS_2_DEPRESS_PEDAL_INTERVAL +
-            DIAGNOSTICS_3_WAIT7SEC_MS +
-            DIAGNOSTICS_4_DEPRESS_PEDAL_FULLY_TIME;
+                                                        DIAGNOSTICS_1_WAIT3SEC_MS +
+                                                        DIAGNOSTICS_2_DEPRESS_PEDAL_COUNT * 2 * DIAGNOSTICS_2_DEPRESS_PEDAL_INTERVAL +
+                                                        DIAGNOSTICS_3_WAIT7SEC_MS +
+                                                        DIAGNOSTICS_4_DEPRESS_PEDAL_FULLY_TIME;
 
         return;
     }

@@ -19,8 +19,8 @@ uint32_t generate_session_id() {
 
 char *get_device_name(const State *state) {
     return state->device_name == NULL || state->device_name[0] == '\0' || state->device_name[0] == 0
-           ? "Default"
-           : state->device_name;
+               ? "Default"
+               : state->device_name;
 }
 
 void data_logger_init_file(State *state, const char *preferred_file_name) {
@@ -92,44 +92,44 @@ void data_logger_log_current(State *state) {
 
     char buffer[256];
     snprintf(buffer, sizeof buffer,
-             "%lld;" // esp_timer_get_time_ms()
-             "%lu;" // state->logging_session_id
-             "%d;" // state->car.is_connected
-             "%d;" // state->car.is_controller_connected
-             "%d;" // state->car.is_braking
-             "%d;" // state->car.is_ignition_on
-             "%.3f;" // state->car.speed
-             "%.1f;" // state->car.rpm
-             "%lu;" // state->car.odometer
-             "%d;" // state->car.gas_pedal_connected
-             "%.5f;" // state->car.gas_pedal
-             "%d;" // state->cruise_control.enabled
-             "%.3f;" // state->cruise_control.target_speed
-             "%.5f;" // state->cruise_control.virtual_gas_pedal
-             "%.5f;" // state->cruise_control.control_value
-             "%d;" // state->motion.connected
-             "%.3f;" // state->motion.accel_x
-             "%.3f;" // state->motion.accel_y
-             "%.3f;" // state->motion.accel_z
-             "%.3f;" // state->motion.gyro_x
-             "%.3f;" // state->motion.gyro_y
-             "%.3f;" // state->motion.gyro_z
-             "%.3f;" // state->motion.compass_x
-             "%.3f;" // state->motion.compass_y
-             "%.3f;" // state->motion.compass_z
-             "%.3f;" // state->motion.temperature
-             "%d;" // state->location.is_gps_on
-             "%d;" // state->location.quality
-             "%d;" // state->location.satellites
-             "%d;" // state->location.is_effective_positioning
-             "%.5f;" // state->location.latitude
-             "%.5f;" // state->location.longitude
-             "%.1f;" // state->location.altitude
-             "%.3f;" // state->location.ground_speed
-             "%.2f;" // state->location.ground_heading
+             "%lld;"                                   // esp_timer_get_time_ms()
+             "%lu;"                                    // state->logging_session_id
+             "%d;"                                     // state->car.is_connected
+             "%d;"                                     // state->car.is_controller_connected
+             "%d;"                                     // state->car.is_braking
+             "%d;"                                     // state->car.is_ignition_on
+             "%.3f;"                                   // state->car.speed
+             "%.1f;"                                   // state->car.rpm
+             "%lu;"                                    // state->car.odometer
+             "%d;"                                     // state->car.gas_pedal_connected
+             "%.5f;"                                   // state->car.gas_pedal
+             "%d;"                                     // state->cruise_control.enabled
+             "%.3f;"                                   // state->cruise_control.target_speed
+             "%.5f;"                                   // state->cruise_control.virtual_gas_pedal
+             "%.5f;"                                   // state->cruise_control.control_value
+             "%d;"                                     // state->motion.connected
+             "%.3f;"                                   // state->motion.accel_x
+             "%.3f;"                                   // state->motion.accel_y
+             "%.3f;"                                   // state->motion.accel_z
+             "%.3f;"                                   // state->motion.gyro_x
+             "%.3f;"                                   // state->motion.gyro_y
+             "%.3f;"                                   // state->motion.gyro_z
+             "%.3f;"                                   // state->motion.compass_x
+             "%.3f;"                                   // state->motion.compass_y
+             "%.3f;"                                   // state->motion.compass_z
+             "%.3f;"                                   // state->motion.temperature
+             "%d;"                                     // state->location.is_gps_on
+             "%d;"                                     // state->location.quality
+             "%d;"                                     // state->location.satellites
+             "%d;"                                     // state->location.is_effective_positioning
+             "%.5f;"                                   // state->location.latitude
+             "%.5f;"                                   // state->location.longitude
+             "%.1f;"                                   // state->location.altitude
+             "%.3f;"                                   // state->location.ground_speed
+             "%.2f;"                                   // state->location.ground_heading
              "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d;" // state->location.time
              "%04d-%02d-%02d'T'%02d:%02d:%02d.000%+d;" // state->gsm.time
-             "%lu;" // state->errors
+             "%lu;"                                    // state->errors
              "\n",
              esp_timer_get_time_ms(),
              state->logging_session_id,

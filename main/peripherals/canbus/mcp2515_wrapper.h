@@ -12,11 +12,11 @@
 extern "C" {
 #endif
 
-int mcp2515_init(bool listen_only);
-int mcp2515_read_message(CanMessage *message);
-int mcp2515_send_message(const CanMessage *message);
-uint8_t mcp2515_get_mode();
-uint8_t mcp2515_get_config3();
+    int mcp2515_init(bool listen_only);
+    int mcp2515_read_message(CanMessage *message);
+    int mcp2515_send_message(const CanMessage *message);
+    uint8_t mcp2515_get_mode();
+    uint8_t mcp2515_get_config3();
 
 #ifdef __cplusplus
 }
