@@ -104,7 +104,7 @@ void show_statusbar(State *state, SH1106Config *display) {
     static int64_t last_short_blink_time = 0;
     static uint8_t long_blink_state = false;
     static uint8_t short_blink_state = false;
-    char buffer[4];
+    char buffer[16];
 
     if (esp_timer_get_time_ms() > last_long_blink_time + DISPLAY_LONG_BLINK_INTERVAL) {
         last_long_blink_time = esp_timer_get_time_ms();
@@ -121,7 +121,12 @@ void show_statusbar(State *state, SH1106Config *display) {
         short_blink_state = false;
     }
 
-    sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, APP_VERSION);
+    if (state->display.current_screen == Screen_CruiseControl && state->display.subscreen.cruise_control != SubScreenCruiseControl_Main) {
+        snprintf(buffer, sizeof(buffer), "%3.0f/%.0f km/h", state->car.speed, state->cruise_control.target_speed);
+        sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, buffer);
+    } else {
+        sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, APP_VERSION);
+    }
 
     int offset_right = display->width + 1;
 
@@ -219,7 +224,14 @@ void show_screen(State *state, SH1106Config *display) {
             content_main_menu(state, display);
             break;
         case Screen_CruiseControl:
-            content_cruise_control(state, display);
+            switch (state->display.subscreen.cruise_control) {
+                case SubScreenCruiseControl_Graph:
+                    content_cruise_control_graph(state, display);
+                    break;
+                default:
+                    content_cruise_control(state, display);
+                    break;
+            }
             break;
         case Screen_Sensors: {
             switch (state->display.subscreen.sensors) {

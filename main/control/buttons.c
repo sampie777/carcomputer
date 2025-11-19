@@ -62,7 +62,16 @@ void control_buttons_handle(State *state, Button button) {
             }
 
             if (state->display.current_screen == Screen_CruiseControl) {
-                state->cruise_control.enabled = true;
+                if (!state->cruise_control.enabled) {
+                    state->cruise_control.enabled = true;
+                    state->display.subscreen.cruise_control = 0;
+                } else {
+                    state->display.subscreen.cruise_control++;
+                    if (state->display.subscreen.cruise_control >= SubScreenCruiseControl_MAX_VALUE) {
+                        state->display.subscreen.cruise_control = 0;
+                    }
+                    break;
+                }
             }
             break;
         case BUTTON_VOLUME_UP:

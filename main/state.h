@@ -28,18 +28,25 @@ typedef enum {
     ScreenSensors_SensorsInputs,
     ScreenSensors_GPS,
     ScreenSensors_MAX_VALUE,
-} ScreenSensors;
+} SubScreenSensors;
 
 typedef enum {
     ScreenAbout_SD = 0,
     ScreenAbout_AboutCruiseControl,
     ScreenAbout_AboutCar,
     ScreenAbout_MAX_VALUE,
-} ScreenAbout;
+} SubScreenAbout;
+
+typedef enum {
+    SubScreenCruiseControl_Main = 0,
+    SubScreenCruiseControl_Graph,
+    SubScreenCruiseControl_MAX_VALUE,
+} SubScreenCruiseControl;
 
 typedef union {
-    ScreenSensors sensors;
-    ScreenAbout about;
+    SubScreenSensors sensors;
+    SubScreenAbout about;
+    SubScreenCruiseControl cruise_control;
 } SubScreen;
 
 // This also determines the order in which the options are shown on the display
@@ -77,6 +84,12 @@ typedef struct {
     SubScreen subscreen;
 } DisplayState;
 
+#define CRUISE_CONTROL_GRAPH_SIZE DISPLAY_WIDTH
+
+typedef struct {
+    int virtual_gas_pedal[CRUISE_CONTROL_GRAPH_SIZE]; // The value will be stored in a int between 0 and 100, to reduce unnecessary memory usage
+} CruiseControlGraphState;
+
 typedef struct {
     bool enabled;
     double previous_target_speed; // Absolute value in km/h. Used for resetting the CC to the last used target speed after disconnecting or whatever
@@ -90,6 +103,8 @@ typedef struct {
     double integral;
     double derivative;
     double error;
+
+    CruiseControlGraphState graph;
 } CruiseControlState;
 
 typedef struct {

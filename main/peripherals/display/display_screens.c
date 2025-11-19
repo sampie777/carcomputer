@@ -169,6 +169,27 @@ void content_cruise_control(State *state, SH1106Config *display) {
     sh1106_draw_filled_rectangle(display, display->width - 4 + 1, virtual_pedal_value_y, 2, virtual_pedal_value_height);
 }
 
+void content_cruise_control_graph(State *state, SH1106Config *display) {
+    int offset_y = STATUS_BAR_HEIGHT + 3;
+
+    // Draw vertical axis
+    sh1106_draw_vertical_line(display, 0, offset_y, display->height - offset_y);
+    sh1106_draw_horizontal_line(display, 0, offset_y, 3);
+    sh1106_draw_horizontal_line(display, 0, offset_y + (display->height - 1 - offset_y) / 2, 3);
+    sh1106_draw_horizontal_line(display, 0, display->height - 1, 3);
+
+    // Draw data
+    for (int i = 2; i < CRUISE_CONTROL_GRAPH_SIZE; i++) {
+        if (state->cruise_control.graph.virtual_gas_pedal[i] < 0) continue;
+        int y = (int) round((display->height - offset_y) * (1.0 - state->cruise_control.graph.virtual_gas_pedal[i] / 100.0));
+        sh1106_draw_pixel(display, i, y + offset_y - 1, FONT_WHITE);
+    }
+
+    char buffer[32];
+    snprintf(buffer, sizeof buffer, "%3d %% pedal", (int) (state->cruise_control.virtual_gas_pedal * 100.0));
+    sh1106_draw_string(display, 7, STATUS_BAR_HEIGHT + 5, FONT_SMALL, FONT_WHITE, buffer);
+}
+
 void content_power_off_count_down(State *state, SH1106Config *display) {
     int offset_y = 0;
     char buffer[32];

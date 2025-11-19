@@ -49,6 +49,10 @@ void control_read_user_input(State *state) {
 
 void control_cruise_control(State *state) {
     cruise_control_step(state);
+
+    if (!state->cruise_control.enabled) {
+        state->display.subscreen.cruise_control = 0;
+    }
 }
 
 void control_init(State *state) {

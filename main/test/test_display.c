@@ -4,7 +4,7 @@
 
 
 #define STEP (50)
-#define RUN_TIME (10000)
+#define RUN_TIME (15000)
 
 #include "test_display.h"
 
@@ -22,13 +22,14 @@
 #include "../control/control.h"
 #include "../control/buttons.h"
 #include "mocks/idf/freertos/task.h"
+#include "utils/graph.h"
 
 
 void render_video(void) {
     int framerate = 1000 / STEP;
     char command[512];
     snprintf(command, sizeof(command),
-             "ffmpeg -y -framerate %d -pattern_type glob -i '../../../test_output/*.bmp' -c:v libx264 -pix_fmt yuv420p '../../../test_output/out.mp4'",
+             "ffmpeg -y -framerate %d -pattern_type glob -i '../../../test_output/screen*.bmp' -c:v libx264 -pix_fmt yuv420p '../../../test_output/out.mp4'",
              framerate);
     system(command);
 }
@@ -41,8 +42,7 @@ void update_function() {
 }
 
 void test_display_cruisecontrol() {
-    system("rm ../../../test_output/*.bmp");
-    _esp_timer_set_time(1000 * 1000);
+    system("rm ../../../test_output/screen*.bmp");
 
     State state = {0};
     _state = &state;
@@ -87,8 +87,7 @@ void test_display_cruisecontrol() {
 }
 
 void test_display_sms() {
-    system("rm ../../../test_output/*.bmp");
-    _esp_timer_set_time(1000 * 1000);
+    system("rm ../../../test_output/screen*.bmp");
 
     State state = {0};
     _state = &state;
@@ -200,4 +199,61 @@ void test_display_lock_car() {
     }
 
     render_video();
+}
+
+void test_display_cruisecontrol_subscreen_graph() {
+    system("rm ../../../test_output/screen*.bmp");
+
+    State state = {0};
+    _state = &state;
+    state.boot.is_booting = false;
+    state.power_off_count_down_sec = -1;
+    state.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
+    state.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
+    state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
+    state.device_name = "Default";
+    state.location.time.timezone = 2; // GMT+2
+    state.motion.bias.x = 1.1;
+    state.motion.bias.y = -0.04;
+    state.motion.bias.z = 0.01;
+    state.a9g.initialized = true;
+    state.location.is_gps_on = true;
+
+    state.car.gas_pedal_connected = true;
+    state.car.is_connected = true;
+    state.car.is_braking = false;
+    state.car.estimated_gear = Gear1;
+    state.car.is_parking_brake_on = false;
+
+    state.car.speed = 50;
+    state.car.gas_pedal = 0;
+    state.cruise_control.enabled = true;
+    cruise_control_step(&state);
+    state.car.speed = 35;
+
+    display_init();
+    Graph gas_pedal_graph = {.max = 1, .min = 0, .size = 0};
+
+    for (int i = 0; i < RUN_TIME / STEP; i++) {
+        if (i == 2) control_buttons_handle(&state, BUTTON_UP);
+        if (esp_timer_get_time_ms() == 3000) control_buttons_handle(&state, BUTTON_SOURCE);
+        if (esp_timer_get_time_ms() == 5000) control_buttons_handle(&state, BUTTON_UP);
+        if (esp_timer_get_time_ms() == 6000) control_buttons_handle(&state, BUTTON_UP);
+        if (esp_timer_get_time_ms() == 9000) state.car.gas_pedal = 0.5;
+        if (esp_timer_get_time_ms() == 10000) state.car.gas_pedal = 0.0;
+
+        simulate_car_step(&state, STEP);
+
+        control_cruise_control(&state);
+        control_process_car(&state);
+
+        graph_add(&gas_pedal_graph, state.cruise_control.virtual_gas_pedal);
+        update_function();
+        step_time(STEP);
+    }
+    //
+    render_video();
+    system("rm ../../../test_output/screen*.bmp");
+    update_function();
+    graph_render(&gas_pedal_graph, "../../../test_output/gas_pedal_graph.bmp");
 }
