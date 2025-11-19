@@ -93,11 +93,6 @@ typedef struct {
 } CruiseControlState;
 
 typedef struct {
-    bool is_connected;
-    bool is_controller_connected;
-    bool is_braking;
-    bool is_ignition_on;
-    bool is_in_reverse;
     double speed;        // Absolute value in km/h
     double acceleration; // Value in m/s2
     double rpm;          // Absolute value in rpm
@@ -116,12 +111,18 @@ typedef struct {
     double gas_pedal_0_volts;           // Current value in absolute Volts
     double gas_pedal_1_volts;           // Current value in absolute Volts
 
-    bool is_drivers_door_locked;
-    bool is_other_doors_locked;
-    bool is_blower_on;
-    bool is_locked;
-    bool is_parking_brake_on;
-    bool is_seatbelt_on;
+    // Use bit fields to reduce memory usage
+    bool is_connected: 1;
+    bool is_controller_connected: 1;
+    bool is_braking: 1;
+    bool is_ignition_on: 1;
+    bool is_in_reverse: 1;
+    bool is_drivers_door_locked: 1;
+    bool is_other_doors_locked: 1;
+    bool is_blower_on: 1;
+    bool is_locked: 1;
+    bool is_parking_brake_on: 1;
+    bool is_seatbelt_on: 1;
 
     bool should_be_locked;
 } CarState;

@@ -57,14 +57,15 @@ typedef struct {
 } NmeaGNRMCMessage;
 
 typedef struct {
-    bool initialized;
-    bool network_attached;
-    bool pnp_parameters_set;
-    bool pnp_activated;
-    bool agps_enabled;
-    bool gps_enabled;
-    bool gps_logging_enabled;
-    bool gps_logging_started;
+    // Use bit fields to reduce memory usage
+    bool initialized: 1;
+    bool network_attached: 1;
+    bool pnp_parameters_set: 1;
+    bool pnp_activated: 1;
+    bool agps_enabled: 1;
+    bool gps_enabled: 1;
+    bool gps_logging_enabled: 1;
+    bool gps_logging_started: 1;
     uint8_t network_error_count;
 } A9GState;
 
