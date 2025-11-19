@@ -98,7 +98,6 @@ void content_main_menu(const State *state, SH1106Config *display) {
 }
 
 void content_cruise_control(State *state, SH1106Config *display) {
-    static double hourly_eta_deviation = -1;
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 10;
     char buffer[32];
@@ -129,27 +128,6 @@ void content_cruise_control(State *state, SH1106Config *display) {
     offset_x = 25;
     sprintf(buffer, "%.2f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-
-    offset_x = 25;
-    offset_y += 10;
-    double new_hourly_eta_deviation = cruise_control_calculate_hour_eta_deviation_for_curren_speed(state);
-    if (new_hourly_eta_deviation >= 0) {
-        // Limit
-        if (new_hourly_eta_deviation > 2) new_hourly_eta_deviation = 2;
-        if (new_hourly_eta_deviation < 0.1) new_hourly_eta_deviation = 0.1;
-
-        if (hourly_eta_deviation < 0) hourly_eta_deviation = new_hourly_eta_deviation;
-        hourly_eta_deviation = new_hourly_eta_deviation * 0.2 + hourly_eta_deviation * 0.8;
-
-        int64_t milliseconds = (int64_t) ((hourly_eta_deviation - 1) * 3600 * 1000);
-        bool is_negative = milliseconds < 0;
-        if (is_negative) milliseconds *= -1;
-        char time_buffer[16];
-        format_time_h_mm(milliseconds, time_buffer);
-        snprintf(buffer, sizeof buffer, "1h ETA %c %c%sh", SPECIAL_CHAR_ARROW_RIGHT, is_negative ? '-' : '+', time_buffer);
-
-        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
-    }
 
     if (!state->cruise_control.enabled) return;
 
@@ -188,6 +166,38 @@ void content_cruise_control_graph(State *state, SH1106Config *display) {
     char buffer[32];
     snprintf(buffer, sizeof buffer, "%3d %% pedal", (int) (state->cruise_control.virtual_gas_pedal * 100.0));
     sh1106_draw_string(display, 7, STATUS_BAR_HEIGHT + 5, FONT_SMALL, FONT_WHITE, buffer);
+}
+
+void content_cruise_control_eta(State *state, SH1106Config *display) {
+    int offset_y = STATUS_BAR_HEIGHT + 10;
+    char buffer[32];
+
+    snprintf(buffer, sizeof buffer, "%3.0f/ %.0f", state->cruise_control.eta_target_speed, state->cruise_control.target_speed);
+    sh1106_draw_string(display, 5, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
+    offset_y += 8 * FONT_MEDIUM + 4;
+
+    if (state->cruise_control.target_speed < 1) return;
+
+    double hourly_eta_deviation = state->cruise_control.target_speed / state->cruise_control.eta_target_speed;
+
+    // Limit
+    double limited_hourly_eta_deviation = max(0.1, min(2.0, hourly_eta_deviation));
+
+    int64_t milliseconds = (int64_t) ((limited_hourly_eta_deviation - 1) * 3600 * 1000);
+    bool is_negative = milliseconds < 0;
+    if (is_negative) milliseconds *= -1;
+    char time_buffer[16];
+    if (hourly_eta_deviation > 2 || hourly_eta_deviation < 0.1) {
+        snprintf(time_buffer, sizeof time_buffer, " >1h");
+    } else {
+        format_time_h_mm(milliseconds, time_buffer);
+    }
+
+    snprintf(buffer, sizeof buffer, "1h ETA %c", SPECIAL_CHAR_ARROW_RIGHT);
+    sh1106_draw_string(display, 5, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_y += 11;
+    snprintf(buffer, sizeof buffer, "%c%s", is_negative ? '-' : '+', time_buffer);
+    sh1106_draw_string_centered_x(display, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
 }
 
 void content_power_off_count_down(State *state, SH1106Config *display) {

@@ -66,6 +66,7 @@ void control_buttons_handle(State *state, Button button) {
                     state->cruise_control.enabled = true;
                     state->display.subscreen.cruise_control = 0;
                 } else {
+                    state->cruise_control.eta_target_speed = state->cruise_control.target_speed;
                     state->display.subscreen.cruise_control++;
                     if (state->display.subscreen.cruise_control >= SubScreenCruiseControl_MAX_VALUE) {
                         state->display.subscreen.cruise_control = 0;
@@ -106,7 +107,11 @@ void control_buttons_handle(State *state, Button button) {
             }
 
             if (state->display.current_screen == Screen_CruiseControl) {
-                state->cruise_control.target_speed++;
+                if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
+                    state->cruise_control.eta_target_speed++;
+                } else {
+                    state->cruise_control.target_speed++;
+                }
             }
             break;
         case BUTTON_VOLUME_DOWN:
@@ -141,9 +146,16 @@ void control_buttons_handle(State *state, Button button) {
             }
 
             if (state->display.current_screen == Screen_CruiseControl) {
-                state->cruise_control.target_speed--;
-                if (state->cruise_control.target_speed < 0) {
-                    state->cruise_control.target_speed = 0;
+                if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
+                    state->cruise_control.eta_target_speed--;
+                    if (state->cruise_control.eta_target_speed < 0) {
+                        state->cruise_control.eta_target_speed = 0;
+                    }
+                } else {
+                    state->cruise_control.target_speed--;
+                    if (state->cruise_control.target_speed < 0) {
+                        state->cruise_control.target_speed = 0;
+                    }
                 }
             }
             break;
@@ -186,13 +198,24 @@ void control_buttons_handle(State *state, Button button) {
         case BUTTON_VOLUME_UP_LONG_PRESS:
             printf("Button pressed: BUTTON_VOLUME_UP_LONG_PRESS\n");
 
-            state->cruise_control.target_speed += 10 - 1;
+            if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
+                state->cruise_control.eta_target_speed += 10 - 1;
+            } else {
+                state->cruise_control.target_speed += 10 - 1;
+            }
             break;
         case BUTTON_VOLUME_DOWN_LONG_PRESS:
             printf("Button pressed: BUTTON_VOLUME_DOWN_LONG_PRESS\n");
-            state->cruise_control.target_speed -= 10 - 1;
-            if (state->cruise_control.target_speed < 0) {
-                state->cruise_control.target_speed = 0;
+            if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
+                state->cruise_control.eta_target_speed -= 10 - 1;
+                if (state->cruise_control.eta_target_speed < 0) {
+                    state->cruise_control.eta_target_speed = 0;
+                }
+            } else {
+                state->cruise_control.target_speed -= 10 - 1;
+                if (state->cruise_control.target_speed < 0) {
+                    state->cruise_control.target_speed = 0;
+                }
             }
             break;
         case BUTTON_INFO_LONG_PRESS:

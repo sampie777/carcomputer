@@ -40,6 +40,7 @@ typedef enum {
 typedef enum {
     SubScreenCruiseControl_Main = 0,
     SubScreenCruiseControl_Graph,
+    SubScreenCruiseControl_ETA,
     SubScreenCruiseControl_MAX_VALUE,
 } SubScreenCruiseControl;
 
@@ -94,6 +95,7 @@ typedef struct {
     bool enabled;
     double previous_target_speed; // Absolute value in km/h. Used for resetting the CC to the last used target speed after disconnecting or whatever
     double target_speed;          // Absolute value in km/h
+    double eta_target_speed;      // Absolute value in km/h
     double virtual_gas_pedal;     // Relative value between 0.0 and 1.0
     double initial_control_value; // Relative value between 0.0 and 1.0
     double control_value;         // Relative value between 0.0 and 1.0

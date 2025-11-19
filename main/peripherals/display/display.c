@@ -228,6 +228,9 @@ void show_screen(State *state, SH1106Config *display) {
                 case SubScreenCruiseControl_Graph:
                     content_cruise_control_graph(state, display);
                     break;
+                case SubScreenCruiseControl_ETA:
+                    content_cruise_control_eta(state, display);
+                    break;
                 default:
                     content_cruise_control(state, display);
                     break;

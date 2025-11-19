@@ -32,6 +32,7 @@ void render_video(void) {
              "ffmpeg -y -framerate %d -pattern_type glob -i '../../../test_output/screen*.bmp' -c:v libx264 -pix_fmt yuv420p '../../../test_output/out.mp4'",
              framerate);
     system(command);
+    system("rm ../../../test_output/screen*.bmp");
 }
 
 State *_state;
@@ -251,9 +252,60 @@ void test_display_cruisecontrol_subscreen_graph() {
         update_function();
         step_time(STEP);
     }
-    //
+
     render_video();
-    system("rm ../../../test_output/screen*.bmp");
     update_function();
     graph_render(&gas_pedal_graph, "../../../test_output/gas_pedal_graph.bmp");
+}
+
+void test_display_cruisecontrol_subscreen_eta() {
+    system("rm ../../../test_output/screen*.bmp");
+
+    State state = {0};
+    _state = &state;
+    state.boot.is_booting = false;
+    state.power_off_count_down_sec = -1;
+    state.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
+    state.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
+    state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
+    state.device_name = "Default";
+    state.location.time.timezone = 2; // GMT+2
+    state.motion.bias.x = 1.1;
+    state.motion.bias.y = -0.04;
+    state.motion.bias.z = 0.01;
+    state.a9g.initialized = true;
+    state.location.is_gps_on = true;
+
+    state.car.gas_pedal_connected = true;
+    state.car.is_connected = true;
+    state.car.is_braking = false;
+    state.car.estimated_gear = Gear1;
+    state.car.is_parking_brake_on = false;
+
+    state.car.speed = 50;
+    state.cruise_control.enabled = true;
+    cruise_control_step(&state);
+    state.car.speed = 35;
+
+    display_init();
+
+    for (int i = 0; i < RUN_TIME / STEP; i++) {
+        if (esp_timer_get_time_ms() == 100) control_buttons_handle(&state, BUTTON_UP);
+        if (esp_timer_get_time_ms() == 300) control_buttons_handle(&state, BUTTON_UP);
+        if (esp_timer_get_time_ms() == 4000) state.cruise_control.eta_target_speed = 1;
+        if (esp_timer_get_time_ms() == 5000) control_buttons_handle(&state, BUTTON_VOLUME_DOWN);
+        if (esp_timer_get_time_ms() == 7000) control_buttons_handle(&state, BUTTON_VOLUME_DOWN_LONG_PRESS);
+        if (esp_timer_get_time_ms() == 6000) control_buttons_handle(&state, BUTTON_SOURCE);
+
+        simulate_car_step(&state, STEP);
+
+        control_cruise_control(&state);
+        control_process_car(&state);
+
+        // display_update(_state);
+        update_function();
+        step_time(STEP);
+    }
+
+    render_video();
 }
