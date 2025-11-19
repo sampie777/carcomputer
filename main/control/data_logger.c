@@ -103,10 +103,10 @@ void data_logger_log_current(State *state) {
              "%lu;"                                    // state->car.odometer
              "%d;"                                     // state->car.gas_pedal_connected
              "%.5f;"                                   // state->car.gas_pedal
-             "%d;"                                     // state->cruise_control.enabled
-             "%.3f;"                                   // state->cruise_control.target_speed
-             "%.5f;"                                   // state->cruise_control.virtual_gas_pedal
-             "%.5f;"                                   // state->cruise_control.control_value
+             "%d;"                                     // state->speed_control.cruise_control.enabled
+             "%.3f;"                                   // state->speed_control.cruise_control.target_speed
+             "%.5f;"                                   // state->speed_control.virtual_gas_pedal
+             "%.5f;"                                   // state->speed_control.cruise_control.control_value
              "%d;"                                     // state->motion.connected
              "%.3f;"                                   // state->motion.accel_x
              "%.3f;"                                   // state->motion.accel_y
@@ -142,10 +142,10 @@ void data_logger_log_current(State *state) {
              state->car.odometer,
              state->car.gas_pedal_connected,
              state->car.gas_pedal,
-             state->cruise_control.enabled,
-             state->cruise_control.target_speed,
-             state->cruise_control.virtual_gas_pedal,
-             state->cruise_control.control_value,
+             state->speed_control.cruise_control.enabled,
+             state->speed_control.cruise_control.target_speed,
+             state->speed_control.virtual_gas_pedal,
+             state->speed_control.cruise_control.control_value,
              state->motion.connected,
              state->motion.accel_x,
              state->motion.accel_y,
@@ -201,7 +201,7 @@ void data_logger_manage_file_name(State *state) {
     if (has_set_time_as_file_name) return;
 
     // The next operations are time-consuming, so don't do them when high priority tasks are running
-    if (state->cruise_control.enabled) return;
+    if (state->speed_control.cruise_control.enabled) return;
 
     Time time = state->location.time.year > 2021 ? state->location.time : state->gsm.time;
     if (time.year < 2000) return;

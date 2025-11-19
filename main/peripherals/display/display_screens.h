@@ -9,9 +9,6 @@
 #include "sh1106.h"
 
 void content_main_menu(const State *state, SH1106Config *display);
-void content_cruise_control(State *state, SH1106Config *display);
-void content_cruise_control_graph(State *state, SH1106Config *display);
-void content_cruise_control_eta(State *state, SH1106Config *display);
 void content_power_off_count_down(State *state, SH1106Config *display);
 void content_motion_sensors_data(const State *state, SH1106Config *display);
 void content_motion_sensors_data_graphical(const State *state, SH1106Config *display);

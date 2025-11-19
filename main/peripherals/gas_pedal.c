@@ -118,9 +118,9 @@ void gas_pedal_write(State *state) {
         gas_pedal_init_minimums(state);
     }
 
-    double target_voltage0 = scale(state->cruise_control.virtual_gas_pedal, state->car.gas_pedal_0_min_value_volts,
+    double target_voltage0 = scale(state->speed_control.virtual_gas_pedal, state->car.gas_pedal_0_min_value_volts,
                                    state->car.gas_pedal_0_max_value_volts);
-    double target_voltage1 = scale(state->cruise_control.virtual_gas_pedal, state->car.gas_pedal_1_min_value_volts,
+    double target_voltage1 = scale(state->speed_control.virtual_gas_pedal, state->car.gas_pedal_1_min_value_volts,
                                    state->car.gas_pedal_1_max_value_volts);
 
     // Set PWM output

@@ -29,7 +29,7 @@ void simulate_car_step(State* state, int32_t delta) {
     double c = 0.27;
     double friction = v < 0.1 && v > -0.1 ? 0 : P0 / v + u * m * g + c * p * A * v * v / 2.0;
 
-    double engineForce = (_get_gas_penal_enabled() ? state->cruise_control.virtual_gas_pedal : state->car.gas_pedal) * FORCE_FACTOR;
+    double engineForce = (_get_gas_penal_enabled() ? state->speed_control.virtual_gas_pedal : state->car.gas_pedal) * FORCE_FACTOR;
     // F = m*a -> a = F / m
     double acceleration = (engineForce - friction) / CAR_MASS;
     // a = dv/dt -> dv = a*dt

@@ -17,6 +17,7 @@
 #include "special_chars.h"
 #include "font.h"
 #include "sh1106_i2c.h"
+#include "screens/cruise_control.h"
 
 SH1106Config sh1106_config = {
     .address = DISPLAY_I2C_ADDRESS,
@@ -121,8 +122,10 @@ void show_statusbar(State *state, SH1106Config *display) {
         short_blink_state = false;
     }
 
-    if (state->display.current_screen == Screen_CruiseControl && state->display.subscreen.cruise_control != SubScreenCruiseControl_Main) {
-        snprintf(buffer, sizeof(buffer), "%3.0f/%.0f km/h", state->car.speed, state->cruise_control.target_speed);
+    if (state->display.current_screen == Screen_Speed
+        && state->display.subscreen.speed == SubScreenSpeed_CruiseControl
+        && state->display.subscreen.cruise_control != SubScreenCruiseControl_Main) {
+        snprintf(buffer, sizeof(buffer), "%3.0f/%.0f km/h", state->car.speed, state->speed_control.cruise_control.target_speed);
         sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, buffer);
     } else {
         sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, APP_VERSION);
@@ -223,16 +226,23 @@ void show_screen(State *state, SH1106Config *display) {
         case Screen_Menu:
             content_main_menu(state, display);
             break;
-        case Screen_CruiseControl:
-            switch (state->display.subscreen.cruise_control) {
-                case SubScreenCruiseControl_Graph:
-                    content_cruise_control_graph(state, display);
-                    break;
-                case SubScreenCruiseControl_ETA:
-                    content_cruise_control_eta(state, display);
+        case Screen_Speed:
+            switch (state->display.subscreen.speed) {
+                case SubScreenSpeed_PedalControl:
+                    content_pedal_control(state, display);
                     break;
                 default:
-                    content_cruise_control(state, display);
+                    switch (state->display.subscreen.cruise_control) {
+                        case SubScreenCruiseControl_Graph:
+                            content_cruise_control_graph(state, display);
+                            break;
+                        case SubScreenCruiseControl_ETA:
+                            content_cruise_control_eta(state, display);
+                            break;
+                        default:
+                            content_cruise_control(state, display);
+                            break;
+                    }
                     break;
             }
             break;
@@ -292,7 +302,7 @@ void set_current_screen(State *state) {
 
     if (state->display.current_screen == Screen_Rebooting ||
         state->display.current_screen == Screen_Booting) {
-        state->display.current_screen = Screen_CruiseControl;
+        state->display.current_screen = Screen_Speed;
     }
 }
 

@@ -14,6 +14,7 @@
 #include "../error_codes.h"
 #include "../peripherals/gas_pedal.h"
 #include "cruise_control.h"
+#include "speed_control.h"
 
 void control_read_can_bus(State *state) {
     canbus_check_controller_connection(state);
@@ -49,8 +50,13 @@ void control_read_user_input(State *state) {
 
 void control_cruise_control(State *state) {
     cruise_control_step(state);
+    speed_control_step(state);
 
-    if (!state->cruise_control.enabled) {
+    if (!state->speed_control.cruise_control.enabled && !state->speed_control.pedal_control.enabled) {
+        gas_pedal_enable(false);
+    }
+
+    if (!state->speed_control.cruise_control.enabled) {
         state->display.subscreen.cruise_control = 0;
     }
 }
@@ -130,7 +136,7 @@ void control_mpu_power(State *state) {
         ignition_off_time = esp_timer_get_time_ms();
     }
 
-    state->cruise_control.enabled = false;
+    state->speed_control.cruise_control.enabled = false;
     long remaining_ms = (long) (ignition_off_time + POWER_OFF_MIN_TIMEOUT_MS - esp_timer_get_time_ms());
     state->power_off_count_down_sec = max(0, (int16_t) ceil(remaining_ms / 1000.0));
 
@@ -210,7 +216,7 @@ void control_run_diagnostics_activation(State *state) {
     if (state->diagnostics.status != previous_status) {
         if (state->diagnostics.status == DiagnosticsStep_Off) {
             gas_pedal_enable(false);
-            state->cruise_control.virtual_gas_pedal = 0;
+            state->speed_control.virtual_gas_pedal = 0;
             // Go back to Actions screen
             state->display.current_screen = Screen_Actions;
         } else if (previous_status == DiagnosticsStep_Off) {
@@ -252,7 +258,7 @@ void control_run_diagnostics_activation(State *state) {
 
     // Check if ignition is off before going to the next state
     if (state->diagnostics.status == DiagnosticsStep_IgnitionOff) {
-        state->cruise_control.virtual_gas_pedal = 0;
+        state->speed_control.virtual_gas_pedal = 0;
         gas_pedal_write(state);
         gas_pedal_enable(true);
 
@@ -326,7 +332,7 @@ void control_run_diagnostics_activation(State *state) {
 
     if (state->diagnostics.status == DiagnosticsStep_DepressPedal5Times) {
         if (depressed_count >= DIAGNOSTICS_2_DEPRESS_PEDAL_COUNT) {
-            state->cruise_control.virtual_gas_pedal = 0;
+            state->speed_control.virtual_gas_pedal = 0;
             gas_pedal_write(state);
             state->diagnostics.status++;
             return;
@@ -335,12 +341,12 @@ void control_run_diagnostics_activation(State *state) {
         if (esp_timer_get_time_ms() < press_timer_start + DIAGNOSTICS_2_DEPRESS_PEDAL_INTERVAL) return;
         press_timer_start = esp_timer_get_time_ms();
 
-        if (state->cruise_control.virtual_gas_pedal < 0.5) {
+        if (state->speed_control.virtual_gas_pedal < 0.5) {
             printf("[Diagnostics] Pedal in...\n");
-            state->cruise_control.virtual_gas_pedal = 1;
+            state->speed_control.virtual_gas_pedal = 1;
         } else {
             printf("[Diagnostics] Pedal out...\n");
-            state->cruise_control.virtual_gas_pedal = 0;
+            state->speed_control.virtual_gas_pedal = 0;
             depressed_count++;
         }
         gas_pedal_write(state);
@@ -359,7 +365,7 @@ void control_run_diagnostics_activation(State *state) {
 
     if (state->diagnostics.status == DiagnosticsStep_DepressPedal10Sec) {
         if (wait_timer_end <= 0) {
-            state->cruise_control.virtual_gas_pedal = 1;
+            state->speed_control.virtual_gas_pedal = 1;
             gas_pedal_write(state);
             // Add some extra time (1000 ms) to make sure
             wait_timer_end = esp_timer_get_time_ms() + DIAGNOSTICS_4_DEPRESS_PEDAL_FULLY_TIME + 1000;
@@ -374,7 +380,7 @@ void control_run_diagnostics_activation(State *state) {
     if (state->diagnostics.status == DiagnosticsStep_ReleasePedal) {
         if (wait_timer_end <= 0) {
             wait_timer_end = esp_timer_get_time_ms() + 3000;
-            state->cruise_control.virtual_gas_pedal = 0;
+            state->speed_control.virtual_gas_pedal = 0;
             gas_pedal_write(state);
             gas_pedal_enable(false);
         }

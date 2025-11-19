@@ -17,8 +17,8 @@ void graph_add(Graph *graph, double value) {
 
 double graph_get_calculated_y(Graph *graph, BmpImage *bmp, double y) {
     y -= graph->min;
-    y = y * (double) bmp->height / (graph->max - graph->min);
-    return bmp->height - y;
+    y = y * (double) (bmp->height - 2) / (graph->max - graph->min);
+    return bmp->height - y - 1;
 }
 
 void graph_render(Graph *graph, const char *file_path) {

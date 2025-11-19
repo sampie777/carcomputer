@@ -15,9 +15,9 @@ void app_main(void) {
     static State state = {0};
     state.boot.is_booting = true;
     state.power_off_count_down_sec = -1;
-    state.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
-    state.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
-    state.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
+    state.speed_control.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
+    state.speed_control.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
+    state.speed_control.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
     state.device_name = "Default";
     state.location.time.timezone = 2; // GMT+2
     state.motion.bias.x = 1.1;

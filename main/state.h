@@ -15,7 +15,7 @@ typedef enum {
     Screen_Booting = 0,
     Screen_Rebooting,
     Screen_Menu,
-    Screen_CruiseControl,
+    Screen_Speed,
     Screen_Sensors,
     Screen_Actions,
     Screen_ActivateDiagnostics,
@@ -38,15 +38,22 @@ typedef enum {
 } SubScreenAbout;
 
 typedef enum {
+    SubScreenSpeed_CruiseControl = 0,
+    SubScreenSpeed_PedalControl,
+    SubScreenSpeed_MAX_VALUE,
+} SubScreenSpeed;
+
+typedef enum {
     SubScreenCruiseControl_Main = 0,
     SubScreenCruiseControl_Graph,
     SubScreenCruiseControl_ETA,
     SubScreenCruiseControl_MAX_VALUE,
 } SubScreenCruiseControl;
 
-typedef union {
+typedef struct {
     SubScreenSensors sensors;
     SubScreenAbout about;
+    SubScreenSpeed speed;
     SubScreenCruiseControl cruise_control;
 } SubScreen;
 
@@ -96,7 +103,6 @@ typedef struct {
     double previous_target_speed; // Absolute value in km/h. Used for resetting the CC to the last used target speed after disconnecting or whatever
     double target_speed;          // Absolute value in km/h
     double eta_target_speed;      // Absolute value in km/h
-    double virtual_gas_pedal;     // Relative value between 0.0 and 1.0
     double initial_control_value; // Relative value between 0.0 and 1.0
     double control_value;         // Relative value between 0.0 and 1.0
     double pidKp;
@@ -108,6 +114,18 @@ typedef struct {
 
     CruiseControlGraphState graph;
 } CruiseControlState;
+
+typedef struct {
+    bool enabled;
+    double target_value;
+    double previous_value;
+} PedalControlState;
+
+typedef struct {
+    double virtual_gas_pedal; // Relative value between 0.0 and 1.0
+    CruiseControlState cruise_control;
+    PedalControlState pedal_control;
+} SpeedControlState;
 
 typedef struct {
     double speed;        // Absolute value in km/h
@@ -242,7 +260,7 @@ typedef struct {
     uint32_t errors;
     char *device_name;
     CarState car;
-    CruiseControlState cruise_control;
+    SpeedControlState speed_control;
     DisplayState display;
     MotionState motion;
     SDState storage;

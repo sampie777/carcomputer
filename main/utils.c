@@ -200,14 +200,14 @@ void debug_state(const State *state) {
     printf("\t\tis_locked: %c\n", state->car.is_locked ? 'y' : 'n');
 
     printf("\tcruise_control:\n");
-    printf("\t\tenabled: %c\n", state->cruise_control.enabled ? 'y' : 'n');
-    printf("\t\ttarget_speed: %lf\n", state->cruise_control.target_speed);
-    printf("\t\tvirtual_gas_pedal: %lf\n", state->cruise_control.virtual_gas_pedal);
-    printf("\t\tinitial_control_value: %lf\n", state->cruise_control.initial_control_value);
-    printf("\t\tcontrol_value: %lf\n", state->cruise_control.control_value);
-    printf("\t\tpidKp: %lf\n", state->cruise_control.pidKp);
-    printf("\t\tpidKi: %lf\n", state->cruise_control.pidKi);
-    printf("\t\tpidKd: %lf\n", state->cruise_control.pidKd);
+    printf("\t\tenabled: %c\n", state->speed_control.cruise_control.enabled ? 'y' : 'n');
+    printf("\t\ttarget_speed: %lf\n", state->speed_control.cruise_control.target_speed);
+    printf("\t\tvirtual_gas_pedal: %lf\n", state->speed_control.virtual_gas_pedal);
+    printf("\t\tinitial_control_value: %lf\n", state->speed_control.cruise_control.initial_control_value);
+    printf("\t\tcontrol_value: %lf\n", state->speed_control.cruise_control.control_value);
+    printf("\t\tpidKp: %lf\n", state->speed_control.cruise_control.pidKp);
+    printf("\t\tpidKi: %lf\n", state->speed_control.cruise_control.pidKi);
+    printf("\t\tpidKd: %lf\n", state->speed_control.cruise_control.pidKd);
 }
 
 void wdt_feed(int max_timeout_ms) {

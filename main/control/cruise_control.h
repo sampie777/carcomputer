@@ -8,6 +8,6 @@
 #include "../state.h"
 
 void cruise_control_step(State *state);
-double cruise_control_calculate_hour_eta_deviation_for_curren_speed(const State *state);
+bool cruise_control_safety_checks(State *state, uint8_t car_was_connected);
 
 #endif //APP_TEMPLATE_CRUISE_CONTROL_H

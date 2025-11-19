@@ -9,6 +9,20 @@
 #include "../peripherals/gpsgsm/gpsgsm.h"
 #include "../error_codes.h"
 
+void next_screen(int *screen, int max) {
+    (*screen)++;
+    if (*screen >= max) {
+        *screen = 0;
+    }
+}
+
+void previous_screen(int *screen, int max) {
+    if (*screen <= 0) {
+        *screen = max;
+    }
+    (*screen)--;
+}
+
 void control_buttons_handle(State *state, Button button) {
     switch (button) {
         case BUTTON_NONE:
@@ -18,7 +32,7 @@ void control_buttons_handle(State *state, Button button) {
             if (state->display.current_screen == Screen_Menu) {
                 switch (state->display.menu_option_selection) {
                     case ScreenMenuOption_CruiseControl:
-                        state->display.current_screen = Screen_CruiseControl;
+                        state->display.current_screen = Screen_Speed;
                         break;
                     case ScreenMenuOption_Sensors:
                         state->display.current_screen = Screen_Sensors;
@@ -61,101 +75,101 @@ void control_buttons_handle(State *state, Button button) {
                 break;
             }
 
-            if (state->display.current_screen == Screen_CruiseControl) {
-                if (!state->cruise_control.enabled) {
-                    state->cruise_control.enabled = true;
-                    state->display.subscreen.cruise_control = 0;
-                } else {
-                    state->cruise_control.eta_target_speed = state->cruise_control.target_speed;
-                    state->display.subscreen.cruise_control++;
-                    if (state->display.subscreen.cruise_control >= SubScreenCruiseControl_MAX_VALUE) {
+            if (state->display.current_screen == Screen_Speed) {
+                if (state->display.subscreen.speed == SubScreenSpeed_CruiseControl) {
+                    if (!state->speed_control.cruise_control.enabled) {
+                        state->speed_control.pedal_control.enabled = false;
+                        state->speed_control.cruise_control.enabled = true;
                         state->display.subscreen.cruise_control = 0;
+                    } else {
+                        state->speed_control.cruise_control.eta_target_speed = state->speed_control.cruise_control.target_speed;
+                        next_screen((int *) &state->display.subscreen.cruise_control, SubScreenCruiseControl_MAX_VALUE);
                     }
-                    break;
+                } else if (state->display.subscreen.speed == SubScreenSpeed_PedalControl) {
+                    state->speed_control.pedal_control.enabled = true;
+                    state->speed_control.cruise_control.enabled = false;
                 }
             }
             break;
         case BUTTON_VOLUME_UP:
             printf("Button pressed: BUTTON_VOLUME_UP\n");
             if (state->display.current_screen == Screen_Menu) {
-                if (state->display.menu_option_selection <= 0) {
-                    state->display.menu_option_selection = ScreenMenuOption_MAX_VALUE;
-                }
-                state->display.menu_option_selection--;
+                previous_screen((int *) &state->display.menu_option_selection, ScreenMenuOption_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_Actions) {
-                if (state->display.actions_option_selection <= 0) {
-                    state->display.actions_option_selection = ScreenActionsOptions_MAX_VALUE;
-                }
-                state->display.actions_option_selection--;
+                previous_screen((int *) &state->display.actions_option_selection, ScreenActionsOptions_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_Sensors) {
-                if (state->display.subscreen.sensors <= 0) {
-                    state->display.subscreen.sensors = ScreenSensors_MAX_VALUE;
-                }
-                state->display.subscreen.sensors--;
+                previous_screen((int *) &state->display.subscreen.sensors, ScreenSensors_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_About) {
-                if (state->display.subscreen.about <= 0) {
-                    state->display.subscreen.about = ScreenAbout_MAX_VALUE;
-                }
-                state->display.subscreen.about--;
+                previous_screen((int *) &state->display.subscreen.about, ScreenAbout_MAX_VALUE);
                 break;
             }
 
-            if (state->display.current_screen == Screen_CruiseControl) {
-                if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
-                    state->cruise_control.eta_target_speed++;
+            if (state->display.current_screen == Screen_Speed) {
+                if (state->speed_control.cruise_control.enabled) {
+                    if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
+                        printf("Increaser cruise control eta\n");
+                        state->speed_control.cruise_control.eta_target_speed++;
+                    } else {
+                        printf("Increaser cruise control\n");
+                        state->speed_control.cruise_control.target_speed++;
+                    }
+                } else if (state->speed_control.pedal_control.enabled) {
+                    printf("Increaser pedal control\n");
+                    state->speed_control.pedal_control.target_value += 0.01;
+                    if (state->speed_control.pedal_control.target_value > 1) {
+                        state->speed_control.pedal_control.target_value = 1;
+                    }
                 } else {
-                    state->cruise_control.target_speed++;
+                    printf("Increaser screen\n");
+                    previous_screen((int *) &state->display.subscreen.speed, SubScreenSpeed_MAX_VALUE);
                 }
             }
             break;
         case BUTTON_VOLUME_DOWN:
             printf("Button pressed: BUTTON_VOLUME_DOWN\n");
             if (state->display.current_screen == Screen_Menu) {
-                state->display.menu_option_selection++;
-                if (state->display.menu_option_selection >= ScreenMenuOption_MAX_VALUE) {
-                    state->display.menu_option_selection = 0;
-                }
+                next_screen((int *) &state->display.menu_option_selection, ScreenMenuOption_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_Actions) {
-                state->display.actions_option_selection++;
-                if (state->display.actions_option_selection >= ScreenActionsOptions_MAX_VALUE) {
-                    state->display.actions_option_selection = 0;
-                }
+                next_screen((int *) &state->display.actions_option_selection, ScreenActionsOptions_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_Sensors) {
-                state->display.subscreen.sensors++;
-                if (state->display.subscreen.sensors >= ScreenSensors_MAX_VALUE) {
-                    state->display.subscreen.sensors = 0;
-                }
+                next_screen((int *) &state->display.subscreen.sensors, ScreenSensors_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_About) {
-                state->display.subscreen.about++;
-                if (state->display.subscreen.about >= ScreenAbout_MAX_VALUE) {
-                    state->display.subscreen.about = 0;
-                }
+                next_screen((int *) &state->display.subscreen.about, ScreenAbout_MAX_VALUE);
                 break;
             }
 
-            if (state->display.current_screen == Screen_CruiseControl) {
-                if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
-                    state->cruise_control.eta_target_speed--;
-                    if (state->cruise_control.eta_target_speed < 0) {
-                        state->cruise_control.eta_target_speed = 0;
+            if (state->display.current_screen == Screen_Speed) {
+                if (state->speed_control.cruise_control.enabled) {
+                    if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
+                        state->speed_control.cruise_control.eta_target_speed--;
+                        if (state->speed_control.cruise_control.eta_target_speed < 0) {
+                            state->speed_control.cruise_control.eta_target_speed = 0;
+                        }
+                    } else {
+                        state->speed_control.cruise_control.target_speed--;
+                        if (state->speed_control.cruise_control.target_speed < 0) {
+                            state->speed_control.cruise_control.target_speed = 0;
+                        }
+                    }
+                } else if (state->speed_control.pedal_control.enabled) {
+                    state->speed_control.pedal_control.target_value -= 0.01;
+                    if (state->speed_control.pedal_control.target_value < 0) {
+                        state->speed_control.pedal_control.target_value = 0;
                     }
                 } else {
-                    state->cruise_control.target_speed--;
-                    if (state->cruise_control.target_speed < 0) {
-                        state->cruise_control.target_speed = 0;
-                    }
+                    next_screen((int *) &state->display.subscreen.speed, SubScreenSpeed_MAX_VALUE);
                 }
             }
             break;
@@ -175,15 +189,17 @@ void control_buttons_handle(State *state, Button button) {
                 break;
             }
 
-            if ((!state->cruise_control.enabled && state->display.current_screen == Screen_CruiseControl)
-                || state->display.current_screen == Screen_Sensors
-                || state->display.current_screen == Screen_Actions
-                || state->display.current_screen == Screen_About
+            if (state->speed_control.cruise_control.enabled || state->speed_control.pedal_control.enabled) {
+                if (state->speed_control.cruise_control.enabled) printf("Disconnecting cruise control because of user input\n");
+                if (state->speed_control.pedal_control.enabled) printf("Disconnecting pedal control because of user input\n");
+                state->speed_control.cruise_control.enabled = false;
+                state->speed_control.pedal_control.enabled = false;
+            } else if (state->display.current_screen == Screen_Speed
+                       || state->display.current_screen == Screen_Sensors
+                       || state->display.current_screen == Screen_Actions
+                       || state->display.current_screen == Screen_About
             ) {
                 state->display.current_screen = Screen_Menu;
-            } else if (state->display.current_screen == Screen_CruiseControl) {
-                if (state->cruise_control.enabled) printf("Disconnecting cruise control because of user input\n");
-                state->cruise_control.enabled = false;
             }
             break;
         case BUTTON_SOURCE_LONG_PRESS:
@@ -198,23 +214,37 @@ void control_buttons_handle(State *state, Button button) {
         case BUTTON_VOLUME_UP_LONG_PRESS:
             printf("Button pressed: BUTTON_VOLUME_UP_LONG_PRESS\n");
 
-            if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
-                state->cruise_control.eta_target_speed += 10 - 1;
-            } else {
-                state->cruise_control.target_speed += 10 - 1;
+            if (state->speed_control.cruise_control.enabled) {
+                if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
+                    state->speed_control.cruise_control.eta_target_speed += 10 - 1;
+                } else {
+                    state->speed_control.cruise_control.target_speed += 10 - 1;
+                }
+            } else if (state->speed_control.pedal_control.enabled) {
+                state->speed_control.pedal_control.target_value += 0.09;
+                if (state->speed_control.pedal_control.target_value > 1) {
+                    state->speed_control.pedal_control.target_value = 1;
+                }
             }
             break;
         case BUTTON_VOLUME_DOWN_LONG_PRESS:
             printf("Button pressed: BUTTON_VOLUME_DOWN_LONG_PRESS\n");
-            if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
-                state->cruise_control.eta_target_speed -= 10 - 1;
-                if (state->cruise_control.eta_target_speed < 0) {
-                    state->cruise_control.eta_target_speed = 0;
+            if (state->speed_control.cruise_control.enabled) {
+                if (state->display.subscreen.cruise_control == SubScreenCruiseControl_ETA) {
+                    state->speed_control.cruise_control.eta_target_speed -= 10 - 1;
+                    if (state->speed_control.cruise_control.eta_target_speed < 0) {
+                        state->speed_control.cruise_control.eta_target_speed = 0;
+                    }
+                } else {
+                    state->speed_control.cruise_control.target_speed -= 10 - 1;
+                    if (state->speed_control.cruise_control.target_speed < 0) {
+                        state->speed_control.cruise_control.target_speed = 0;
+                    }
                 }
-            } else {
-                state->cruise_control.target_speed -= 10 - 1;
-                if (state->cruise_control.target_speed < 0) {
-                    state->cruise_control.target_speed = 0;
+            } else if (state->speed_control.pedal_control.enabled) {
+                state->speed_control.pedal_control.target_value -= 0.09;
+                if (state->speed_control.pedal_control.target_value < 0) {
+                    state->speed_control.pedal_control.target_value = 0;
                 }
             }
             break;
@@ -223,7 +253,7 @@ void control_buttons_handle(State *state, Button button) {
             break;
         case BUTTON_UP_LONG_PRESS:
             printf("Button pressed: BUTTON_UP_LONG_PRESS\n");
-            state->cruise_control.target_speed = state->cruise_control.previous_target_speed;
+            state->speed_control.cruise_control.target_speed = state->speed_control.cruise_control.previous_target_speed;
             break;
         case BUTTON_DOWN_LONG_PRESS:
             printf("Button pressed: BUTTON_DOWN_LONG_PRESS\n");
@@ -246,30 +276,30 @@ void control_buttons_handle_pid_config(State *state, Button button) {
     // Temporary extra's for debugging PID
     switch (button) {
         case BUTTON_VOLUME_UP:
-            if (!state->cruise_control.enabled) {
+            if (!state->speed_control.cruise_control.enabled) {
                 if (pid_increase_target == PidProportional) {
-                    state->cruise_control.pidKp += pid_increase_step;
-                    printf("state->cruise_control.pidKp = %lf\n", state->cruise_control.pidKp);
+                    state->speed_control.cruise_control.pidKp += pid_increase_step;
+                    printf("state->speed_control.cruise_control.pidKp = %lf\n", state->speed_control.cruise_control.pidKp);
                 } else if (pid_increase_target == PidIntegral) {
-                    state->cruise_control.pidKi += pid_increase_step;
-                    printf("state->cruise_control.pidKi = %lf\n", state->cruise_control.pidKi);
+                    state->speed_control.cruise_control.pidKi += pid_increase_step;
+                    printf("state->speed_control.cruise_control.pidKi = %lf\n", state->speed_control.cruise_control.pidKi);
                 } else if (pid_increase_target == PidDerivative) {
-                    state->cruise_control.pidKd += pid_increase_step;
-                    printf("state->cruise_control.pidKd = %lf\n", state->cruise_control.pidKd);
+                    state->speed_control.cruise_control.pidKd += pid_increase_step;
+                    printf("state->speed_control.cruise_control.pidKd = %lf\n", state->speed_control.cruise_control.pidKd);
                 }
             }
             break;
         case BUTTON_VOLUME_DOWN:
-            if (!state->cruise_control.enabled) {
+            if (!state->speed_control.cruise_control.enabled) {
                 if (pid_increase_target == PidProportional) {
-                    state->cruise_control.pidKp -= pid_increase_step;
-                    printf("state->cruise_control.pidKp = %lf\n", state->cruise_control.pidKp);
+                    state->speed_control.cruise_control.pidKp -= pid_increase_step;
+                    printf("state->speed_control.cruise_control.pidKp = %lf\n", state->speed_control.cruise_control.pidKp);
                 } else if (pid_increase_target == PidIntegral) {
-                    state->cruise_control.pidKi -= pid_increase_step;
-                    printf("state->cruise_control.pidKi = %lf\n", state->cruise_control.pidKi);
+                    state->speed_control.cruise_control.pidKi -= pid_increase_step;
+                    printf("state->speed_control.cruise_control.pidKi = %lf\n", state->speed_control.cruise_control.pidKi);
                 } else if (pid_increase_target == PidDerivative) {
-                    state->cruise_control.pidKd -= pid_increase_step;
-                    printf("state->cruise_control.pidKd = %lf\n", state->cruise_control.pidKd);
+                    state->speed_control.cruise_control.pidKd -= pid_increase_step;
+                    printf("state->speed_control.cruise_control.pidKd = %lf\n", state->speed_control.cruise_control.pidKd);
                 }
             }
             break;
@@ -286,12 +316,12 @@ void control_buttons_handle_pid_config(State *state, Button button) {
             }
             break;
         case BUTTON_VOLUME_UP_LONG_PRESS:
-            if (!state->cruise_control.enabled) {
+            if (!state->speed_control.cruise_control.enabled) {
                 pid_increase_step *= 10;
             }
             break;
         case BUTTON_VOLUME_DOWN_LONG_PRESS:
-            if (!state->cruise_control.enabled) {
+            if (!state->speed_control.cruise_control.enabled) {
                 pid_increase_step *= 0.1;
             }
             break;
