@@ -27,6 +27,11 @@ typedef enum {
     BUTTON_DOWN_LONG_PRESS,
 } Button;
 
+#define BUTTON_CONFIRM (BUTTON_UP)
+#define BUTTON_CANCEL (BUTTON_SOURCE)
+#define BUTTON_INCREASE (BUTTON_VOLUME_UP)
+#define BUTTON_DECREASE (BUTTON_VOLUME_DOWN)
+
 Button buttons_get_pressed(ButtonsState *state, MotionState *motion);
 void buttons_init();
 

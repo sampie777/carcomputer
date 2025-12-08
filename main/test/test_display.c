@@ -110,7 +110,7 @@ void test_display_sms() {
 
     for (int i = 0; i < RUN_TIME / STEP; i++) {
         if (i == 5) {
-            control_buttons_handle(&state, BUTTON_UP);
+            control_buttons_handle(&state, BUTTON_CONFIRM);
             state.display.actions_option_selection = ScreenActionsOptions_ActivateDiagnostics;
         }
 
@@ -236,10 +236,13 @@ void test_display_cruisecontrol_subscreen_graph() {
     Graph gas_pedal_graph = {.max = 1, .min = 0, .size = 0};
 
     for (int i = 0; i < RUN_TIME / STEP; i++) {
-        if (i == 2) control_buttons_handle(&state, BUTTON_UP);
-        if (esp_timer_get_time_ms() == 3000) control_buttons_handle(&state, BUTTON_SOURCE);
-        if (esp_timer_get_time_ms() == 5000) control_buttons_handle(&state, BUTTON_UP);
-        if (esp_timer_get_time_ms() == 6000) control_buttons_handle(&state, BUTTON_UP);
+        if (esp_timer_get_time_ms() == 2000) control_buttons_handle(&state, BUTTON_CONFIRM);
+        if (esp_timer_get_time_ms() == 3000) control_buttons_handle(&state, BUTTON_CANCEL);
+        if (esp_timer_get_time_ms() == 4000) control_buttons_handle(&state, BUTTON_DECREASE);
+        if (esp_timer_get_time_ms() == 5000) control_buttons_handle(&state, BUTTON_DECREASE);
+        if (esp_timer_get_time_ms() == 6000) control_buttons_handle(&state, BUTTON_CANCEL);
+        if (esp_timer_get_time_ms() == 7000) control_buttons_handle(&state, BUTTON_CONFIRM);
+        if (esp_timer_get_time_ms() == 8000) control_buttons_handle(&state, BUTTON_CONFIRM);
         if (esp_timer_get_time_ms() == 9000) state.car.gas_pedal = 0.5;
         if (esp_timer_get_time_ms() == 10000) state.car.gas_pedal = 0.0;
 
@@ -290,12 +293,12 @@ void test_display_cruisecontrol_subscreen_eta() {
     display_init();
 
     for (int i = 0; i < RUN_TIME / STEP; i++) {
-        if (esp_timer_get_time_ms() == 100) control_buttons_handle(&state, BUTTON_UP);
-        if (esp_timer_get_time_ms() == 300) control_buttons_handle(&state, BUTTON_UP);
+        if (esp_timer_get_time_ms() == 100) control_buttons_handle(&state, BUTTON_CONFIRM);
+        if (esp_timer_get_time_ms() == 300) control_buttons_handle(&state, BUTTON_CONFIRM);
         if (esp_timer_get_time_ms() == 4000) state.speed_control.cruise_control.eta_target_speed = 1;
-        if (esp_timer_get_time_ms() == 5000) control_buttons_handle(&state, BUTTON_VOLUME_DOWN);
+        if (esp_timer_get_time_ms() == 5000) control_buttons_handle(&state, BUTTON_DECREASE);
         if (esp_timer_get_time_ms() == 7000) control_buttons_handle(&state, BUTTON_VOLUME_DOWN_LONG_PRESS);
-        if (esp_timer_get_time_ms() == 6000) control_buttons_handle(&state, BUTTON_SOURCE);
+        if (esp_timer_get_time_ms() == 6000) control_buttons_handle(&state, BUTTON_CANCEL);
 
         simulate_car_step(&state, STEP);
 
@@ -340,8 +343,8 @@ void test_display_speed_pedal_control() {
     display_init();
 
     for (int i = 0; i < RUN_TIME / STEP; i++) {
-        if (esp_timer_get_time_ms() == 1000) control_buttons_handle(&state, BUTTON_VOLUME_DOWN);
-        if (esp_timer_get_time_ms() == 2000) control_buttons_handle(&state, BUTTON_UP);
+        if (esp_timer_get_time_ms() == 1000) control_buttons_handle(&state, BUTTON_DECREASE);
+        if (esp_timer_get_time_ms() == 2000) control_buttons_handle(&state, BUTTON_CONFIRM);
         if (esp_timer_get_time_ms() == 4200) state.car.gas_pedal *= 0.75;
         if (esp_timer_get_time_ms() == 4500) state.car.gas_pedal *= 0.5;
         if (esp_timer_get_time_ms() == 4700) state.car.gas_pedal *= 0.5;
@@ -351,7 +354,7 @@ void test_display_speed_pedal_control() {
         if (esp_timer_get_time_ms() == 11500) state.car.gas_pedal *= 0.5;
         if (esp_timer_get_time_ms() == 11700) state.car.gas_pedal *= 0.5;
         if (esp_timer_get_time_ms() == 12000) state.car.gas_pedal = 0;
-        if (esp_timer_get_time_ms() == 14000) control_buttons_handle(&state, BUTTON_SOURCE);
+        if (esp_timer_get_time_ms() == 14000) control_buttons_handle(&state, BUTTON_CANCEL);
 
         simulate_car_step(&state, STEP);
 

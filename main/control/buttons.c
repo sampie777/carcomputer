@@ -27,7 +27,7 @@ void control_buttons_handle(State *state, Button button) {
     switch (button) {
         case BUTTON_NONE:
             break;
-        case BUTTON_UP:
+        case BUTTON_CONFIRM:
             printf("Button pressed: BUTTON_UP\n");
             if (state->display.current_screen == Screen_Menu) {
                 switch (state->display.menu_option_selection) {
@@ -91,7 +91,7 @@ void control_buttons_handle(State *state, Button button) {
                 }
             }
             break;
-        case BUTTON_VOLUME_UP:
+        case BUTTON_INCREASE:
             printf("Button pressed: BUTTON_VOLUME_UP\n");
             if (state->display.current_screen == Screen_Menu) {
                 previous_screen((int *) &state->display.menu_option_selection, ScreenMenuOption_MAX_VALUE);
@@ -131,7 +131,7 @@ void control_buttons_handle(State *state, Button button) {
                 }
             }
             break;
-        case BUTTON_VOLUME_DOWN:
+        case BUTTON_DECREASE:
             printf("Button pressed: BUTTON_VOLUME_DOWN\n");
             if (state->display.current_screen == Screen_Menu) {
                 next_screen((int *) &state->display.menu_option_selection, ScreenMenuOption_MAX_VALUE);
@@ -173,7 +173,7 @@ void control_buttons_handle(State *state, Button button) {
                 }
             }
             break;
-        case BUTTON_SOURCE:
+        case BUTTON_CANCEL:
             printf("Button pressed: BUTTON_SOURCE\n");
             if (state->display.current_screen == Screen_Menu) {
                 state->display.menu_option_selection = 0;

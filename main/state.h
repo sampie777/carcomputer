@@ -40,6 +40,7 @@ typedef enum {
 typedef enum {
     SubScreenSpeed_CruiseControl = 0,
     SubScreenSpeed_PedalControl,
+    SubScreenSpeed_Graph,
     SubScreenSpeed_MAX_VALUE,
 } SubScreenSpeed;
 

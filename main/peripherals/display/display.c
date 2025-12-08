@@ -231,6 +231,9 @@ void show_screen(State *state, SH1106Config *display) {
                 case SubScreenSpeed_PedalControl:
                     content_pedal_control(state, display);
                     break;
+                case SubScreenSpeed_Graph:
+                    content_cruise_control_graph(state, display);
+                    break;
                 default:
                     switch (state->display.subscreen.cruise_control) {
                         case SubScreenCruiseControl_Graph:
