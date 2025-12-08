@@ -122,14 +122,14 @@ void show_statusbar(State *state, SH1106Config *display) {
         short_blink_state = false;
     }
 
-    if (state->display.current_screen == Screen_Speed
-        && state->display.subscreen.speed == SubScreenSpeed_CruiseControl
-        && state->display.subscreen.cruise_control != SubScreenCruiseControl_Main) {
+    if (state->display.current_screen == Screen_Menu) {
+        snprintf(buffer, sizeof(buffer), "v%s", APP_VERSION);
+    }else if (state->speed_control.cruise_control.enabled) {
         snprintf(buffer, sizeof(buffer), "%3.0f/%.0f km/h", state->car.speed, state->speed_control.cruise_control.target_speed);
-        sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, buffer);
     } else {
-        sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, APP_VERSION);
+        snprintf(buffer, sizeof(buffer), "%3.0f km/h", state->car.speed);
     }
+    sh1106_draw_string(display, 1, 0, FONT_SMALL, FONT_WHITE, buffer);
 
     int offset_right = display->width + 1;
 
