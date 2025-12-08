@@ -21,32 +21,15 @@
 #include "../control/cruise_control.h"
 #include "../control/control.h"
 #include "../control/buttons.h"
-#include "mocks/idf/freertos/task.h"
 #include "utils/graph.h"
+#include "utils/video.h"
 
-
-void render_video(void) {
-    int framerate = 1000 / STEP;
-    char command[512];
-    snprintf(command, sizeof(command),
-             "ffmpeg -y -framerate %d -pattern_type glob -i '../../../test_output/screen*.bmp' -c:v libx264 -pix_fmt yuv420p '../../../test_output/out.mp4'",
-             framerate);
-    system(command);
-    system("rm ../../../test_output/screen*.bmp");
-}
-
-State *_state;
-
-void update_function() {
-    display_update(_state);
-    update_bitmap();
-}
 
 void test_display_cruisecontrol() {
     system("rm ../../../test_output/screen*.bmp");
 
     State state = {0};
-    _state = &state;
+    video_init(&state);
     state.boot.is_booting = false;
     state.power_off_count_down_sec = -1;
     state.speed_control.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
@@ -80,18 +63,18 @@ void test_display_cruisecontrol() {
         control_cruise_control(&state);
         control_process_car(&state);
 
-        update_function();
+        video_display_update();
         step_time(STEP);
     }
 
-    render_video();
+    video_render(1000 / STEP);
 }
 
 void test_display_sms() {
     system("rm ../../../test_output/screen*.bmp");
 
     State state = {0};
-    _state = &state;
+    video_init(&state);
     state.boot.is_booting = false;
     state.power_off_count_down_sec = -1;
     state.device_name = "Default";
@@ -106,7 +89,6 @@ void test_display_sms() {
 
     display_init();
 
-    set_update_function(&update_function);
 
     for (int i = 0; i < RUN_TIME / STEP; i++) {
         if (i == 5) {
@@ -119,11 +101,11 @@ void test_display_sms() {
         control_cruise_control(&state);
         control_process_car(&state);
 
-        update_function();
+        video_display_update();
         step_time(STEP);
     }
 
-    render_video();
+    video_render(1000 / STEP);
 }
 
 void test_display_aboutcar() {
@@ -171,7 +153,7 @@ void test_display_lock_car() {
         .speed_control.cruise_control.target_speed = 120,
         .speed_control.virtual_gas_pedal = 0.3,
     };
-    _state = &state;
+    video_init(&state);
     sprintf(state.storage.filename, "file.csv");
 
     display_init();
@@ -195,18 +177,16 @@ void test_display_lock_car() {
         control_cruise_control(&state);
         control_process_car(&state);
 
-        update_function();
+        video_display_update();
         step_time(STEP);
     }
 
-    render_video();
+    video_render(1000 / STEP);
 }
 
 void test_display_cruisecontrol_subscreen_graph() {
-    system("rm ../../../test_output/screen*.bmp");
-
     State state = {0};
-    _state = &state;
+    video_init(&state);
     state.boot.is_booting = false;
     state.power_off_count_down_sec = -1;
     state.speed_control.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
@@ -232,6 +212,7 @@ void test_display_cruisecontrol_subscreen_graph() {
     cruise_control_step(&state);
     state.car.speed = 35;
 
+
     display_init();
     Graph gas_pedal_graph = {.max = 1, .min = 0, .size = 0};
 
@@ -252,12 +233,12 @@ void test_display_cruisecontrol_subscreen_graph() {
         control_process_car(&state);
 
         graph_add(&gas_pedal_graph, state.speed_control.virtual_gas_pedal);
-        update_function();
+        video_display_update();
         step_time(STEP);
     }
 
-    render_video();
-    update_function();
+    video_render(1000 / STEP);
+    video_display_update();
     graph_render(&gas_pedal_graph, "../../../test_output/gas_pedal_graph.bmp");
 }
 
@@ -265,7 +246,7 @@ void test_display_cruisecontrol_subscreen_eta() {
     system("rm ../../../test_output/screen*.bmp");
 
     State state = {0};
-    _state = &state;
+    video_init(&state);
     state.boot.is_booting = false;
     state.power_off_count_down_sec = -1;
     state.speed_control.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
@@ -306,18 +287,18 @@ void test_display_cruisecontrol_subscreen_eta() {
         control_process_car(&state);
 
         // display_update(_state);
-        update_function();
+        video_display_update();
         step_time(STEP);
     }
 
-    render_video();
+    video_render(1000 / STEP);
 }
 
 void test_display_speed_pedal_control() {
     system("rm ../../../test_output/screen*.bmp");
 
     State state = {0};
-    _state = &state;
+    video_init(&state);
     state.boot.is_booting = false;
     state.power_off_count_down_sec = -1;
     state.speed_control.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
@@ -361,11 +342,10 @@ void test_display_speed_pedal_control() {
         control_cruise_control(&state);
         control_process_car(&state);
 
-        display_update(_state);
-        update_function();
+        video_display_update();
         step_time(STEP);
     }
 
-    render_video();
-    update_function();
+    video_render(1000 / STEP);
+    video_display_update();
 }
