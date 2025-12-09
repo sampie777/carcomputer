@@ -80,7 +80,6 @@ void test_cc_settings_screen() {
 
         // Edit second value
         if (next_button(i)) control_buttons_handle(&state, BUTTON_DECREASE);
-        if (next_button(i)) control_buttons_handle(&state, BUTTON_DECREASE);
         if (next_button(i)) control_buttons_handle(&state, BUTTON_CONFIRM);
         if (next_button(i)) control_buttons_handle(&state, BUTTON_INCREASE);   // Increase factor
         if (next_button(i)) control_buttons_handle(&state, BUTTON_CONFIRM);    // Go to apply value
@@ -96,6 +95,12 @@ void test_cc_settings_screen() {
         if (next_button(i)) control_buttons_handle(&state, BUTTON_CANCEL);   // Edit factor
         if (next_button(i)) control_buttons_handle(&state, BUTTON_CANCEL);   // Go to selection screen
 
+        // Edit speed limiter
+        if (next_button(i)) control_buttons_handle(&state, BUTTON_DECREASE);
+        if (next_button(i)) control_buttons_handle(&state, BUTTON_DECREASE);
+        if (next_button(i)) control_buttons_handle(&state, BUTTON_CONFIRM); // Toggle
+        if (next_button(i)) control_buttons_handle(&state, BUTTON_DECREASE);
+
         simulate_car_step(&state, STEP);
 
         control_cruise_control(&state);
@@ -105,6 +110,7 @@ void test_cc_settings_screen() {
         step_time(STEP);
     }
 
-    // video_render(1000 / STEP);
-    video_display_update();
+    video_render(1000 / STEP);
+    // video_init(&state);
+    // video_display_update();
 }

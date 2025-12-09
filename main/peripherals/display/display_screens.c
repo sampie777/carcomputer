@@ -576,20 +576,37 @@ void content_pid_config(const State *state, SH1106Config *display) {
     const int selection_item_height = 12;
     char buffer[32];
 
-    snprintf(buffer, sizeof buffer, "P %.4f", state->speed_control.cruise_control.pidKp);
+    snprintf(buffer, sizeof buffer, "P: %.4f", state->speed_control.cruise_control.pidKp);
     int y = STATUS_BAR_HEIGHT + 2 + 0 * selection_item_height;
     content_main_menu_option(display, y, selection_item_height, buffer,
                              state->display.pid_config.selected_type == PidConfigScreenOptionsType_P);
 
-    snprintf(buffer, sizeof buffer, "I %.7f", state->speed_control.cruise_control.pidKi);
+    snprintf(buffer, sizeof buffer, "I: %.7f", state->speed_control.cruise_control.pidKi);
     y = STATUS_BAR_HEIGHT + 2 + 1 * selection_item_height;
     content_main_menu_option(display, y, selection_item_height, buffer,
                              state->display.pid_config.selected_type == PidConfigScreenOptionsType_I);
 
-    snprintf(buffer, sizeof buffer, "D %.1f", state->speed_control.cruise_control.pidKd);
+    snprintf(buffer, sizeof buffer, "D: %.1f", state->speed_control.cruise_control.pidKd);
     y = STATUS_BAR_HEIGHT + 2 + 2 * selection_item_height;
     content_main_menu_option(display, y, selection_item_height, buffer,
                              state->display.pid_config.selected_type == PidConfigScreenOptionsType_D);
+
+    switch (state->speed_control.cruise_control.speed_limiter_type) {
+        case CruiseControlSpeedLimiterType_Proportional:
+            snprintf(buffer, sizeof buffer, "Limiter: Proportional");
+            break;
+        case CruiseControlSpeedLimiterType_Discrete:
+            snprintf(buffer, sizeof buffer, "Limiter: Discrete");
+            break;
+        case CruiseControlSpeedLimiterType_None:
+            snprintf(buffer, sizeof buffer, "Limiter: Disabled");
+            break;
+        case CruiseControlSpeedLimiterType_MAX_VALUE:
+            break;
+    }
+    y = STATUS_BAR_HEIGHT + 2 + 3 * selection_item_height;
+    content_main_menu_option(display, y, selection_item_height, buffer,
+                             state->display.pid_config.selected_type == PidConfigScreenOptionsType_SpeedLimiter);
 }
 
 void content_pid_config_edit(const State *state, SH1106Config *display) {

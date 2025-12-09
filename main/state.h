@@ -89,6 +89,7 @@ typedef enum {
     PidConfigScreenOptionsType_P,
     PidConfigScreenOptionsType_I,
     PidConfigScreenOptionsType_D,
+    PidConfigScreenOptionsType_SpeedLimiter,
     PidConfigScreenOptionsType_MAX_VALUE,
 } PidConfigScreenOptionsType;
 
@@ -129,6 +130,13 @@ typedef struct {
     int virtual_gas_pedal[CRUISE_CONTROL_GRAPH_SIZE]; // The value will be stored in a int between 0 and 100, to reduce unnecessary memory usage
 } CruiseControlGraphState;
 
+typedef enum {
+    CruiseControlSpeedLimiterType_Proportional,
+    CruiseControlSpeedLimiterType_Discrete,
+    CruiseControlSpeedLimiterType_None,
+    CruiseControlSpeedLimiterType_MAX_VALUE,
+} CruiseControlSpeedLimiterType;
+
 typedef struct {
     bool enabled;
     double previous_target_speed; // Absolute value in km/h. Used for resetting the CC to the last used target speed after disconnecting or whatever
@@ -143,6 +151,7 @@ typedef struct {
     double derivative;
     double error;
 
+    CruiseControlSpeedLimiterType speed_limiter_type;
     CruiseControlGraphState graph;
 } CruiseControlState;
 

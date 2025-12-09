@@ -16,7 +16,7 @@ State *_state;
 void video_init(State *state) {
     _state = state;
     set_update_function(&video_display_update);
-    system("rm ../../../../test_output/screen*.bmp");
+    system("rm ../../../test_output/screen*.bmp");
 }
 
 void video_display_update() {

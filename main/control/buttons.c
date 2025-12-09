@@ -82,7 +82,11 @@ void control_buttons_handle(State *state, Button button) {
             }
             if (state->display.current_screen == Screen_PidConfig) {
                 if (state->display.subscreen.pid_config == SubScreenPidConfig_Select) {
-                    state->display.subscreen.pid_config = SubScreenPidConfig_Edit;
+                    if (state->display.pid_config.selected_type == PidConfigScreenOptionsType_SpeedLimiter) {
+                        next_option((int *) &state->speed_control.cruise_control.speed_limiter_type, CruiseControlSpeedLimiterType_MAX_VALUE);
+                    } else {
+                        state->display.subscreen.pid_config = SubScreenPidConfig_Edit;
+                    }
                 } else if (state->display.subscreen.pid_config == SubScreenPidConfig_Edit) {
                     if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Factor) {
                         next_option((int *) &state->display.pid_config.edit_selection, PidConfigScreenOptionsEditField_MAX_VALUE);
