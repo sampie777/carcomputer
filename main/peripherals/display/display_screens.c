@@ -54,6 +54,18 @@ void content_main_menu_option(SH1106Config *sh1106, int y, int height, const cha
                        highlighted ? FONT_BLACK : FONT_WHITE, text);
 }
 
+int content_draw_option(SH1106Config *sh1106, int x, int y, int padding, const char *text, bool highlighted) {
+    int width = sh1106_draw_string(sh1106, x + padding, y + padding, FONT_SMALL,
+                                   highlighted ? FONT_BLACK : FONT_WHITE, text);
+    if (highlighted) {
+        sh1106_draw_filled_rectangle(sh1106, x, y, width + 2 * padding - 1, 8 + 2 * padding - 1);
+    }
+    sh1106_draw_string(sh1106, x + padding, y + padding, FONT_SMALL,
+                       highlighted ? FONT_BLACK : FONT_WHITE, text);
+
+    return width + 2 * padding;
+}
+
 char *content_main_menu_get_option_text(MainMenuScreenOptions option_index) {
     switch (option_index) {
         case ScreenMenuOption_CruiseControl:
@@ -260,6 +272,8 @@ char *content_actions_get_option_text(ActionsScreenOptions option_index) {
             return "Activate SIM";
         case ScreenActionsOptions_Reboot:
             return "Reboot";
+        case ScreenActionsOptions_PidConfig:
+            return "PID config";
         default:
             return "";
     }
@@ -556,4 +570,73 @@ void content_boot_screen(const State *state, SH1106Config *display) {
     int virtual_pedal_value_x = virtual_pedal_container_x + 1;
     sh1106_draw_filled_rectangle(display, virtual_pedal_value_x, offset_y + 2, virtual_pedal_value_width,
                                  virtual_pedal_container_height - 4);
+}
+
+void content_pid_config(const State *state, SH1106Config *display) {
+    const int selection_item_height = 12;
+    char buffer[32];
+
+    snprintf(buffer, sizeof buffer, "P %.4f", state->speed_control.cruise_control.pidKp);
+    int y = STATUS_BAR_HEIGHT + 2 + 0 * selection_item_height;
+    content_main_menu_option(display, y, selection_item_height, buffer,
+                             state->display.pid_config.selected_type == PidConfigScreenOptionsType_P);
+
+    snprintf(buffer, sizeof buffer, "I %.7f", state->speed_control.cruise_control.pidKi);
+    y = STATUS_BAR_HEIGHT + 2 + 1 * selection_item_height;
+    content_main_menu_option(display, y, selection_item_height, buffer,
+                             state->display.pid_config.selected_type == PidConfigScreenOptionsType_I);
+
+    snprintf(buffer, sizeof buffer, "D %.1f", state->speed_control.cruise_control.pidKd);
+    y = STATUS_BAR_HEIGHT + 2 + 2 * selection_item_height;
+    content_main_menu_option(display, y, selection_item_height, buffer,
+                             state->display.pid_config.selected_type == PidConfigScreenOptionsType_D);
+}
+
+void content_pid_config_edit(const State *state, SH1106Config *display) {
+    int offset_y = STATUS_BAR_HEIGHT + 5;
+    int offset_x, width, padding = 4;
+    int print_precision;
+    void *draw_rectangle;
+    char buffer[32];
+
+    char type = 'P';
+    double value = state->speed_control.cruise_control.pidKp;
+    print_precision = 4;
+    if (state->display.pid_config.selected_type == PidConfigScreenOptionsType_I) {
+        type = 'I';
+        value = state->speed_control.cruise_control.pidKi;
+        print_precision = 7;
+    }
+    if (state->display.pid_config.selected_type == PidConfigScreenOptionsType_D) {
+        type = 'D';
+        value = state->speed_control.cruise_control.pidKd;
+        print_precision = 1;
+    }
+
+    sh1106_draw_char(display, 5, offset_y, FONT_SMALL, FONT_WHITE, type);
+    snprintf(buffer, sizeof buffer, "%.*f", print_precision, value);
+    sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_y += 12 + padding;
+    print_precision = 0;
+    if (state->display.pid_config.factor < 0) {
+        print_precision = -1 * state->display.pid_config.factor;
+    }
+    snprintf(buffer, sizeof buffer, "%.*f", print_precision, pow(10, state->display.pid_config.factor));
+    width = sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    offset_x = (display->width - width) / 2;
+    draw_rectangle = state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Factor ? &sh1106_draw_filled_rectangle : &sh1106_draw_rectangle;
+    ((void(*)()) draw_rectangle)(display, offset_x - padding - 1, offset_y - padding, width + 2 * padding - 1, 8 + 2 * padding - 1);
+    if (draw_rectangle == &sh1106_draw_filled_rectangle) {
+        sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_BLACK, buffer);
+    }
+
+    offset_y += 15 + padding;
+    width = sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_WHITE, "Apply +/-");
+    offset_x = (display->width - width) / 2;
+    draw_rectangle = state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Apply ? &sh1106_draw_filled_rectangle : &sh1106_draw_rectangle;
+    ((void(*)()) draw_rectangle)(display, offset_x - padding - 1, offset_y - padding, width + 2 * padding - 1, 8 + 2 * padding - 1);
+    if (draw_rectangle == &sh1106_draw_filled_rectangle) {
+        sh1106_draw_string_centered_x(display, offset_y, FONT_SMALL, FONT_BLACK, "Apply +/-");
+    }
 }

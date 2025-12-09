@@ -204,3 +204,20 @@ void cruise_control_step(State *state) {
 
     gas_pedal_write(state);
 }
+
+void cruise_control_config_apply_factor(State *state, int8_t sign) {
+    double value = pow(10, state->display.pid_config.factor) * sign;
+    switch (state->display.pid_config.selected_type) {
+        case PidConfigScreenOptionsType_P:
+            state->speed_control.cruise_control.pidKp += value;
+            break;
+        case PidConfigScreenOptionsType_I:
+            state->speed_control.cruise_control.pidKi += value;
+            break;
+        case PidConfigScreenOptionsType_D:
+            state->speed_control.cruise_control.pidKd += value;
+            break;
+        default:
+            break;
+    }
+}

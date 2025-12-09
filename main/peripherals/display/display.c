@@ -275,7 +275,7 @@ void show_screen(State *state, SH1106Config *display) {
             content_activate_diagnostics(state, display);
             break;
         case Screen_About: {
-            switch (state->display.subscreen.sensors) {
+            switch (state->display.subscreen.about) {
                 case ScreenAbout_SD:
                     content_about(state, display);
                     break;
@@ -286,6 +286,19 @@ void show_screen(State *state, SH1106Config *display) {
                     content_about_car(state, display);
                     break;
                 default:
+                    break;
+            }
+            break;
+        }
+        case Screen_PidConfig: {
+            switch (state->display.subscreen.pid_config) {
+                case SubScreenPidConfig_Select:
+                    content_pid_config(state, display);
+                    break;
+                case SubScreenPidConfig_Edit:
+                    content_pid_config_edit(state, display);
+                    break;
+                case SubScreenPidConfig_MAX_VALUE:
                     break;
             }
             break;

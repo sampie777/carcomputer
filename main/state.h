@@ -20,6 +20,7 @@ typedef enum {
     Screen_Actions,
     Screen_ActivateDiagnostics,
     Screen_About,
+    Screen_PidConfig,
 } Screen;
 
 typedef enum {
@@ -51,11 +52,18 @@ typedef enum {
     SubScreenCruiseControl_MAX_VALUE,
 } SubScreenCruiseControl;
 
+typedef enum {
+    SubScreenPidConfig_Select,
+    SubScreenPidConfig_Edit,
+    SubScreenPidConfig_MAX_VALUE,
+} SubScreenPidConfig;
+
 typedef struct {
     SubScreenSensors sensors;
     SubScreenAbout about;
     SubScreenSpeed speed;
     SubScreenCruiseControl cruise_control;
+    SubScreenPidConfig pid_config;
 } SubScreen;
 
 // This also determines the order in which the options are shown on the display
@@ -73,8 +81,29 @@ typedef enum {
     ScreenActionsOptions_ActivateDiagnostics,
     ScreenActionsOptions_ActivateSim,
     ScreenActionsOptions_Reboot,
+    ScreenActionsOptions_PidConfig,
     ScreenActionsOptions_MAX_VALUE,
 } ActionsScreenOptions;
+
+typedef enum {
+    PidConfigScreenOptionsType_P,
+    PidConfigScreenOptionsType_I,
+    PidConfigScreenOptionsType_D,
+    PidConfigScreenOptionsType_MAX_VALUE,
+} PidConfigScreenOptionsType;
+
+typedef enum {
+    PidConfigScreenOptionsEditField_Factor,
+    PidConfigScreenOptionsEditField_Apply,
+    PidConfigScreenOptionsEditField_MAX_VALUE,
+} PidConfigScreenOptionsEditField;
+
+typedef struct {
+    PidConfigScreenOptionsType selected_type;
+    PidConfigScreenOptionsEditField edit_selection;
+    int factor;
+} PidConfigScreenOptions;
+
 
 typedef enum {
     GearReverse = -1,
@@ -90,6 +119,7 @@ typedef struct {
     Screen current_screen;
     MainMenuScreenOptions menu_option_selection;
     ActionsScreenOptions actions_option_selection;
+    PidConfigScreenOptions pid_config;
     SubScreen subscreen;
 } DisplayState;
 

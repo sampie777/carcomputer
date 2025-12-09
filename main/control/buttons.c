@@ -4,23 +4,25 @@
 
 #include <stdio.h>
 #include "buttons.h"
+
+#include "cruise_control.h"
 #include "../utils.h"
 #include "../peripherals/canbus/canbus.h"
 #include "../peripherals/gpsgsm/gpsgsm.h"
 #include "../error_codes.h"
 
-void next_screen(int *screen, int max) {
-    (*screen)++;
-    if (*screen >= max) {
-        *screen = 0;
+void next_option(int *option, int max) {
+    (*option)++;
+    if (*option >= max) {
+        *option = 0;
     }
 }
 
-void previous_screen(int *screen, int max) {
-    if (*screen <= 0) {
-        *screen = max;
+void previous_option(int *option, int max) {
+    if (*option <= 0) {
+        *option = max;
     }
-    (*screen)--;
+    (*option)--;
 }
 
 void control_buttons_handle(State *state, Button button) {
@@ -69,10 +71,23 @@ void control_buttons_handle(State *state, Button button) {
                     case ScreenActionsOptions_Reboot:
                         utils_reboot(state);
                         break;
+                    case ScreenActionsOptions_PidConfig:
+                        state->display.current_screen = Screen_PidConfig;
+                        state->display.pid_config.selected_type = 0;
+                        break;
                     default:
                         break;
                 }
                 break;
+            }
+            if (state->display.current_screen == Screen_PidConfig) {
+                if (state->display.subscreen.pid_config == SubScreenPidConfig_Select) {
+                    state->display.subscreen.pid_config = SubScreenPidConfig_Edit;
+                } else if (state->display.subscreen.pid_config == SubScreenPidConfig_Edit) {
+                    if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Factor) {
+                        next_option((int *) &state->display.pid_config.edit_selection, PidConfigScreenOptionsEditField_MAX_VALUE);
+                    }
+                }
             }
 
             if (state->display.current_screen == Screen_Speed) {
@@ -83,7 +98,7 @@ void control_buttons_handle(State *state, Button button) {
                         state->display.subscreen.cruise_control = 0;
                     } else {
                         state->speed_control.cruise_control.eta_target_speed = state->speed_control.cruise_control.target_speed;
-                        next_screen((int *) &state->display.subscreen.cruise_control, SubScreenCruiseControl_MAX_VALUE);
+                        next_option((int *) &state->display.subscreen.cruise_control, SubScreenCruiseControl_MAX_VALUE);
                     }
                 } else if (state->display.subscreen.speed == SubScreenSpeed_PedalControl) {
                     state->speed_control.pedal_control.enabled = true;
@@ -94,19 +109,31 @@ void control_buttons_handle(State *state, Button button) {
         case BUTTON_INCREASE:
             printf("Button pressed: BUTTON_VOLUME_UP\n");
             if (state->display.current_screen == Screen_Menu) {
-                previous_screen((int *) &state->display.menu_option_selection, ScreenMenuOption_MAX_VALUE);
+                previous_option((int *) &state->display.menu_option_selection, ScreenMenuOption_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_Actions) {
-                previous_screen((int *) &state->display.actions_option_selection, ScreenActionsOptions_MAX_VALUE);
+                previous_option((int *) &state->display.actions_option_selection, ScreenActionsOptions_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_Sensors) {
-                previous_screen((int *) &state->display.subscreen.sensors, ScreenSensors_MAX_VALUE);
+                previous_option((int *) &state->display.subscreen.sensors, ScreenSensors_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_About) {
-                previous_screen((int *) &state->display.subscreen.about, ScreenAbout_MAX_VALUE);
+                previous_option((int *) &state->display.subscreen.about, ScreenAbout_MAX_VALUE);
+                break;
+            }
+            if (state->display.current_screen == Screen_PidConfig) {
+                if (state->display.subscreen.pid_config == SubScreenPidConfig_Select) {
+                    previous_option((int *) &state->display.pid_config.selected_type, PidConfigScreenOptionsType_MAX_VALUE);
+                } else if (state->display.subscreen.pid_config == SubScreenPidConfig_Edit) {
+                    if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Factor) {
+                        state->display.pid_config.factor++;
+                    } else if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Apply) {
+                        cruise_control_config_apply_factor(state, 1);
+                    }
+                }
                 break;
             }
 
@@ -127,26 +154,38 @@ void control_buttons_handle(State *state, Button button) {
                     }
                 } else {
                     printf("Increaser screen\n");
-                    previous_screen((int *) &state->display.subscreen.speed, SubScreenSpeed_MAX_VALUE);
+                    previous_option((int *) &state->display.subscreen.speed, SubScreenSpeed_MAX_VALUE);
                 }
             }
             break;
         case BUTTON_DECREASE:
             printf("Button pressed: BUTTON_VOLUME_DOWN\n");
             if (state->display.current_screen == Screen_Menu) {
-                next_screen((int *) &state->display.menu_option_selection, ScreenMenuOption_MAX_VALUE);
+                next_option((int *) &state->display.menu_option_selection, ScreenMenuOption_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_Actions) {
-                next_screen((int *) &state->display.actions_option_selection, ScreenActionsOptions_MAX_VALUE);
+                next_option((int *) &state->display.actions_option_selection, ScreenActionsOptions_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_Sensors) {
-                next_screen((int *) &state->display.subscreen.sensors, ScreenSensors_MAX_VALUE);
+                next_option((int *) &state->display.subscreen.sensors, ScreenSensors_MAX_VALUE);
                 break;
             }
             if (state->display.current_screen == Screen_About) {
-                next_screen((int *) &state->display.subscreen.about, ScreenAbout_MAX_VALUE);
+                next_option((int *) &state->display.subscreen.about, ScreenAbout_MAX_VALUE);
+                break;
+            }
+            if (state->display.current_screen == Screen_PidConfig) {
+                if (state->display.subscreen.pid_config == SubScreenPidConfig_Select) {
+                    next_option((int *) &state->display.pid_config.selected_type, PidConfigScreenOptionsType_MAX_VALUE);
+                } else if (state->display.subscreen.pid_config == SubScreenPidConfig_Edit) {
+                    if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Factor) {
+                        state->display.pid_config.factor--;
+                    } else if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Apply) {
+                        cruise_control_config_apply_factor(state, -1);
+                    }
+                }
                 break;
             }
 
@@ -169,7 +208,7 @@ void control_buttons_handle(State *state, Button button) {
                         state->speed_control.pedal_control.target_value = 0;
                     }
                 } else {
-                    next_screen((int *) &state->display.subscreen.speed, SubScreenSpeed_MAX_VALUE);
+                    next_option((int *) &state->display.subscreen.speed, SubScreenSpeed_MAX_VALUE);
                 }
             }
             break;
@@ -182,6 +221,18 @@ void control_buttons_handle(State *state, Button button) {
             if (state->display.current_screen == Screen_Actions) {
                 state->display.current_screen = Screen_Menu;
                 state->display.actions_option_selection = 0;
+                break;
+            }
+            if (state->display.current_screen == Screen_PidConfig) {
+                if (state->display.subscreen.pid_config == SubScreenPidConfig_Select) {
+                    state->display.current_screen = Screen_Actions;
+                } else if (state->display.subscreen.pid_config == SubScreenPidConfig_Edit) {
+                    if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Factor) {
+                        state->display.subscreen.pid_config = SubScreenPidConfig_Select;
+                    } else if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Apply) {
+                        previous_option((int *) &state->display.pid_config.edit_selection, PidConfigScreenOptionsEditField_MAX_VALUE);
+                    }
+                }
                 break;
             }
             if (state->display.current_screen == Screen_ActivateDiagnostics) {
