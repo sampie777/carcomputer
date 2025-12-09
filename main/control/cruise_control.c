@@ -66,12 +66,12 @@ void cruise_control_apply_pid(State *state) {
                 state->speed_control.cruise_control.integral *= 0.8;
             }
         } else if (state->speed_control.cruise_control.speed_limiter_type == CruiseControlSpeedLimiterType_Discrete) {
-            state->speed_control.virtual_gas_pedal -= 0.01;
+            state->speed_control.virtual_gas_pedal -= 0.015;
             if (state->speed_control.cruise_control.integral > 0) {
-                state->speed_control.cruise_control.integral -= 10 * state->speed_control.cruise_control.pidKi;
+                state->speed_control.cruise_control.integral -= (double) 1000000000 * state->speed_control.cruise_control.pidKi;
             }
             if (error < -2 * CRUISE_CONTROL_MAX_SPEED_OVERSHOOT) {
-                state->speed_control.virtual_gas_pedal -= 0.02;
+                state->speed_control.virtual_gas_pedal -= 0.1;
                 state->speed_control.cruise_control.integral -= 10 * state->speed_control.cruise_control.pidKi;
             }
         }
