@@ -13,6 +13,30 @@
 #include "../../../control/cruise_control.h"
 
 
+void display_general_info(State *state, SH1106Config *display, int x, int y) {
+    char buffer[32];
+    switch (state->car.estimated_gear) {
+        case GearNeutral:
+            sprintf(buffer, "N");
+            break;
+        case GearReverse:
+            sprintf(buffer, "R");
+            break;
+        default:
+            snprintf(buffer, sizeof buffer, "%d", state->car.estimated_gear);
+    }
+    sh1106_draw_string(display, x, y, FONT_MEDIUM, FONT_WHITE, buffer);
+
+
+    x = 25;
+    sprintf(buffer, "%.2f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
+    sh1106_draw_string(display, x, y, FONT_SMALL, FONT_WHITE, buffer);
+    y += 10;
+    double minPer100Km = 100 / state->car.speed * 60;
+    sprintf(buffer, "%.0f min/100km", minPer100Km);
+    sh1106_draw_string(display, x, y, FONT_SMALL, FONT_WHITE, buffer);
+}
+
 void content_cruise_control(State *state, SH1106Config *display) {
     int offset_x = 5;
     int offset_y = STATUS_BAR_HEIGHT + 10;
@@ -27,23 +51,7 @@ void content_cruise_control(State *state, SH1106Config *display) {
 
     offset_y += 8 * FONT_LARGE + 2;
     offset_x = 5;
-
-    switch (state->car.estimated_gear) {
-        case GearNeutral:
-            sprintf(buffer, "N");
-            break;
-        case GearReverse:
-            sprintf(buffer, "R");
-            break;
-        default:
-            snprintf(buffer, sizeof buffer, "%d", state->car.estimated_gear);
-    }
-    sh1106_draw_string(display, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
-
-
-    offset_x = 25;
-    sprintf(buffer, "%.2f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
-    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    display_general_info(state, display, offset_x, offset_y);
 
     if (!state->speed_control.cruise_control.enabled) return;
 
@@ -131,23 +139,7 @@ void content_pedal_control(State *state, SH1106Config *display) {
 
     offset_y += 8 * FONT_LARGE + 2;
     offset_x = 5;
-
-    switch (state->car.estimated_gear) {
-        case GearNeutral:
-            sprintf(buffer, "N");
-            break;
-        case GearReverse:
-            sprintf(buffer, "R");
-            break;
-        default:
-            snprintf(buffer, sizeof buffer, "%d", state->car.estimated_gear);
-    }
-    sh1106_draw_string(display, offset_x, offset_y, FONT_MEDIUM, FONT_WHITE, buffer);
-
-
-    offset_x = 25;
-    sprintf(buffer, "%.2f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
-    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+    display_general_info(state, display, offset_x, offset_y);
 
     if (!state->speed_control.pedal_control.enabled) return;
 

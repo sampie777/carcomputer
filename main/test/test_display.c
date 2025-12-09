@@ -68,6 +68,7 @@ void test_display_cruisecontrol() {
     }
 
     video_render(1000 / STEP);
+    video_display_update();
 }
 
 void test_display_sms() {
