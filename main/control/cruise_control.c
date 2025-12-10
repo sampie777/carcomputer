@@ -57,22 +57,22 @@ void cruise_control_apply_pid(State *state) {
     // Prevent over shooting after overshooting 1.5 km/h too fast
     if (error < -1 * CRUISE_CONTROL_MAX_SPEED_OVERSHOOT) {
         if (state->speed_control.cruise_control.speed_limiter_type == CruiseControlSpeedLimiterType_Proportional) {
-            state->speed_control.virtual_gas_pedal *= 0.85;
+            state->speed_control.virtual_gas_pedal *= 0.9;
             if (state->speed_control.cruise_control.integral > 0) {
-                state->speed_control.cruise_control.integral *= 0.75;
+                state->speed_control.cruise_control.integral *= 0.85;
             }
             if (error < -2 * CRUISE_CONTROL_MAX_SPEED_OVERSHOOT) {
                 state->speed_control.virtual_gas_pedal *= 0.7;
                 state->speed_control.cruise_control.integral *= 0.8;
             }
         } else if (state->speed_control.cruise_control.speed_limiter_type == CruiseControlSpeedLimiterType_Discrete) {
-            state->speed_control.virtual_gas_pedal -= 0.015;
+            state->speed_control.virtual_gas_pedal -= 0.003;
             if (state->speed_control.cruise_control.integral > 0) {
-                state->speed_control.cruise_control.integral -= (double) 1000000000 * state->speed_control.cruise_control.pidKi;
+                state->speed_control.cruise_control.integral -= (double) 500000000 * state->speed_control.cruise_control.pidKi;
             }
             if (error < -2 * CRUISE_CONTROL_MAX_SPEED_OVERSHOOT) {
-                state->speed_control.virtual_gas_pedal -= 0.1;
-                state->speed_control.cruise_control.integral -= 10 * state->speed_control.cruise_control.pidKi;
+                state->speed_control.virtual_gas_pedal -= 0.01;
+                state->speed_control.cruise_control.integral -= 1000000000 * state->speed_control.cruise_control.pidKi;
             }
         }
     }
