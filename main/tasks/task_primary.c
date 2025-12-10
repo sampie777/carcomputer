@@ -30,10 +30,10 @@ void init(State *state) {
     control_init(state);
     state->boot.progress++;
 
-    a9g_init(state);
+    // a9g_init(state);
     state->boot.progress++;
 
-    data_logger_init(state);
+    // data_logger_init(state);
     state->boot.progress++;
 
     state->boot.is_booting = false;
@@ -68,9 +68,9 @@ _Noreturn void task_primary(void *args) {
             control_cruise_control(state);
         }
         control_mpu_power(state);
-        a9g_process(state);
+        // a9g_process(state);
         control_process_car(state);
-        data_logger_process(state);
+        // data_logger_process(state);
         control_run_diagnostics_activation(state);
         control_manage_car_lock(state);
     }

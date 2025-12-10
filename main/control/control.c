@@ -45,7 +45,6 @@ void control_read_user_input(State *state) {
 
     Button button = buttons_get_pressed(&state->buttons, &state->motion);
     control_buttons_handle(state, button);
-    //    control_buttons_handle_pid_config(state, button);
 }
 
 void control_cruise_control(State *state) {
