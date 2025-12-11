@@ -131,9 +131,9 @@ typedef struct {
 } CruiseControlGraphState;
 
 typedef enum {
+    CruiseControlSpeedLimiterType_Amplified,
     CruiseControlSpeedLimiterType_Proportional,
     CruiseControlSpeedLimiterType_Discrete,
-    CruiseControlSpeedLimiterType_Amplified,
     CruiseControlSpeedLimiterType_None,
     CruiseControlSpeedLimiterType_MAX_VALUE,
 } CruiseControlSpeedLimiterType;

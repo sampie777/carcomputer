@@ -52,7 +52,7 @@ void cruise_control_apply_pid(State *state) {
 
     if (state->speed_control.cruise_control.speed_limiter_type == CruiseControlSpeedLimiterType_Amplified) {
         if (error < 0) {
-            error *= 2;
+            error *= 3;
         }
     }
 
