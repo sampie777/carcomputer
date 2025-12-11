@@ -50,6 +50,12 @@ void cruise_control_apply_pid(State *state) {
     // Calculate PID
     double error = state->speed_control.cruise_control.target_speed - state->car.speed;
 
+    if (state->speed_control.cruise_control.speed_limiter_type == CruiseControlSpeedLimiterType_Amplified) {
+        if (error < 0) {
+            error *= 2;
+        }
+    }
+
     state->speed_control.cruise_control.error = error;
     state->speed_control.cruise_control.integral = previous_integral + error * (double) iteration_time;
     state->speed_control.cruise_control.derivative = (error - previous_error) / (double) iteration_time;
