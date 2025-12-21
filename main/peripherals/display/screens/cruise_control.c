@@ -32,7 +32,8 @@ void display_general_info(State *state, SH1106Config *display, int x, int y) {
     sprintf(buffer, "%.2f m/s%c", state->car.acceleration, SPECIAL_CHAR_POWER2);
     sh1106_draw_string(display, x, y, FONT_SMALL, FONT_WHITE, buffer);
     y += 10;
-    double minPer100Km = 100 / state->car.speed * 60;
+
+    double minPer100Km = state->car.speed < 7 ? INFINITY : 100 / state->car.speed * 60;
     sprintf(buffer, "%.0f min/100km", minPer100Km);
     sh1106_draw_string(display, x, y, FONT_SMALL, FONT_WHITE, buffer);
 }
