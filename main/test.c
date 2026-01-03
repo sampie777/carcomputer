@@ -6,8 +6,9 @@
 
 
 int main(void) {
+    test_display_aboutcar();
     // test_cruise_control();
-    test_display_cruisecontrol();
+    // test_display_cruisecontrol();
     // test_display_lock_car();
     // test_display_cruisecontrol_subscreen_graph();
     // test_display_cruisecontrol_subscreen_eta();

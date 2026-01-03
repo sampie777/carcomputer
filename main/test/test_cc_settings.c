@@ -20,29 +20,6 @@
 #include "../control/buttons.h"
 #include "utils/video.h"
 
-bool next_button(int loop) {
-    static int index = 0;
-    static int last_executed_index = -1;
-    static int last_time = 300;
-    static int last_loop = -1;
-
-    // Detect loop iteration start
-    if (last_loop < loop) index = 0;
-    last_loop = loop;
-
-    // Only execute each 200 ms
-    if (index == 0 && last_time + 200 > esp_timer_get_time_ms()) return false;
-    last_time = esp_timer_get_time_ms();
-
-    if (index == last_executed_index + 1) {
-        last_executed_index = index;
-        index = 0;  // Prevent further iterations
-        return true;
-    }
-
-    index++;
-    return false;
-}
 
 void test_cc_settings_screen() {
     State state = {0};

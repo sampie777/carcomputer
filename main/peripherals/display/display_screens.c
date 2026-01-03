@@ -454,9 +454,18 @@ void content_activate_diagnostics(const State *state, SH1106Config *display) {
 
 void content_about(const State *state, SH1106Config *display) {
     int offset_x = 0;
-    int offset_y = STATUS_BAR_HEIGHT + 5;
+    int offset_y = STATUS_BAR_HEIGHT + 4;
     char buffer[64];
 
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "By: Samuel-Anton Jansen");
+
+    offset_y += 10;
+    char runtime[32];
+    format_time(esp_timer_get_time_ms(), runtime);
+    sprintf(buffer, "Runtime: %s", runtime);
+    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+
+    offset_y += 10;
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, "SD card file:");
     offset_y += 9;
 
@@ -475,15 +484,10 @@ void content_about(const State *state, SH1106Config *display) {
         sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
     }
 
-    offset_y += 9;
+    offset_y += 10;
     sprintf(buffer, "Session ID: %lu", state->logging_session_id);
     sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
-    offset_y += 12;
-    char runtime[32];
-    format_time(esp_timer_get_time_ms(), runtime);
-    sprintf(buffer, "Runtime: %s", runtime);
-    sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 }
 
 void content_about_cruise_control(const State *state, SH1106Config *display) {
