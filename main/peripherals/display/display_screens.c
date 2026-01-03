@@ -595,9 +595,6 @@ void content_pid_config(const State *state, SH1106Config *display) {
         case CruiseControlSpeedLimiterType_Proportional:
             snprintf(buffer, sizeof buffer, "Limiter: Proportional");
             break;
-        case CruiseControlSpeedLimiterType_Discrete:
-            snprintf(buffer, sizeof buffer, "Limiter: Discrete");
-            break;
         case CruiseControlSpeedLimiterType_Amplified:
             snprintf(buffer, sizeof buffer, "Limiter: Amplified");
             break;

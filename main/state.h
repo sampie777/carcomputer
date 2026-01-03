@@ -133,7 +133,6 @@ typedef struct {
 typedef enum {
     CruiseControlSpeedLimiterType_Amplified,
     CruiseControlSpeedLimiterType_Proportional,
-    CruiseControlSpeedLimiterType_Discrete,
     CruiseControlSpeedLimiterType_None,
     CruiseControlSpeedLimiterType_MAX_VALUE,
 } CruiseControlSpeedLimiterType;

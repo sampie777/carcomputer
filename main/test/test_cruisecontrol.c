@@ -29,7 +29,7 @@ void test_cruise_control(void) {
     state.speed_control.cruise_control.pidKp = CRUISE_CONTROL_PID_Kp;
     state.speed_control.cruise_control.pidKi = CRUISE_CONTROL_PID_Ki;
     state.speed_control.cruise_control.pidKd = CRUISE_CONTROL_PID_Kd;
-    state.speed_control.cruise_control.speed_limiter_type = CruiseControlSpeedLimiterType_Discrete;
+    state.speed_control.cruise_control.speed_limiter_type = CruiseControlSpeedLimiterType_Proportional;
     state.device_name = "Default";
     state.location.time.timezone = 2; // GMT+2
     state.motion.bias.x = 1.1;
