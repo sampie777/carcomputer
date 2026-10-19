@@ -48,14 +48,16 @@ void show_error_message(State *state, SH1106Config *display) {
         // Get first error
         uint32_t new_error = 0;
         for (int i = 0; i < sizeof(state->errors) * 8; i++) {
-            if (state->errors >> i == 1) {
+            if ((state->errors >> i) & 1) {
                 new_error = 1 << i;
                 break;
             }
         }
 
         // Reset error
-        state->errors &= ~new_error;
+        if (new_error != 0) {
+            reset_error(state, new_error);
+        }
 
         if (new_error == 0 || new_error == current_error_to_show) {
             last_error_message_time = 0;
@@ -332,10 +334,6 @@ void check_if_was_disconnected(SH1106Config *display) {
 }
 
 void display_update(State *state) {
-    static int64_t last_update_time = 0;
-    if (esp_timer_get_time_ms() < last_update_time + DISPLAY_UPDATE_MIN_INTERVAL) return;
-    last_update_time = esp_timer_get_time_ms();
-
     check_if_was_disconnected(&sh1106_config);
 
     set_current_screen(state);
