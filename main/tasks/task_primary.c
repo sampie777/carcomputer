@@ -14,14 +14,11 @@
 #include "../peripherals/adc.h"
 
 void init(State *state) {
-    state->boot.max_progress = 6;
+    state->boot.max_progress = 5;
     state->boot.max_progress += SD_FILE_SEARCH_MIN_POWER;
     state->boot.progress = 0;
 
     adc_oneshot_init();
-    state->boot.progress++;
-
-    i2c_init();
     state->boot.progress++;
 
     spi_init(state);
@@ -51,8 +48,6 @@ _Noreturn void task_primary(void *args) {
 
     int64_t last_time = 0;
     while (1) {
-        wdt_feed(CONFIG_ESP_TASK_WDT_TIMEOUT_S * 1000);
-
         if (esp_timer_get_time_ms() > last_time + 1000) {
             last_time = esp_timer_get_time_ms();
         }
@@ -73,6 +68,8 @@ _Noreturn void task_primary(void *args) {
         // data_logger_process(state);
         control_run_diagnostics_activation(state);
         control_manage_car_lock(state);
+
+        vTaskDelay(1);
     }
 
     vTaskDelete(NULL);

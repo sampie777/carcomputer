@@ -8,6 +8,12 @@
 #include "../config.h"
 
 void i2c_init() {
+    static bool initialized = false;
+    if (initialized) {
+        return;
+    }
+    initialized = true;
+
     i2c_config_t i2c_config = {
         .mode = I2C_MODE_MASTER,
         .sda_io_num = MAIN_I2C_SDA_PIN,
