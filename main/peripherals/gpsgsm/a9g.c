@@ -34,19 +34,22 @@ void debug_print_message_log() {
 }
 
 void a9g_log_message(const char *message) {
+    if (message == NULL) return;
     // Ignore battery messages
     if (starts_with(message, "+CIEV")) return;
 
     if (message_log_length >= MESSAGE_LOG_MAX_LENGTH) {
         // Shift all messages one up
         for (int i = 0; i < MESSAGE_LOG_MAX_LENGTH - 1; i++) {
-            strcpy(message_log[i], message_log[i + 1]);
+            strncpy(message_log[i], message_log[i + 1], MESSAGE_MAX_LENGTH - 1);
+            message_log[i][MESSAGE_MAX_LENGTH - 1] = '\0';
             message_log_timestamps[i] = message_log_timestamps[i + 1];
         }
         message_log_length = MESSAGE_LOG_MAX_LENGTH - 1;
     }
 
-    strcpy(message_log[message_log_length], message);
+    strncpy(message_log[message_log_length], message, MESSAGE_MAX_LENGTH - 1);
+    message_log[message_log_length][MESSAGE_MAX_LENGTH - 1] = '\0';
     message_log_timestamps[message_log_length] = esp_timer_get_time_ms();
     message_log_length++;
 
@@ -90,17 +93,27 @@ void a9g_receive(A9GState *state) {
     if (!xQueueReceive(uart_queue, &event, 0)) return;
 
     // Read data from UART
-    char *data = malloc(A9G_UART_BUFFER_SIZE);
+    char *data = malloc(A9G_UART_BUFFER_SIZE + 1);
+    if (data == NULL) return;
     switch (event.type) {
         case UART_DATA:
-            memset(data, 0, A9G_UART_BUFFER_SIZE); // Clear buffer
+            memset(data, 0, A9G_UART_BUFFER_SIZE + 1); // Clear buffer
             uart_read_bytes(GPSGSM_UART_NUMBER, data, event.size, portMAX_DELAY);
+            data[event.size] = '\0';
             // printf("[uart] Received data: %s with length %d / %d\n", data, event.size, strlen(data));
             break;
+        case UART_FIFO_OVF:
+        case UART_BUFFER_FULL:
+            uart_flush_input(GPSGSM_UART_NUMBER);
+            xQueueReset(uart_queue);
+            free(data);
+            return;
         case UART_BREAK:
-            break;
+            free(data);
+            return;
         default:
             printf("[uart] unhandled event: %d %s\n", event.type, uart_type_to_string(event.type));
+            free(data);
             return;
     }
 

@@ -198,7 +198,7 @@ void control_crash_detection(State *state) {
     char *number = strtok(numbers, ";");
     while (number != NULL) {
         printf("[LOG] control_crash_detection sending message\n");
-        gsm_send_sms(number, message);
+        gsm_send_sms(&state->gsm, number, message);
         number = strtok(NULL, ";");
     }
 #else
