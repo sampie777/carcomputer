@@ -9,6 +9,7 @@
 #include "font.h"
 #include "sh1106_i2c.h"
 #include "../../utils.h"
+#include "../../return_codes.h"
 
 
 uint8_t **scale_data(const uint8_t *data, int data_length, int scale, int *scaled_data_cols, int *scaled_data_rows) {
@@ -76,18 +77,21 @@ void sh1106_draw_byte(SH1106Config *config, int x, int y, unsigned char data, Fo
     if (x < 0 || x >= config->width) return;
     if (y < -7 || y >= config->height) return;
 
+    int total_rows = config->height >> 5;
     int top_row = y >> 5;
     int bottom_row = top_row + 1;
     int char_y = y >= 0 ? y % 32 : 32 + (y % 32);
     int char_y_overflow = 32 - char_y;
 
     if (color == FONT_BLACK) {
-        config->buffer[top_row][x] &= ~(data << char_y);
-        if (bottom_row < (config->height >> 5) && char_y_overflow <= 8)
+        if (top_row >= 0 && top_row < total_rows)
+            config->buffer[top_row][x] &= ~(data << char_y);
+        if (bottom_row >= 0 && bottom_row < total_rows && char_y_overflow <= 8)
             config->buffer[bottom_row][x] &= ~(data >> char_y_overflow);
     } else {
-        config->buffer[top_row][x] |= data << char_y;
-        if (bottom_row < (config->height >> 5) && char_y_overflow <= 8)
+        if (top_row >= 0 && top_row < total_rows)
+            config->buffer[top_row][x] |= data << char_y;
+        if (bottom_row >= 0 && bottom_row < total_rows && char_y_overflow <= 8)
             config->buffer[bottom_row][x] |= data >> char_y_overflow;
     }
 }
@@ -129,26 +133,20 @@ void sh1106_draw_char(SH1106Config *config, int x, int y, FontSize size, FontCol
  */
 int sh1106_draw_string_with_spacing(SH1106Config *config, int x, int y, FontSize size, FontColor color,
                                     const uint8_t *c, int text_spacing) {
-    int letter_spacing = 0;
-    for (int i = 0; i < strlen((char *) c); i++) {
-        // If current char starts with empty space, move it a bit to the left
-        if (font[c[i] * font_width] == 0x00) {
-            letter_spacing--;
+    int length = (int) strlen((const char *) c);
+    int offset_x = 0;
+
+    for (int i = 0; i < length; i++) {
+        // Special chars
+        if (c[i] == 0xC2 || c[i] == 0xC3) {
+            continue;
         }
 
-        sh1106_draw_char(config, x + i * font_width * (int) size + letter_spacing * (int) size, y, size, color, c[i]);
-
-        // If current char does not end with empty space, move the next char a bit to the right
-        if (font[c[i] * font_width + font_width - 1] != 0x00) {
-            letter_spacing++;
-        }
-
-        if (text_spacing != 0 && i < strlen((char *) c) - 1) {
-            letter_spacing += text_spacing;
-        }
+        sh1106_draw_char(config, x + offset_x, y, size, color, c[i]);
+        offset_x += (font_width + text_spacing) * size;
     }
 
-    return (int) strlen((char *) c) * font_width * (int) size + letter_spacing * (int) size;
+    return offset_x;
 }
 
 /**
@@ -194,22 +192,31 @@ void sh1106_draw_vertical_line(SH1106Config *config, int x, int y, int length) {
         return;
     }
 
-    int top_row = y >> 5;
-    int bottom_row = (y + length) >> 5;
+    int start_y = y < 0 ? 0 : y;
+    int end_y = y + length - 1;
+    if (start_y >= config->height || end_y < 0) {
+        return;
+    }
+    if (end_y >= config->height) {
+        end_y = config->height - 1;
+    }
+
+    int top_row = start_y >> 5;
+    int bottom_row = end_y >> 5;
+    int total_rows = config->height >> 5;
 
     for (int row = top_row; row <= bottom_row; row++) {
-        if (row < 0 || row >= (config->height >> 5)) {
+        if (row < 0 || row >= total_rows) {
             continue;
         }
 
-        uint32_t mask = 0xffffffff;
+        int row_start_y = row << 5;
+        int start_bit = max(0, start_y - row_start_y);
+        int end_bit = min(31, end_y - row_start_y);
+        int bit_count = end_bit - start_bit + 1;
+        if (bit_count <= 0) continue;
 
-        if (row == top_row) {
-            mask &= 0xffffffff << y % 32;
-        }
-        if (row == bottom_row) {
-            mask &= 0xffffffff >> (32 - (y + length) % 32);
-        }
+        uint32_t mask = (bit_count == 32) ? 0xffffffffU : (((1U << bit_count) - 1) << start_bit);
         config->buffer[row][x] |= mask;
     }
 }
@@ -279,9 +286,25 @@ void sh1106_draw_icon(SH1106Config *config, int x, int y, const unsigned char *i
 int sh1106_init(SH1106Config *config) {
     printf("[sh1106] Initializing...\n");
 
-    config->buffer = malloc((config->height >> 5) * sizeof(uint32_t *));
-    for (int i = 0; i < config->height >> 5; i++) {
-        config->buffer[i] = malloc(config->width * sizeof(uint32_t));
+    int num_rows = config->height >> 5;
+    if (config->buffer == NULL) {
+        config->buffer = malloc(num_rows * sizeof(uint32_t *));
+        if (config->buffer == NULL) {
+            printf("[sh1106] Failed to allocate row pointers\n");
+            return RESULT_FAILED;
+        }
+        for (int i = 0; i < num_rows; i++) {
+            config->buffer[i] = malloc(config->width * sizeof(uint32_t));
+            if (config->buffer[i] == NULL) {
+                printf("[sh1106] Failed to allocate row %d\n", i);
+                for (int j = 0; j < i; j++) {
+                    free(config->buffer[j]);
+                }
+                free(config->buffer);
+                config->buffer = NULL;
+                return RESULT_FAILED;
+            }
+        }
     }
 
     int result = sh1106_i2c_init(config);
