@@ -133,7 +133,7 @@ void control_buttons_handle(State *state, Button button) {
                     previous_option((int *) &state->display.pid_config.selected_type, PidConfigScreenOptionsType_MAX_VALUE);
                 } else if (state->display.subscreen.pid_config == SubScreenPidConfig_Edit) {
                     if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Factor) {
-                        state->display.pid_config.factor++;
+                        if (state->display.pid_config.factor < 2) state->display.pid_config.factor++;
                     } else if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Apply) {
                         cruise_control_config_apply_factor(state, 1);
                     }
@@ -185,7 +185,7 @@ void control_buttons_handle(State *state, Button button) {
                     next_option((int *) &state->display.pid_config.selected_type, PidConfigScreenOptionsType_MAX_VALUE);
                 } else if (state->display.subscreen.pid_config == SubScreenPidConfig_Edit) {
                     if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Factor) {
-                        state->display.pid_config.factor--;
+                        if (state->display.pid_config.factor > -6) state->display.pid_config.factor--;
                     } else if (state->display.pid_config.edit_selection == PidConfigScreenOptionsEditField_Apply) {
                         cruise_control_config_apply_factor(state, -1);
                     }
