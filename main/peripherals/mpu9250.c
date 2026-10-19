@@ -90,13 +90,13 @@ int request_register(uint8_t address, uint8_t reg) {
     i2c_master_stop(command);
 
     esp_err_t result = i2c_master_cmd_begin(MAIN_I2C_PORT, command, I2C_TIMEOUT_MS / portTICK_PERIOD_MS);
+    i2c_cmd_link_delete(command);
     if (result != ESP_OK) {
         printf("[mpu9250] I2C request register transmission failed: 0x%03x %s\n", result, esp_err_to_name(result));
 
         if (result == ESP_ERR_TIMEOUT) return RESULT_DISCONNECTED;
         return RESULT_FAILED;
     }
-    i2c_cmd_link_delete(command);
     return RESULT_OK;
 }
 
@@ -150,7 +150,7 @@ void calculate_vector(MotionState *state, Vector3Spherical *vector, double x, do
 }
 
 void mpu9250_read_motion(State *state) {
-    request_register(MOTION_SENSOR_I2C_ADDRESS, MPU9250_REGISTER_ACCEL_XOUT_H);
+    if (request_register(MOTION_SENSOR_I2C_ADDRESS, MPU9250_REGISTER_ACCEL_XOUT_H) != RESULT_OK) return;
 
     uint8_t accel_data[6];
     uint8_t temperature_data[2];
@@ -214,7 +214,7 @@ Vector3 compensateMagnetometer(Vector3 compass, Vector3 accel) {
 void mpu9250_read_compass(State *state) {
     if (!state->motion.has_compass) return;
 
-    request_register(COMPASS_SENSOR_I2C_ADDRESS, AK8963_REGISTER_ST1);
+    if (request_register(COMPASS_SENSOR_I2C_ADDRESS, AK8963_REGISTER_ST1) != RESULT_OK) return;
 
     uint8_t status1;
     uint8_t data[6];
@@ -275,17 +275,22 @@ void mpu9250_read_compass(State *state) {
 
 void mpu9250_read(State *state) {
     static int64_t last_read_time = 0;
+    static int64_t last_init_time = 0;
 
     if (esp_timer_get_time_ms() < last_read_time + MOTION_SENSOR_READ_INTERVAL_MS) return;
     last_read_time = esp_timer_get_time_ms();
 
     if (!state->motion.connected) {
-        mpu9250_init(state);
+        if (esp_timer_get_time_ms() > last_init_time + 3000) {
+            last_init_time = esp_timer_get_time_ms();
+            mpu9250_init(state);
+        }
         return;
     }
 
     if (mpu9250_get_whois() == -1) {
         state->motion.connected = false;
+        last_init_time = esp_timer_get_time_ms();
         return;
     }
     state->motion.connected = true;
