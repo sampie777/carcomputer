@@ -34,19 +34,16 @@ void string_char_replace(char *source, char needle, char replacement) {
 }
 
 void string_char_remove(char **source, char needle) {
-    char *out = malloc(strlen(*source) + 1);
-    int out_size = 0;
-
-    // Copy over string without needle
-    for (int i = 0; i < strlen(*source) + 1; i++) {
-        if ((*source)[i] == needle) continue;
-        out[out_size++] = (*source)[i];
+    if (source == NULL || *source == NULL) return;
+    char *src = *source;
+    char *dst = *source;
+    while (*src != '\0') {
+        if (*src != needle) {
+            *dst++ = *src;
+        }
+        src++;
     }
-
-    // Put new value back into original string
-    *source = malloc(out_size + 1);
-    strcpy(*source, out);
-    free(out);
+    *dst = '\0';
 }
 
 void string_strip_char(char **input, const char needle) {
@@ -76,13 +73,20 @@ void string_strip_char(char **input, const char needle) {
 }
 
 void string_escape(const char *input, char **destination) {
+    if (input == NULL || destination == NULL) return;
     size_t escaped_size = 0;
     size_t input_size = strlen(input);
     *destination = malloc(input_size + 1);
+    if (*destination == NULL) return;
 
     for (int i = 0; i < input_size; i++) {
         if (input[i] == '"') {
-            *destination = realloc(*destination, input_size + escaped_size + 2);
+            char *new_ptr = realloc(*destination, input_size + escaped_size + 2);
+            if (new_ptr == NULL) {
+                (*destination)[i + escaped_size] = '\0';
+                return;
+            }
+            *destination = new_ptr;
             (*destination)[i + escaped_size] = '\\';
             escaped_size++;
         }
@@ -93,7 +97,7 @@ void string_escape(const char *input, char **destination) {
 
 void set_error(State *state, uint32_t error_code) {
     static uint32_t previous_errors = 0;
-    state->errors |= error_code;
+    __atomic_fetch_or(&state->errors, error_code, __ATOMIC_SEQ_CST);
 
     if (state->errors != previous_errors) {
         // Only print this once
@@ -132,7 +136,7 @@ void set_error(State *state, uint32_t error_code) {
 }
 
 void reset_error(State *state, uint32_t error_code) {
-    state->errors &= ~error_code;
+    __atomic_fetch_and(&state->errors, ~error_code, __ATOMIC_SEQ_CST);
 }
 
 void invert_array(const uint8_t *array, uint8_t *output_array, int length) {
@@ -142,17 +146,19 @@ void invert_array(const uint8_t *array, uint8_t *output_array, int length) {
 }
 
 void convert_to_base_26(uint32_t input, char *output, size_t max_length) {
+    if (output == NULL || max_length == 0) return;
     memset(output, '\0', max_length);
 
     uint32_t temp = input;
-    int i = 0;
+    size_t i = 0;
 
-    while (temp > 0 && i <= max_length - 1) {
+    while (temp > 0 && i < max_length - 1) {
         uint32_t digit_value = temp % 26;
         temp = temp / 26;
         // Start char at ascii A
         output[i++] = (char) (digit_value + 65);
     }
+    output[i] = '\0';
 }
 
 double scale(double value, double min, double max) {
