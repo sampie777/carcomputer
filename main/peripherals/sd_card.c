@@ -13,7 +13,6 @@
 #include "../return_codes.h"
 #include "../utils.h"
 
-#define SD_DIRECTORY_MAX_LENGTH (32)
 #define MOUNT_POINT "/sdcard"
 static const char *TAG = "SD";
 const char mount_point[] = MOUNT_POINT;
@@ -98,8 +97,14 @@ void sd_card_close_file() {
 void sd_card_create_directory(const char *directory, char *created_directory) {
     char path[SD_PATH_MAX_LENGTH * 2];
     char directory_safe_name[SD_DIRECTORY_MAX_LENGTH];
-    directory_safe_name[min(SD_DIRECTORY_MAX_LENGTH - 1, strlen(directory))] = '\0';
-    strcpy(directory_safe_name, directory);
+
+    if (directory == NULL || directory[0] == '\0') {
+        directory = "Default";
+    }
+
+    // Allow only for a max device name length of 32 (B2)
+    strncpy(directory_safe_name, directory, SD_DIRECTORY_MAX_LENGTH - 1);
+    directory_safe_name[SD_DIRECTORY_MAX_LENGTH - 1] = '\0';
 
     string_char_replace(directory_safe_name, ' ', '_');
     string_char_replace(directory_safe_name, '"', '_');
@@ -120,7 +125,8 @@ void sd_card_create_directory(const char *directory, char *created_directory) {
         mkdir(path, 0775);
     }
 
-    strcpy(created_directory, directory_safe_name);
+    strncpy(created_directory, directory_safe_name, SD_DIRECTORY_MAX_LENGTH);
+    created_directory[SD_DIRECTORY_MAX_LENGTH - 1] = '\0';
 }
 
 void sd_card_delete_file(const char *file_name) {
@@ -148,7 +154,8 @@ int sd_card_rename_file(char *file_name, const char *new_file_name) {
         return RESULT_FAILED;
     }
 
-    memcpy(file_name, new_file_name, SD_PATH_MAX_LENGTH);
+    strncpy(file_name, new_file_name, SD_PATH_MAX_LENGTH - 1);
+    file_name[SD_PATH_MAX_LENGTH - 1] = '\0';
     return RESULT_OK;
 }
 
@@ -188,8 +195,8 @@ int sd_card_does_filename_exists(const char *directory,
                                  const char *base_file_extension) {
     char path[SD_PATH_MAX_LENGTH * 2];
     char new_file_name[SD_PATH_MAX_LENGTH];
-    sprintf(new_file_name, "%s/%s-%d.%s", directory, base_file_name, i, base_file_extension);
-    sprintf(path, "%s/%s", MOUNT_POINT, new_file_name);
+    snprintf(new_file_name, sizeof(new_file_name), "%s/%s-%d.%s", directory, base_file_name, i, base_file_extension);
+    snprintf(path, sizeof(path), "%s/%s", MOUNT_POINT, new_file_name);
     return access(path, F_OK) == 0;
 }
 
@@ -266,8 +273,21 @@ void list_files_on_sd_card(const char *directory) {
     }
 }
 
+int sd_card_deinit() {
+    sd_card_close_file();
+    if (card != NULL) {
+        esp_vfs_fat_sdcard_unmount(mount_point, card);
+        card = NULL;
+    }
+    return RESULT_OK;
+}
+
 int sd_card_init() {
     printf("[SD] Initializing...\n");
+
+    if (card != NULL) {
+        sd_card_deinit();
+    }
 
     host.max_freq_khz = SDMMC_FREQ_PROBING;
     host.slot = SPI_DEFAULT_HOST;
