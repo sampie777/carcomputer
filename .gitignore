@@ -8,3 +8,4 @@ secrets.h
 test1.csv
 display.bmp
 test_output/
+.DS_Store
