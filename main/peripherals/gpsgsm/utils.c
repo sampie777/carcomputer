@@ -46,13 +46,12 @@ void extract_char(char **source, char *destination, char *delimiter) {
 void extract_string(char **source, char **destination, char *delimiter) {
     char *match = strsep(source, delimiter);
     if (match == NULL) return;
-    char *result = malloc(strlen(*source));
-    sscanf(match, "%s", result);
-    if (destination != NULL) {
-        *destination = malloc(strlen(result));
-        strcpy(*destination, result);
-    }
-    free(result);
+    if (destination == NULL) return;
+
+    *destination = malloc(strlen(match) + 1);
+    if (*destination == NULL) return;
+
+    strcpy(*destination, match);
 }
 
 void extract_hex(char **source, unsigned int *destination, char *delimiter) {
@@ -110,8 +109,11 @@ void extract_GNRMC_message(const char *string, NmeaGNRMCMessage *message) {
 }
 
 int nmea_calculate_checksum(const char *message) {
+    if (message == NULL) return 0;
+    char *start = strstr(message, "$");
+    if (start == NULL) return 0;
     int crc = 0;
-    char *next = strstr(message, "$") + 1;
+    char *next = start + 1;
     while (*next != '*' && *next != '\0') {
         crc ^= *next;
         next++;

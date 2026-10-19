@@ -214,16 +214,27 @@ void cruise_control_step(State *state) {
 }
 
 void cruise_control_config_apply_factor(State *state, int8_t sign) {
-    double value = pow(10, state->display.pid_config.factor) * sign;
+    int factor = state->display.pid_config.factor;
+    if (factor > 2) factor = 2;
+    if (factor < -6) factor = -6;
+    double value = pow(10, factor) * sign;
+    if (!isfinite(value)) return;
+
     switch (state->display.pid_config.selected_type) {
         case PidConfigScreenOptionsType_P:
             state->speed_control.cruise_control.pidKp += value;
+            if (state->speed_control.cruise_control.pidKp < 0 || !isfinite(state->speed_control.cruise_control.pidKp))
+                state->speed_control.cruise_control.pidKp = 0;
             break;
         case PidConfigScreenOptionsType_I:
             state->speed_control.cruise_control.pidKi += value;
+            if (state->speed_control.cruise_control.pidKi < 0 || !isfinite(state->speed_control.cruise_control.pidKi))
+                state->speed_control.cruise_control.pidKi = 0;
             break;
         case PidConfigScreenOptionsType_D:
             state->speed_control.cruise_control.pidKd += value;
+            if (state->speed_control.cruise_control.pidKd < 0 || !isfinite(state->speed_control.cruise_control.pidKd))
+                state->speed_control.cruise_control.pidKd = 0;
             break;
         default:
             break;

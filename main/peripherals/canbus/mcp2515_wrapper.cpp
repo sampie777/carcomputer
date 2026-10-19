@@ -16,10 +16,15 @@ static MCP2515 *mcp2515;
 
 int mcp2515_init(bool listen_only) {
     static bool was_disconnected = false;
+    static bool is_registered = false;
     static spi_device_handle_t spi_handle;
-    spi_register_device(&spi_handle, CANBUS_CHIP_SELECT_PIN);
 
-    mcp2515 = new MCP2515(&spi_handle);
+    if (!is_registered) {
+        spi_register_device(&spi_handle, CANBUS_CHIP_SELECT_PIN);
+        mcp2515 = new MCP2515(&spi_handle);
+        is_registered = true;
+    }
+
     if (mcp2515->reset() != MCP2515::ERROR_OK) {
         // Reduce logging
         if (!was_disconnected) {
@@ -76,8 +81,14 @@ int mcp2515_read_message(CanMessage *message) {
     can_frame frame = {};
     MCP2515::ERROR result = mcp2515->readMessage(&frame);
 
-    if (result == MCP2515::ERROR_NOMSG) return RESULT_EMPTY;
+    if (result == MCP2515::ERROR_NOMSG) {
+        mcp2515->clearERRIF();
+        mcp2515->clearMERR();
+        return RESULT_EMPTY;
+    }
     if (result != MCP2515::ERROR_OK) {
+        mcp2515->clearERRIF();
+        mcp2515->clearMERR();
         printf("CAN readMessage error = ");
         switch (result) {
             case MCP2515::ERROR_FAIL:

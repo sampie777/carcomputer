@@ -4,6 +4,7 @@
 #include "version.h"
 #include "tasks/task_primary.h"
 #include "tasks/task_secondary.h"
+#include "connectivity/i2c.h"
 
 #define PRIMARY_TASK_STACK_SIZE (32000)
 #define SECONDARY_TASK_STACK_SIZE (8000)
@@ -11,6 +12,9 @@
 // Setting up the different tasks
 void app_main(void) {
     printf("APP_VERSION %s\n", APP_VERSION);
+
+    // Install the I2C drivers before any task starts using them (both the primary and secondary task use I2C)
+    i2c_init();
 
     static State state = {0};
     state.boot.is_booting = true;

@@ -472,16 +472,18 @@ void content_about(const State *state, SH1106Config *display) {
     if (strlen(state->storage.filename) < display->width / FONT_SMALL) {
         sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, state->storage.filename);
     } else {
-        int max_string_length = min(sizeof buffer, display->width / FONT_SMALL + 1);
+        int max_string_length = min((int) sizeof(buffer) - 1, display->width / FONT_SMALL + 1);
 
-        strcpy(buffer, state->storage.filename);
+        strncpy(buffer, state->storage.filename, max_string_length);
         buffer[max_string_length] = '\0';
         sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
 
         offset_y += 9;
-        strcpy(buffer, state->storage.filename + max_string_length);
-        buffer[max_string_length] = '\0';
-        sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+        if ((int) strlen(state->storage.filename) > max_string_length) {
+            strncpy(buffer, state->storage.filename + max_string_length, sizeof(buffer) - 1);
+            buffer[sizeof(buffer) - 1] = '\0';
+            sh1106_draw_string(display, offset_x, offset_y, FONT_SMALL, FONT_WHITE, buffer);
+        }
     }
 
     offset_y += 10;

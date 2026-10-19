@@ -3,7 +3,6 @@
 //
 
 #include "data_logger.h"
-#include <bootloader_random.h>
 #include "esp_random.h"
 #include "../error_codes.h"
 #include "../peripherals/sd_card.h"
@@ -11,10 +10,7 @@
 #include "../utils.h"
 
 uint32_t generate_session_id() {
-    bootloader_random_enable();
-    uint32_t id = esp_random();
-    bootloader_random_disable();
-    return id;
+    return esp_random();
 }
 
 char *get_device_name(const State *state) {
@@ -215,8 +211,9 @@ void data_logger_manage_file_name(State *state) {
              time.minutes,
              time.seconds);
 
-    char old_name[strlen(state->storage.filename) + 1];
-    strcpy(old_name, state->storage.filename);
+    char old_name[SD_PATH_MAX_LENGTH];
+    strncpy(old_name, state->storage.filename, sizeof(old_name) - 1);
+    old_name[sizeof(old_name) - 1] = '\0';
 
     // Create new file name
     char *device_name = get_device_name(state);
